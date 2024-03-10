@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 binrw = "0.13.3"
+lazy-regex = "3.1.0"
 obj = { version = "0.10.2", features = ["genmesh"] }
