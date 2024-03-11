@@ -1,5 +1,5 @@
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs
-use std::io::{Read,BufRead};
+use std::io::{BufRead,Read,Seek};
 
 use binrw::BinReaderExt;
 
@@ -38,7 +38,7 @@ pub enum VersionedMesh{
 	//Version7(Mesh7),
 }
 
-pub fn read<R:Read>(mut read:R)->Result<VersionedMesh,Error>{
+pub fn read<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
 	let mut buf=[0u8;12];
 	read.read_exact(&mut buf).map_err(Error::Io)?;
 	match &buf{
@@ -86,20 +86,43 @@ pub struct Mesh1{
 	pub vertices:Vec<Vertex1>
 }
 
-pub fn read_100<R:Read>(read:R)->Result<Mesh1,Error>{
-	let mut mesh=read1(read)?;
-	//we'll fix it in post
+#[inline]
+pub fn fix_100(mesh:&mut Mesh1){
 	for vertex in &mut mesh.vertices{
 		for p in &mut vertex.pos{
 			*p=*p*0.5;
 		}
 	}
-	Ok(mesh)
+}
+#[inline]
+pub fn fix1(mesh:&mut Mesh1){
+	for vertex in &mut mesh.vertices{
+		vertex.tex[1]=1.0-vertex.tex[1];
+	}
+}
+#[inline]
+pub fn check1(mesh:Mesh1)->Result<Mesh1,Error>{
+	if 3*(mesh.header.face_count as usize)==mesh.vertices.len(){
+		Ok(mesh)
+	}else{
+		Err(Error::VertexCount)
+	}
+}
+
+#[inline]
+pub fn read_100<R:Read>(read:R)->Result<Mesh1,Error>{
+	let mut mesh=read1(read)?;
+	//we'll fix it in post
+	fix1(&mut mesh);
+	fix_100(&mut mesh);
+	check1(mesh)
 }
 
 #[inline]
 pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
-	read1(read)
+	let mut mesh=read1(read)?;
+	fix1(&mut mesh);
+	check1(mesh)
 }
 
 pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
@@ -115,46 +138,47 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	Ok(Mesh1{
 		header:Header1{face_count},
 		vertices:std::iter::from_fn(||{
-		//match three at a time, otherwise fail
-		match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
-			(Some(pos_capture),Some(norm_capture),Some(tex_capture))=>Some((||{//use a closure to make errors easier
-				let pos={
-					let pos=pos_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-						f.parse().map_err(Error::ParseFloatError)
-					).collect::<Result<Vec<f32>,Error>>()?;
-					match pos.as_slice(){
-						&[x,y,z]=>[x,y,z],
-						_=>return Err(Error::PositionDimensionNot3(pos.len())),
-					}
-				};
-				let norm={
-					let norm=norm_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-						f.parse().map_err(Error::ParseFloatError)
-					).collect::<Result<Vec<f32>,Error>>()?;
-					match norm.as_slice(){
-						&[x,y,z]=>[x,y,z],
-						_=>return Err(Error::NormalDimensionNot3(norm.len())),
-					}
-				};
-				let tex={
-					let tex=tex_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-						f.parse().map_err(Error::ParseFloatError)
-					).collect::<Result<Vec<f32>,Error>>()?;
-					match tex.as_slice(){
-						&[x,y,w]=>[x,y,w],
-						_=>return Err(Error::TextureCoordsDimensionNot3(tex.len())),
-					}
-				};
-				Ok(Vertex1{
-					pos,
-					norm,
-					tex,
-				})
-			})()),//closure called here
-			(None,None,None)=>None,
-			_=>Some(Err(Error::VertexTripletCount)),
-		}
-	}).collect::<Result<Vec<Vertex1>,Error>>()?})
+			//match three at a time, otherwise fail
+			match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
+				(Some(pos_capture),Some(norm_capture),Some(tex_capture))=>Some((||{//use a closure to make errors easier
+					let pos={
+						let pos=pos_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
+							f.parse().map_err(Error::ParseFloatError)
+						).collect::<Result<Vec<f32>,Error>>()?;
+						match pos.as_slice(){
+							&[x,y,z]=>[x,y,z],
+							_=>return Err(Error::PositionDimensionNot3(pos.len())),
+						}
+					};
+					let norm={
+						let norm=norm_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
+							f.parse().map_err(Error::ParseFloatError)
+						).collect::<Result<Vec<f32>,Error>>()?;
+						match norm.as_slice(){
+							&[x,y,z]=>[x,y,z],
+							_=>return Err(Error::NormalDimensionNot3(norm.len())),
+						}
+					};
+					let tex={
+						let tex=tex_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
+							f.parse().map_err(Error::ParseFloatError)
+						).collect::<Result<Vec<f32>,Error>>()?;
+						match tex.as_slice(){
+							&[x,y,w]=>[x,y,w],
+							_=>return Err(Error::TextureCoordsDimensionNot3(tex.len())),
+						}
+					};
+					Ok(Vertex1{
+						pos,
+						norm,
+						tex,
+					})
+				})()),//closure called here
+				(None,None,None)=>None,
+				_=>Some(Err(Error::VertexTripletCount)),
+			}
+		}).collect::<Result<Vec<Vertex1>,Error>>()?
+	})
 }
 
 #[binrw::binrw]
@@ -224,11 +248,20 @@ struct Mesh2_36{
 }
 
 #[inline]
-pub fn read_200<R:Read>(mut read:R)->Result<Mesh2,Error>{
-	//placeholder code lol
-	let mut buf=Vec::new();
-	read.read_to_end(&mut buf).map_err(Error::Io)?;
-	read2(binrw::io::Cursor::new(buf))
+pub fn fix2(mesh:&mut Mesh2){
+	for vertex in &mut mesh.vertices{
+		match vertex.tangent{
+			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			_=>(),
+		}
+	}
+}
+
+#[inline]
+pub fn read_200<R:Read+Seek>(read:R)->Result<Mesh2,Error>{
+	let mut mesh=read2(read)?;
+	fix2(&mut mesh);
+	Ok(mesh)
 }
 
 pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{

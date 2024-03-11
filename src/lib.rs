@@ -1,7 +1,7 @@
 mod mesh;
 
 #[inline]
-pub fn read<R:std::io::Read>(read:R)->Result<mesh::VersionedMesh,mesh::Error>{
+pub fn read<R:std::io::Read+std::io::Seek>(read:R)->Result<mesh::VersionedMesh,mesh::Error>{
 	mesh::read(read)
 }
 
