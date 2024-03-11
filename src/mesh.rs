@@ -78,8 +78,11 @@ pub struct Vertex1{
 	pub norm:[f32;3],
 	pub tex:[f32;3],
 }
-pub struct Mesh1{
+pub struct Header1{
 	pub face_count:u32,
+}
+pub struct Mesh1{
+	pub header:Header1,
 	pub vertices:Vec<Vertex1>
 }
 
@@ -110,7 +113,7 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut captures_iter=lazy_regex::regex!(r"\[(.*?)\]")
 	.captures_iter(vertices_line.as_str());
 	Ok(Mesh1{
-		face_count,
+		header:Header1{face_count},
 		vertices:std::iter::from_fn(||{
 		//match three at a time, otherwise fail
 		match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
@@ -161,8 +164,8 @@ pub struct Header2{
 	//sizeof_header:u16,//size of this struct...
 	//sizeof_vertex:u8,
 	//sizeof_face:u8,
-	pub num_verts:u32,
-	pub num_faces:u32,
+	pub vertex_count:u32,
+	pub face_count:u32,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -184,9 +187,9 @@ pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 pub struct Mesh2{
 	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	pub header:Header2,
-	#[br(count=header.num_verts)]
+	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
-	#[br(count=header.num_faces)]
+	#[br(count=header.face_count)]
 	pub faces:Vec<Face2>,
 }
 
@@ -198,8 +201,8 @@ struct Header2_36{
 	//sizeof_header:u16,//size of this struct...
 	//sizeof_vertex:u8,
 	//sizeof_face:u8,
-	num_verts:u32,
-	num_faces:u32,
+	vertex_count:u32,
+	face_count:u32,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -214,9 +217,9 @@ struct Vertex2_36{
 struct Mesh2_36{
 	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	header:Header2_36,
-	#[br(count=header.num_verts)]
+	#[br(count=header.vertex_count)]
 	vertices:Vec<Vertex2_36>,
-	#[br(count=header.num_faces)]
+	#[br(count=header.face_count)]
 	faces:Vec<Face2>,
 }
 
@@ -238,8 +241,8 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 			//convert to normal
 			Ok(Mesh2{
 				header:Header2{
-					num_verts:mesh.header.num_verts,
-					num_faces:mesh.header.num_faces,
+					vertex_count:mesh.header.vertex_count,
+					face_count:mesh.header.face_count,
 				},
 				vertices:mesh.vertices.into_iter().map(|v|{
 					Vertex2{
