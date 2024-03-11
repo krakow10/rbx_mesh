@@ -424,6 +424,7 @@ pub enum LodType4
 	Unknown=1,
 	RbxSimplifier=2,
 	ZeuxMeshOptimizer=3,
+	Type4=4,//shows up in sphere.mesh, don't know what it is
 }
 #[binrw::binrw]
 #[brw(little)]
