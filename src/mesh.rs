@@ -73,12 +73,17 @@ impl<R:Read> LineMachine<R>{
 	}
 }
 
+pub enum Revision1{
+	Version100,
+	Version101,
+}
 pub struct Vertex1{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
 	pub tex:[f32;3],
 }
 pub struct Header1{
+	pub revision:Revision1,
 	pub face_count:u32,
 }
 pub struct Mesh1{
@@ -127,8 +132,11 @@ pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
 
 pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
-	//drop version line
-	lines.read_line()?;
+	let revision=match lines.read_line()?.trim(){
+		"version 1.00"=>Revision1::Version100,
+		"version 1.01"=>Revision1::Version101,
+		_=>return Err(Error::Header),
+	};
 	//NumFaces
 	let face_count=lines.read_u32()?;
 	//vertices
@@ -136,7 +144,10 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut captures_iter=lazy_regex::regex!(r"\[(.*?)\]")
 	.captures_iter(vertices_line.as_str());
 	Ok(Mesh1{
-		header:Header1{face_count},
+		header:Header1{
+			revision,
+			face_count,
+		},
 		vertices:std::iter::from_fn(||{
 			//match three at a time, otherwise fail
 			match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
@@ -183,8 +194,16 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+pub enum Revision2{
+	#[brw(magic=b"2.00")]
+	Version200,
+}
+#[binrw::binrw]
+#[brw(little)]
 pub struct Header2{
-	#[brw(magic=b"version 2.00\n\x0C\0\x28\x0C")]
+	#[brw(magic=b"version ")]
+	pub revision:Revision2,
+	#[brw(magic=b"\n\x0C\0\x28\x0C")]
 	//sizeof_header:u16,//12
 	//sizeof_vertex:u8,//40
 	//sizeof_face:u8,//12
@@ -220,7 +239,9 @@ pub struct Mesh2{
 #[binrw::binrw]
 #[brw(little)]
 struct Header2_36{
-	#[brw(magic=b"version 2.00\n\x0C\0\x24\x0C")]
+	#[brw(magic=b"version ")]
+	revision:Revision2,
+	#[brw(magic=b"\n\x0C\0\x24\x0C")]
 	//sizeof_header:u16,//12
 	//sizeof_vertex:u8,//36
 	//sizeof_face:u8,//12
@@ -284,6 +305,7 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 			//convert to normal
 			Ok(Mesh2{
 				header:Header2{
+					revision:mesh.header.revision,
 					vertex_count:mesh.header.vertex_count,
 					face_count:mesh.header.face_count,
 				},
@@ -310,7 +332,6 @@ pub enum Revision3{
 	#[brw(magic=b"3.01")]
 	Version301,
 }
-
 #[binrw::binrw]
 #[brw(little)]
 pub struct Header3{
