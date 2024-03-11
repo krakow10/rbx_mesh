@@ -4,13 +4,23 @@ fn load_mesh(name:&str)->Result<VersionedMesh,Error>{
 }
 #[test]
 fn mesh_100(){
-	load_mesh("meshes/158071912").unwrap();
+	match load_mesh("meshes/158071912").unwrap(){
+		VersionedMesh::Version1(_)=>(),
+		_=>panic!(),
+	}
 }
 #[test]
 fn mesh_200(){
-	load_mesh("meshes/torso.mesh").unwrap();
+	match load_mesh("meshes/torso.mesh").unwrap(){
+		VersionedMesh::Version2(_)=>(),
+		_=>panic!(),
+	}
+}
 }
 #[test]
 fn mesh_401(){
-	load_mesh("meshes/sphere.mesh").unwrap();
+	match load_mesh("meshes/sphere.mesh").unwrap(){
+		VersionedMesh::Version4(_)=>(),
+		_=>panic!(),
+	}
 }
