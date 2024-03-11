@@ -169,7 +169,10 @@ pub struct Vertex2{
 }
 #[binrw::binrw]
 #[brw(little)]
-pub struct Face2(pub u32,pub u32,pub u32);
+pub struct VertexId2(pub u32);
+#[binrw::binrw]
+#[brw(little)]
+pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[binrw::binrw]
 #[brw(little)]
 pub struct Mesh2{
