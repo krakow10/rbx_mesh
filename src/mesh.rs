@@ -268,7 +268,19 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 	match read.read_le(){
 		//read normally
 		Ok(mesh)=>Ok(mesh),
-		Err(binrw::Error::BadMagic{..})=>{
+		Err(e)=>{
+			//devious error matching
+			match &e{
+				binrw::Error::Backtrace(binrw::error::Backtrace{
+					error,
+					frames:_,
+					..
+				})=>match error.as_ref(){
+					binrw::Error::BadMagic{..}=>(),
+					_=>return Err(Error::BinRead(e)),
+				},
+				_=>return Err(Error::BinRead(e)),
+			}
 			//read truncated vertex mesh
 			let mesh:Mesh2_36=read.read_le().map_err(Error::BinRead)?;
 			//convert to normal
@@ -289,7 +301,6 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 				faces:mesh.faces,
 			})
 		},
-		Err(other)=>Err(Error::BinRead(other)),
 	}
 }
 
