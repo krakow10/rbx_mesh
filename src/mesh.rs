@@ -58,7 +58,7 @@ impl<R:Read> LineMachine<R>{
 		}
 	}
 	fn read_usize(&mut self)->Result<usize,Error>{
-		Ok(self.lines.next().ok_or(Error::UnexpectedEof)?.map_err(Error::Io)?.parse().map_err(Error::ParseIntError)?)
+		Ok(self.lines.next().ok_or(Error::UnexpectedEof)?.map_err(Error::Io)?.trim().parse().map_err(Error::ParseIntError)?)
 	}
 	fn read_line(&mut self)->Result<String,Error>{
 		Ok(self.lines.next().ok_or(Error::UnexpectedEof)?.map_err(Error::Io)?)
