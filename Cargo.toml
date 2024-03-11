@@ -5,7 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+#[features]
+#obj = ["dep:obj"]
+
 [dependencies]
 binrw = "0.13.3"
 lazy-regex = "3.1.0"
-obj = { version = "0.10.2", features = ["genmesh"] }
+#obj = { version = "0.10.2", optional = true }

@@ -1,15 +1,15 @@
 mod mesh;
 
 #[inline]
-pub fn convert<R:std::io::Read>(read:R)->Result<obj::ObjData,mesh::Error>{
-	mesh::convert(read)
+pub fn read<R:std::io::Read>(read:R)->Result<mesh::VersionedMesh,mesh::Error>{
+	mesh::read(read)
 }
 
 #[cfg(test)]
 mod test{
 	use super::*;
-	fn load_mesh(name:&str)->Result<obj::ObjData,mesh::Error>{
-		convert(std::fs::File::open(name).map_err(mesh::Error::Io)?)
+	fn load_mesh(name:&str)->Result<mesh::VersionedMesh,mesh::Error>{
+		read(std::fs::File::open(name).map_err(mesh::Error::Io)?)
 	}
 	#[test]
 	fn mesh_100(){
