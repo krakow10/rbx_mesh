@@ -15,4 +15,8 @@ mod test{
 	fn mesh_100(){
 		load_mesh("meshes/158071912").unwrap();
 	}
+	#[test]
+	fn mesh_200(){
+		load_mesh("meshes/torso.mesh").unwrap();
+	}
 }
