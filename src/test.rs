@@ -10,3 +10,7 @@ fn mesh_100(){
 fn mesh_200(){
 	load_mesh("meshes/torso.mesh").unwrap();
 }
+#[test]
+fn mesh_401(){
+	load_mesh("meshes/sphere.mesh").unwrap();
+}
