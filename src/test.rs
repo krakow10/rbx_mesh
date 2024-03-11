@@ -16,10 +16,30 @@ fn mesh_200(){
 		_=>panic!(),
 	}
 }
+#[test]
+fn mesh_300(){
+	match load_mesh("meshes/5115672913").unwrap(){
+		VersionedMesh::Version3(_)=>(),
+		_=>panic!(),
+	}
+}
+#[test]
+fn mesh_301(){
+	match load_mesh("meshes/5648093777").unwrap(){
+		VersionedMesh::Version3(_)=>(),
+		_=>panic!(),
+	}
 }
 #[test]
 fn mesh_401(){
 	match load_mesh("meshes/sphere.mesh").unwrap(){
+		VersionedMesh::Version4(_)=>(),
+		_=>panic!(),
+	}
+}
+#[test]
+fn mesh_401_random_padding(){
+	match load_mesh("meshes/7665777615").unwrap(){
 		VersionedMesh::Version4(_)=>(),
 		_=>panic!(),
 	}
