@@ -31,7 +31,7 @@ impl std::error::Error for Error{}
 pub enum VersionedMesh{
 	Version1(Mesh1),
 	Version2(Mesh2),
-	//Version3(Mesh3),
+	Version3(Mesh3),
 	//Version4(Mesh4),
 	//Version5(Mesh5),
 	//Version6(Mesh6),
@@ -45,8 +45,8 @@ pub fn read<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
 		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(read)?)),
 		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(read)?)),
 		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(read)?)),
-		//b"version 3.00"=>Ok(VersionedMesh::Version3(read_300(read)?)),
-		//b"version 3.01"=>Ok(VersionedMesh::Version3(read_301(read)?)),
+		b"version 3.00"
+		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(read)?)),
 		//b"version 4.00"=>Ok(VersionedMesh::Version4(read_400(read)?)),
 		//b"version 4.01"=>Ok(VersionedMesh::Version4(read_401(read)?)),
 		//b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(read)?)),
@@ -291,4 +291,41 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 		},
 		Err(other)=>Err(Error::BinRead(other)),
 	}
+}
+
+#[binrw::binrw]
+#[brw(little)]
+pub struct Header3{
+	#[brw(magic=b"\x10\0\x28\x0C\x04\0")]//16u16,40u8,12u8,4u16
+	//sizeof_header:u16,//size of this struct...
+	//sizeof_vertex:u8,
+	//sizeof_face:u8,
+	//sizeof_lod:u16,
+	pub lod_count:u16,
+	pub vertex_count:u32,
+	pub face_count:u32,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Lod3(pub u32);
+#[binrw::binrw]
+#[brw(little)]
+pub struct Mesh3{
+	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
+	pub header:Header3,
+	#[br(count=header.vertex_count)]
+	pub vertices:Vec<Vertex2>,
+	#[br(count=header.face_count)]
+	pub faces:Vec<Face2>,
+	#[br(count=header.lod_count)]
+	pub lods:Vec<Lod3>,
+}
+
+#[inline]
+pub fn read_300<R:Read+Seek>(read:R)->Result<Mesh3,Error>{
+	read3(read)
+}
+
+pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
+	read.read_le().map_err(Error::BinRead)
 }
