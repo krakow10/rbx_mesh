@@ -33,7 +33,7 @@ pub enum VersionedMesh{
 	Version2(Mesh2),
 	Version3(Mesh3),
 	Version4(Mesh4),
-	//Version5(Mesh5),
+	Version5(Mesh5),
 	//Version6(Mesh6),
 	//Version7(Mesh7),
 }
@@ -49,7 +49,7 @@ pub fn read<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
 		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(buf_reader)?)),
 		b"version 4.00"
 		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(buf_reader)?)),
-		//b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(buf_reader)?)),
+		b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(buf_reader)?)),
 		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(buf_reader)?)),
 		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(buf_reader)?)),
 		other=>Err(Error::UnknownVersion(other.to_vec())),
@@ -461,5 +461,128 @@ pub fn read_400<R:Read+Seek>(read:R)->Result<Mesh4,Error>{
 }
 
 pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
+	read.read_le().map_err(Error::BinRead)
+}
+
+#[binrw::binrw]
+#[brw(little,repr=u32)]
+pub enum FacsFormat5{
+	Format1=1,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Header5{
+	#[brw(magic=b"version 5.00\n\x20\0")]
+	//sizeof_header:u16,//32=0x0020
+	pub lod_type:LodType4,
+	pub vertex_count:u32,
+	pub face_count:u32,
+	pub lod_count:u16,
+	pub bone_count:u16,
+	pub bone_names_len:u32,
+	pub subset_count:u16,
+	pub lod_hq_count:u8,
+	#[brw(magic=b"\0")]//padding
+	pub facs_format:FacsFormat5,
+	pub sizeof_facs:u32,
+}
+#[binrw::binrw]
+#[brw(little)]
+/// Quantized means interpolated from lerp0 to lerp1 based on [0-65535]
+pub enum QuantizedMatrix{
+	#[brw(magic=1u16)]
+	Raw{
+		x:u32,
+		y:u32,
+		#[br(count=x*y)]
+		matrix:Vec<f32>,
+	},
+	#[brw(magic=2u16)]
+	Quantized{
+		x:u32,
+		y:u32,
+		lerp0:f32,
+		lerp1:f32,
+		#[br(count=x*y)]
+		matrix:Vec<u16>,
+	},
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct QuantizedTransforms{
+	pub px:QuantizedMatrix,
+	pub py:QuantizedMatrix,
+	pub pz:QuantizedMatrix,
+	pub rx:QuantizedMatrix,
+	pub ry:QuantizedMatrix,
+	pub rz:QuantizedMatrix,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct ControlId(pub u16);
+#[binrw::binrw]
+#[brw(little)]
+pub struct TwoPoseCorrective5(pub ControlId,pub ControlId);
+#[binrw::binrw]
+#[brw(little)]
+pub struct ThreePoseCorrective5(pub ControlId,pub ControlId,pub ControlId);
+#[binrw::binrw]
+#[brw(little)]
+pub struct Facs{
+	pub face_bone_names_len:u32,
+	pub face_control_names_len:u32,
+	pub quantized_transforms_len:u64,
+	pub two_pose_correctives_len:u32,
+	pub three_pose_correctives_len:u32,
+	#[br(count=face_bone_names_len)]
+	pub face_bone_names:Vec<u8>,
+	#[br(count=face_control_names_len)]
+	pub face_control_names:Vec<u8>,
+	//is this not a list?
+	pub quantized_transforms:QuantizedTransforms,
+	#[br(count=two_pose_correctives_len as usize/std::mem::size_of::<TwoPoseCorrective5>())]
+	pub two_pose_correctives:Vec<TwoPoseCorrective5>,
+	#[br(count=three_pose_correctives_len as usize/std::mem::size_of::<ThreePoseCorrective5>())]
+	pub three_pose_correctives:Vec<ThreePoseCorrective5>,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Mesh5{
+	pub header:Header5,
+	#[br(count=header.vertex_count)]
+	pub vertices:Vec<Vertex2>,
+	#[br(count=if header.bone_count==0{0}else{header.vertex_count})]
+	pub envelopes:Vec<Envelope4>,
+	#[br(count=header.face_count)]
+	pub faces:Vec<Face2>,
+	#[br(count=header.lod_count)]
+	pub lods:Vec<Lod3>,
+	#[br(count=header.bone_count)]
+	pub bones:Vec<Bone4>,
+	#[br(count=header.bone_names_len)]
+	pub bone_names:Vec<u8>,
+	#[br(count=header.subset_count)]
+	pub subsets:Vec<Subset4>,
+	pub facs:Facs,
+}
+
+#[inline]
+pub fn fix5(mesh:&mut Mesh5){
+	for vertex in &mut mesh.vertices{
+		match vertex.tangent{
+			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			_=>(),
+		}
+	}
+}
+
+#[inline]
+pub fn read_500<R:Read+Seek>(read:R)->Result<Mesh5,Error>{
+	let mut mesh=read5(read)?;
+	fix5(&mut mesh);
+	Ok(mesh)
+}
+
+pub fn read5<R:BinReaderExt>(mut read:R)->Result<Mesh5,Error>{
 	read.read_le().map_err(Error::BinRead)
 }
