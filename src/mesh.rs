@@ -332,11 +332,88 @@ pub struct Mesh3{
 	pub lods:Vec<Lod3>,
 }
 
+#[binrw::binrw]
+#[brw(little)]
+struct Header3_36{
+	#[brw(magic=b"\x10\0\x24\x0C\x04\0")]//16u16,36u8,12u8,4u16
+	//sizeof_header:u16,//size of this struct...
+	//sizeof_vertex:u8,
+	//sizeof_face:u8,
+	//sizeof_lod:u16,
+	lod_count:u16,
+	vertex_count:u32,
+	face_count:u32,
+}
+#[binrw::binrw]
+#[brw(little)]
+struct Mesh3_36{
+	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
+	header:Header3_36,
+	#[br(count=header.vertex_count)]
+	vertices:Vec<Vertex2_36>,
+	#[br(count=header.face_count)]
+	faces:Vec<Face2>,
+	#[br(count=header.lod_count)]
+	lods:Vec<Lod3>,
+}
+
+#[inline]
+pub fn fix3(mesh:&mut Mesh3){
+	for vertex in &mut mesh.vertices{
+		match vertex.tangent{
+			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			_=>(),
+		}
+	}
+}
+
 #[inline]
 pub fn read_300<R:Read+Seek>(read:R)->Result<Mesh3,Error>{
-	read3(read)
+	let mut mesh=read3(read)?;
+	fix3(&mut mesh);
+	Ok(mesh)
 }
 
 pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
+	match read.read_le(){
+		//read normally
+		Ok(mesh)=>Ok(mesh),
+		Err(e)=>{
+			//devious error matching
+			match &e{
+				binrw::Error::Backtrace(binrw::error::Backtrace{
+					error,
+					frames:_,
+					..
+				})=>match error.as_ref(){
+					binrw::Error::BadMagic{..}=>(),
+					_=>return Err(Error::BinRead(e)),
+				},
+				_=>return Err(Error::BinRead(e)),
+			}
+			//read truncated vertex mesh
+			let mesh:Mesh3_36=read.read_le().map_err(Error::BinRead)?;
+			//convert to normal
+			Ok(Mesh3{
+				header:Header3{
+					vertex_count:mesh.header.vertex_count,
+					face_count:mesh.header.face_count,
+					lod_count:mesh.header.lod_count,
+				},
+				vertices:mesh.vertices.into_iter().map(|v|{
+					Vertex2{
+						pos:v.pos,
+						norm:v.norm,
+						tex:v.tex,
+						tangent:v.tangent,
+						color:[255u8;4],
+					}
+				}).collect(),
+				faces:mesh.faces,
+				lods:mesh.lods,
+			})
+		},
+	}
+}
 	read.read_le().map_err(Error::BinRead)
 }
