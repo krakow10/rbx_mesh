@@ -7,7 +7,7 @@ use binrw::BinReaderExt;
 pub enum Error{
 	Io(std::io::Error),
 	Header,
-	UnknownVersion([u8;12]),
+	UnknownVersion(Vec<u8>),
 	//1.00
 	UnexpectedEof,
 	ParseIntError(std::num::ParseIntError),
@@ -38,21 +38,21 @@ pub enum VersionedMesh{
 	//Version7(Mesh7),
 }
 
-pub fn read<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
-	let mut buf=[0u8;12];
-	read.read_exact(&mut buf).map_err(Error::Io)?;
-	match &buf{
-		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(read)?)),
-		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(read)?)),
-		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(read)?)),
+pub fn read<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
+	let mut buf_reader=binrw::io::BufReader::new(read);
+	let buf=buf_reader.fill_buf().map_err(Error::Io)?;
+	match &buf[0..12]{
+		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(buf_reader)?)),
+		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(buf_reader)?)),
+		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(buf_reader)?)),
 		b"version 3.00"
-		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(read)?)),
+		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(buf_reader)?)),
 		b"version 4.00"
-		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(read)?)),
-		//b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(read)?)),
-		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(read)?)),
-		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(read)?)),
-		_=>Err(Error::UnknownVersion(buf)),
+		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(buf_reader)?)),
+		//b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(buf_reader)?)),
+		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(buf_reader)?)),
+		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(buf_reader)?)),
+		other=>Err(Error::UnknownVersion(other.to_vec())),
 	}
 }
 
@@ -127,7 +127,7 @@ pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
 
 pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
-	//drop empty line
+	//drop version line
 	lines.read_line()?;
 	//NumFaces
 	let face_count=lines.read_u32()?;
@@ -184,10 +184,10 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 #[binrw::binrw]
 #[brw(little)]
 pub struct Header2{
-	#[brw(magic=b"\x0C\0\x28\x0C")]//12u16,40u8,12u8
-	//sizeof_header:u16,//size of this struct...
-	//sizeof_vertex:u8,
-	//sizeof_face:u8,
+	#[brw(magic=b"version 2.00\n\x0C\0\x28\x0C")]
+	//sizeof_header:u16,//12
+	//sizeof_vertex:u8,//40
+	//sizeof_face:u8,//12
 	pub vertex_count:u32,
 	pub face_count:u32,
 }
@@ -209,7 +209,6 @@ pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[binrw::binrw]
 #[brw(little)]
 pub struct Mesh2{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	pub header:Header2,
 	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
@@ -221,10 +220,10 @@ pub struct Mesh2{
 #[binrw::binrw]
 #[brw(little)]
 struct Header2_36{
-	#[brw(magic=b"\x0C\0\x24\x0C")]//12u16,36u8,12u8
-	//sizeof_header:u16,//size of this struct...
-	//sizeof_vertex:u8,
-	//sizeof_face:u8,
+	#[brw(magic=b"version 2.00\n\x0C\0\x24\x0C")]
+	//sizeof_header:u16,//12
+	//sizeof_vertex:u8,//36
+	//sizeof_face:u8,//12
 	vertex_count:u32,
 	face_count:u32,
 }
@@ -239,7 +238,6 @@ struct Vertex2_36{
 #[binrw::binrw]
 #[brw(little)]
 struct Mesh2_36{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	header:Header2_36,
 	#[br(count=header.vertex_count)]
 	vertices:Vec<Vertex2_36>,
@@ -306,12 +304,23 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+pub enum Revision3{
+	#[brw(magic=b"3.00")]
+	Version300,
+	#[brw(magic=b"3.01")]
+	Version301,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 pub struct Header3{
-	#[brw(magic=b"\x10\0\x28\x0C\x04\0")]//16u16,40u8,12u8,4u16
-	//sizeof_header:u16,//size of this struct...
-	//sizeof_vertex:u8,
-	//sizeof_face:u8,
-	//sizeof_lod:u16,
+	#[brw(magic=b"version ")]
+	pub revision:Revision3,
+	#[brw(magic=b"\n\x10\0\x28\x0C\x04\0")]
+	//sizeof_header:u16,//16
+	//sizeof_vertex:u8,//40
+	//sizeof_face:u8,//12
+	//sizeof_lod:u16,//4
 	pub lod_count:u16,
 	pub vertex_count:u32,
 	pub face_count:u32,
@@ -322,7 +331,6 @@ pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 pub struct Mesh3{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	pub header:Header3,
 	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
@@ -335,11 +343,13 @@ pub struct Mesh3{
 #[binrw::binrw]
 #[brw(little)]
 struct Header3_36{
-	#[brw(magic=b"\x10\0\x24\x0C\x04\0")]//16u16,36u8,12u8,4u16
-	//sizeof_header:u16,//size of this struct...
-	//sizeof_vertex:u8,
-	//sizeof_face:u8,
-	//sizeof_lod:u16,
+	#[brw(magic=b"version ")]
+	revision:Revision3,
+	#[brw(magic=b"\n\x10\0\x24\x0C\x04\0")]
+	//sizeof_header:u16,//16
+	//sizeof_vertex:u8,//36
+	//sizeof_face:u8,//12
+	//sizeof_lod:u16,//4
 	lod_count:u16,
 	vertex_count:u32,
 	face_count:u32,
@@ -347,7 +357,6 @@ struct Header3_36{
 #[binrw::binrw]
 #[brw(little)]
 struct Mesh3_36{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	header:Header3_36,
 	#[br(count=header.vertex_count)]
 	vertices:Vec<Vertex2_36>,
@@ -396,6 +405,7 @@ pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
 			//convert to normal
 			Ok(Mesh3{
 				header:Header3{
+					revision:mesh.header.revision,
 					vertex_count:mesh.header.vertex_count,
 					face_count:mesh.header.face_count,
 					lod_count:mesh.header.lod_count,
@@ -417,6 +427,14 @@ pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
 }
 
 #[binrw::binrw]
+#[brw(little)]
+pub enum Revision4{
+	#[brw(magic=b"4.00")]
+	Version400,
+	#[brw(magic=b"4.01")]
+	Version401,
+}
+#[binrw::binrw]
 #[brw(little,repr=u16)]
 pub enum LodType4
 {
@@ -429,8 +447,10 @@ pub enum LodType4
 #[binrw::binrw]
 #[brw(little)]
 pub struct Header4{
-	#[brw(magic=24u16)]
-	//sizeof_header:u16,//size of this struct...
+	#[brw(magic=b"version ")]
+	pub revision:Revision4,
+	#[brw(magic=b"\n\x18\0")]
+	//sizeof_header:u16,//24
 	pub lod_type:LodType4,
 	pub vertex_count:u32,
 	pub face_count:u32,
@@ -495,7 +515,6 @@ pub struct Subset4{
 #[binrw::binrw]
 #[brw(little)]
 pub struct Mesh4{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	pub header:Header4,
 	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
@@ -516,8 +535,10 @@ pub struct Mesh4{
 #[binrw::binrw]
 #[brw(little)]
 struct Header4Boneless{
-	#[brw(magic=24u16)]
-	//sizeof_header:u16,//size of this struct...
+	#[brw(magic=b"version ")]
+	revision:Revision4,
+	#[brw(magic=b"\n\x18\0")]
+	//sizeof_header:u16,//24
 	lod_type:LodType4,
 	vertex_count:u32,
 	face_count:u32,
@@ -532,7 +553,6 @@ struct Header4Boneless{
 #[binrw::binrw]
 #[brw(little)]
 struct Mesh4Boneless{
-	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
 	header:Header4Boneless,
 	#[br(count=header.vertex_count)]
 	vertices:Vec<Vertex2>,
@@ -586,6 +606,7 @@ pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
 			//convert to normal
 			Ok(Mesh4{
 				header:Header4{
+					revision:mesh.header.revision,
 					vertex_count:mesh.header.vertex_count,
 					face_count:mesh.header.face_count,
 					lod_count:mesh.header.lod_count,
