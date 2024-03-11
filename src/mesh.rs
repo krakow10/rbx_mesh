@@ -32,7 +32,7 @@ pub enum VersionedMesh{
 	Version1(Mesh1),
 	Version2(Mesh2),
 	Version3(Mesh3),
-	//Version4(Mesh4),
+	Version4(Mesh4),
 	//Version5(Mesh5),
 	//Version6(Mesh6),
 	//Version7(Mesh7),
@@ -47,8 +47,8 @@ pub fn read<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
 		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(read)?)),
 		b"version 3.00"
 		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(read)?)),
-		//b"version 4.00"=>Ok(VersionedMesh::Version4(read_400(read)?)),
-		//b"version 4.01"=>Ok(VersionedMesh::Version4(read_401(read)?)),
+		b"version 4.00"
+		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(read)?)),
 		//b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(read)?)),
 		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(read)?)),
 		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(read)?)),
@@ -415,5 +415,194 @@ pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
 		},
 	}
 }
-	read.read_le().map_err(Error::BinRead)
+
+#[binrw::binrw]
+#[brw(little,repr=u16)]
+pub enum LodType4
+{
+	None=0,
+	Unknown=1,
+	RbxSimplifier=2,
+	ZeuxMeshOptimizer=3,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Header4{
+	#[brw(magic=24u16)]
+	//sizeof_header:u16,//size of this struct...
+	pub lod_type:LodType4,
+	pub vertex_count:u32,
+	pub face_count:u32,
+	pub lod_count:u16,
+	pub bone_count:u16,
+	pub bone_names_len:u32,
+	pub subset_count:u16,
+	pub lod_hq_count:u8,
+	_padding:u8,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Envelope4{
+	pub bones:[u8;4],
+	pub weights:[u8;4],
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct BoneId4(u16);
+impl BoneId4{
+	pub fn new(value:Option<u16>)->Self{
+		Self(match value{
+			None=>0xFFFF,
+			//|Some(0xFFFF)//whatever
+			Some(other)=>other,
+		})
+	}
+	pub fn get(&self)->Option<u16>{
+		match self.0{
+			0xFFFF=>None,
+			other=>Some(other),
+		}
+	}
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct CFrame4{
+	pub r00:f32,pub r01:f32,pub r02:f32,
+	pub r10:f32,pub r11:f32,pub r12:f32,
+	pub r20:f32,pub r21:f32,pub r22:f32,
+	pub x:f32,pub y:f32,pub z:f32,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Bone4{
+	pub bone_name_pos:u32,
+	pub parent:BoneId4,
+	pub lod_parent:BoneId4,
+	pub cull_distance:f32,
+	pub cframe:CFrame4,
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Subset4{
+	pub faces_offset:u32,
+	pub faces_len:u32,
+	pub vertices_offset:u32,
+	pub vertices_len:u32,
+	pub bone_count:u32,
+	pub bones:[BoneId4;26],
+}
+#[binrw::binrw]
+#[brw(little)]
+pub struct Mesh4{
+	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
+	pub header:Header4,
+	#[br(count=header.vertex_count)]
+	pub vertices:Vec<Vertex2>,
+	#[br(count=header.vertex_count)]
+	pub envelopes:Vec<Envelope4>,
+	#[br(count=header.face_count)]
+	pub faces:Vec<Face2>,
+	#[br(count=header.lod_count)]
+	pub lods:Vec<Lod3>,
+	#[br(count=header.bone_count)]
+	pub bones:Vec<Bone4>,
+	#[br(count=header.bone_names_len)]
+	pub bone_names:Vec<u8>,
+	#[br(count=header.subset_count)]
+	pub subsets:Vec<Subset4>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+struct Header4Boneless{
+	#[brw(magic=24u16)]
+	//sizeof_header:u16,//size of this struct...
+	lod_type:LodType4,
+	vertex_count:u32,
+	face_count:u32,
+	lod_count:u16,
+	#[brw(magic=0u16)]
+	//bone_count:u16,
+	bone_names_len:u32,
+	subset_count:u16,
+	lod_hq_count:u8,
+	_padding:u8,
+}
+#[binrw::binrw]
+#[brw(little)]
+struct Mesh4Boneless{
+	#[brw(magic=b'\n')]//probably not the greatest idea but whatever
+	header:Header4Boneless,
+	#[br(count=header.vertex_count)]
+	vertices:Vec<Vertex2>,
+	#[br(count=header.face_count)]
+	faces:Vec<Face2>,
+	#[br(count=header.lod_count)]
+	lods:Vec<Lod3>,
+	#[br(count=header.bone_names_len)]
+	bone_names:Vec<u8>,
+	#[br(count=header.subset_count)]
+	subsets:Vec<Subset4>,
+}
+
+#[inline]
+pub fn fix4(mesh:&mut Mesh4){
+	for vertex in &mut mesh.vertices{
+		match vertex.tangent{
+			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			_=>(),
+		}
+	}
+}
+
+#[inline]
+pub fn read_400<R:Read+Seek>(read:R)->Result<Mesh4,Error>{
+	let mut mesh=read4(read)?;
+	fix4(&mut mesh);
+	Ok(mesh)
+}
+
+pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
+	match read.read_le::<Mesh4Boneless>(){
+		Err(e)=>{
+			//devious error matching
+			match &e{
+				binrw::Error::Backtrace(binrw::error::Backtrace{
+					error,
+					frames:_,
+					..
+				})=>match error.as_ref(){
+					binrw::Error::BadMagic{..}=>(),
+					_=>return Err(Error::BinRead(e)),
+				},
+				_=>return Err(Error::BinRead(e)),
+			}
+			//read normally
+			read.read_le().map_err(Error::BinRead)
+		},
+		//boneless mesh
+		Ok(mesh)=>{
+			//convert to normal
+			Ok(Mesh4{
+				header:Header4{
+					vertex_count:mesh.header.vertex_count,
+					face_count:mesh.header.face_count,
+					lod_count:mesh.header.lod_count,
+					lod_type:mesh.header.lod_type,
+					bone_count:0,
+					bone_names_len:mesh.header.bone_names_len,
+					subset_count:mesh.header.subset_count,
+					lod_hq_count:mesh.header.lod_hq_count,
+					_padding:mesh.header._padding,
+				},
+				vertices:mesh.vertices,
+				envelopes:Vec::new(),
+				faces:mesh.faces,
+				lods:mesh.lods,
+				bones:Vec::new(),
+				bone_names:mesh.bone_names,
+				subsets:mesh.subsets,
+			})
+		},
+	}
 }
