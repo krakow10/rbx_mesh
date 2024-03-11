@@ -73,21 +73,17 @@ fn read_ascii<R:Read>(read:R)->Result<obj::ObjData,Error>{
 	let face_count=lines.read_usize()?;
 	//vertices
 	let vertices_line=lines.read_line()?;
-	let captures=lazy_regex::regex!(r"\[(.*?)\]")
-	.captures(vertices_line.as_str())
-	.ok_or(Error::Regex)?;
-	let mut captures_iter=captures.iter();
-	//ignore the full capture thing at position 0
-	captures_iter.next().ok_or(Error::Regex)?;
+	let mut captures_iter=lazy_regex::regex!(r"\[(.*?)\]")
+	.captures_iter(vertices_line.as_str());
 	let mut position=Vec::new();
 	let mut texture=Vec::new();
 	let mut normal=Vec::new();
 	let index_tuples=std::iter::from_fn(||{
 		//match three at a time, otherwise fail
 		match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
-			(Some(Some(pos)),Some(Some(norm)),Some(Some(tex)))=>Some((||{//use a closure to make errors easier
+			(Some(pos_capture),Some(norm_capture),Some(tex_capture))=>Some((||{//use a closure to make errors easier
 				//pos
-				let pos=pos.as_str().split(",").map(|f|
+				let pos=pos_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
 					f.parse().map_err(Error::ParseFloatError)
 				).collect::<Result<Vec<f32>,Error>>()?;
 				let pos_idx=position.len();
@@ -96,7 +92,7 @@ fn read_ascii<R:Read>(read:R)->Result<obj::ObjData,Error>{
 					_=>return Err(Error::PositionDimensionNot3(pos.len())),
 				}
 				//norm
-				let norm=norm.as_str().split(",").map(|f|
+				let norm=norm_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
 					f.parse().map_err(Error::ParseFloatError)
 				).collect::<Result<Vec<f32>,Error>>()?;
 				let norm_idx=normal.len();
@@ -105,7 +101,7 @@ fn read_ascii<R:Read>(read:R)->Result<obj::ObjData,Error>{
 					_=>return Err(Error::NormalDimensionNot3(norm.len())),
 				}
 				//tex
-				let tex=tex.as_str().split(",").map(|f|
+				let tex=tex_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
 					f.parse().map_err(Error::ParseFloatError)
 				).collect::<Result<Vec<f32>,Error>>()?;
 				let tex_idx=texture.len();
