@@ -1,6 +1,7 @@
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs
 use std::io::{Read,BufRead};
 
+#[derive(Debug)]
 pub enum Error{
 	Io(std::io::Error),
 	Header,
