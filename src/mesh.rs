@@ -204,9 +204,9 @@ pub struct Header2{
 	#[brw(magic=b"version ")]
 	pub revision:Revision2,
 	#[brw(magic=b"\n\x0C\0\x28\x0C")]
-	//sizeof_header:u16,//12
-	//sizeof_vertex:u8,//40
-	//sizeof_face:u8,//12
+	//sizeof_header:u16,//12=0x000C
+	//sizeof_vertex:u8,//40=0x28
+	//sizeof_face:u8,//12=0x0C
 	pub vertex_count:u32,
 	pub face_count:u32,
 }
