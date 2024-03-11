@@ -11,7 +11,7 @@ pub enum Error{
 	Regex,
 	PositionDimensionNot3(usize),
 	NormalDimensionNot3(usize),
-	TextureCoordsDimensionNot2(usize),
+	TextureCoordsDimensionNot3(usize),
 	VertexTripletCount,
 	VertexCount,
 }
@@ -106,8 +106,8 @@ fn read_ascii<R:Read>(read:R)->Result<obj::ObjData,Error>{
 				).collect::<Result<Vec<f32>,Error>>()?;
 				let tex_idx=texture.len();
 				match tex.as_slice(){
-					&[x,y]=>texture.push([x,1.0-y]),
-					_=>return Err(Error::TextureCoordsDimensionNot2(tex.len())),
+					&[x,y,_]=>texture.push([x,1.0-y]),//roblox is truly beautiful
+					_=>return Err(Error::TextureCoordsDimensionNot3(tex.len())),
 				}
 				Ok(obj::IndexTuple(pos_idx,Some(tex_idx),Some(norm_idx)))
 			})()),//closure called here
