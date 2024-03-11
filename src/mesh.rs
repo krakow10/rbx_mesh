@@ -539,7 +539,7 @@ pub struct Mesh4{
 	pub header:Header4,
 	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
-	#[br(count=header.vertex_count)]
+	#[br(count=if header.bone_count==0{0}else{header.vertex_count})]
 	pub envelopes:Vec<Envelope4>,
 	#[br(count=header.face_count)]
 	pub faces:Vec<Face2>,
@@ -551,40 +551,6 @@ pub struct Mesh4{
 	pub bone_names:Vec<u8>,
 	#[br(count=header.subset_count)]
 	pub subsets:Vec<Subset4>,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-struct Header4Boneless{
-	#[brw(magic=b"version ")]
-	revision:Revision4,
-	#[brw(magic=b"\n\x18\0")]
-	//sizeof_header:u16,//24
-	lod_type:LodType4,
-	vertex_count:u32,
-	face_count:u32,
-	lod_count:u16,
-	#[brw(magic=0u16)]
-	//bone_count:u16,
-	bone_names_len:u32,
-	subset_count:u16,
-	lod_hq_count:u8,
-	_padding:u8,
-}
-#[binrw::binrw]
-#[brw(little)]
-struct Mesh4Boneless{
-	header:Header4Boneless,
-	#[br(count=header.vertex_count)]
-	vertices:Vec<Vertex2>,
-	#[br(count=header.face_count)]
-	faces:Vec<Face2>,
-	#[br(count=header.lod_count)]
-	lods:Vec<Lod3>,
-	#[br(count=header.bone_names_len)]
-	bone_names:Vec<u8>,
-	#[br(count=header.subset_count)]
-	subsets:Vec<Subset4>,
 }
 
 #[inline]
@@ -605,47 +571,5 @@ pub fn read_400<R:Read+Seek>(read:R)->Result<Mesh4,Error>{
 }
 
 pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
-	match read.read_le::<Mesh4Boneless>(){
-		Err(e)=>{
-			//devious error matching
-			match &e{
-				binrw::Error::Backtrace(binrw::error::Backtrace{
-					error,
-					frames:_,
-					..
-				})=>match error.as_ref(){
-					binrw::Error::BadMagic{..}=>(),
-					_=>return Err(Error::BinRead(e)),
-				},
-				_=>return Err(Error::BinRead(e)),
-			}
-			//read normally
-			read.read_le().map_err(Error::BinRead)
-		},
-		//boneless mesh
-		Ok(mesh)=>{
-			//convert to normal
-			Ok(Mesh4{
-				header:Header4{
-					revision:mesh.header.revision,
-					vertex_count:mesh.header.vertex_count,
-					face_count:mesh.header.face_count,
-					lod_count:mesh.header.lod_count,
-					lod_type:mesh.header.lod_type,
-					bone_count:0,
-					bone_names_len:mesh.header.bone_names_len,
-					subset_count:mesh.header.subset_count,
-					lod_hq_count:mesh.header.lod_hq_count,
-					_padding:mesh.header._padding,
-				},
-				vertices:mesh.vertices,
-				envelopes:Vec::new(),
-				faces:mesh.faces,
-				lods:mesh.lods,
-				bones:Vec::new(),
-				bone_names:mesh.bone_names,
-				subsets:mesh.subsets,
-			})
-		},
-	}
+	read.read_le().map_err(Error::BinRead)
 }
