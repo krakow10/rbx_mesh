@@ -21,6 +21,12 @@ pub enum Error{
 	//2.00
 	BinRead(binrw::Error),
 }
+impl std::fmt::Display for Error{
+	fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result{
+		write!(f,"{self:?}")
+	}
+}
+impl std::error::Error for Error{}
 
 pub enum VersionedMesh{
 	Version1(Mesh1),
