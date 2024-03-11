@@ -200,12 +200,21 @@ pub enum Revision2{
 }
 #[binrw::binrw]
 #[brw(little)]
+pub enum SizeOfVertex2{
+	#[brw(magic=36u8)]
+	Truncated,
+	#[brw(magic=40u8)]
+	Full,
+}
+#[binrw::binrw]
+#[brw(little)]
 pub struct Header2{
 	#[brw(magic=b"version ")]
 	pub revision:Revision2,
-	#[brw(magic=b"\n\x0C\0\x28\x0C")]
+	#[brw(magic=b"\n\x0C\0")]//newline+sizeof_header
 	//sizeof_header:u16,//12=0x000C
-	//sizeof_vertex:u8,//40=0x28
+	sizeof_vertex:SizeOfVertex2,
+	#[brw(magic=b"\x0C")]
 	//sizeof_face:u8,//12=0x0C
 	pub vertex_count:u32,
 	pub face_count:u32,
@@ -221,6 +230,14 @@ pub struct Vertex2{
 }
 #[binrw::binrw]
 #[brw(little)]
+pub struct Vertex2Truncated{
+	pub pos:[f32;3],
+	pub norm:[f32;3],
+	pub tex:[f32;2],
+	pub tangent:[i8;4],// Tangent Vector & Bi-Normal Direction
+}
+#[binrw::binrw]
+#[brw(little)]
 pub struct VertexId2(pub u32);
 #[binrw::binrw]
 #[brw(little)]
@@ -229,41 +246,12 @@ pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[brw(little)]
 pub struct Mesh2{
 	pub header:Header2,
-	#[br(count=header.vertex_count)]
+	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Full=>header.vertex_count,_=>0})]
 	pub vertices:Vec<Vertex2>,
+	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Truncated=>header.vertex_count,_=>0})]
+	pub vertices_truncated:Vec<Vertex2Truncated>,
 	#[br(count=header.face_count)]
 	pub faces:Vec<Face2>,
-}
-
-//alternate version with truncated vertex...
-#[binrw::binrw]
-#[brw(little)]
-struct Header2_36{
-	#[brw(magic=b"version ")]
-	revision:Revision2,
-	#[brw(magic=b"\n\x0C\0\x24\x0C")]
-	//sizeof_header:u16,//12
-	//sizeof_vertex:u8,//36
-	//sizeof_face:u8,//12
-	vertex_count:u32,
-	face_count:u32,
-}
-#[binrw::binrw]
-#[brw(little)]
-struct Vertex2_36{
-	pos:[f32;3],
-	norm:[f32;3],
-	tex:[f32;2],
-	tangent:[i8;4],// Tangent Vector & Bi-Normal Direction
-}
-#[binrw::binrw]
-#[brw(little)]
-struct Mesh2_36{
-	header:Header2_36,
-	#[br(count=header.vertex_count)]
-	vertices:Vec<Vertex2_36>,
-	#[br(count=header.face_count)]
-	faces:Vec<Face2>,
 }
 
 #[inline]
@@ -284,44 +272,7 @@ pub fn read_200<R:Read+Seek>(read:R)->Result<Mesh2,Error>{
 }
 
 pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
-	match read.read_le(){
-		//read normally
-		Ok(mesh)=>Ok(mesh),
-		Err(e)=>{
-			//devious error matching
-			match &e{
-				binrw::Error::Backtrace(binrw::error::Backtrace{
-					error,
-					frames:_,
-					..
-				})=>match error.as_ref(){
-					binrw::Error::BadMagic{..}=>(),
-					_=>return Err(Error::BinRead(e)),
-				},
-				_=>return Err(Error::BinRead(e)),
-			}
-			//read truncated vertex mesh
-			let mesh:Mesh2_36=read.read_le().map_err(Error::BinRead)?;
-			//convert to normal
-			Ok(Mesh2{
-				header:Header2{
-					revision:mesh.header.revision,
-					vertex_count:mesh.header.vertex_count,
-					face_count:mesh.header.face_count,
-				},
-				vertices:mesh.vertices.into_iter().map(|v|{
-					Vertex2{
-						pos:v.pos,
-						norm:v.norm,
-						tex:v.tex,
-						tangent:v.tangent,
-						color:[255u8;4],
-					}
-				}).collect(),
-				faces:mesh.faces,
-			})
-		},
-	}
+	read.read_le().map_err(Error::BinRead)
 }
 
 #[binrw::binrw]
@@ -337,11 +288,12 @@ pub enum Revision3{
 pub struct Header3{
 	#[brw(magic=b"version ")]
 	pub revision:Revision3,
-	#[brw(magic=b"\n\x10\0\x28\x0C\x04\0")]
-	//sizeof_header:u16,//16
-	//sizeof_vertex:u8,//40
-	//sizeof_face:u8,//12
-	//sizeof_lod:u16,//4
+	#[brw(magic=b"\n\x10\0")]//newline+sizeof_header
+	//sizeof_header:u16,//16=0x0010
+	sizeof_vertex:SizeOfVertex2,
+	#[brw(magic=b"\x0C\x04\0")]
+	//sizeof_face:u8,//12=0x0C
+	//sizeof_lod:u16,//4=0x0004
 	pub lod_count:u16,
 	pub vertex_count:u32,
 	pub face_count:u32,
@@ -351,40 +303,17 @@ pub struct Header3{
 pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
+/// If header.sizeof_vertex is SizeOfVertex2::Truncated then vertices_truncated is populated instead of vertices
 pub struct Mesh3{
 	pub header:Header3,
-	#[br(count=header.vertex_count)]
+	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Full=>header.vertex_count,_=>0})]
 	pub vertices:Vec<Vertex2>,
+	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Truncated=>header.vertex_count,_=>0})]
+	pub vertices_truncated:Vec<Vertex2Truncated>,
 	#[br(count=header.face_count)]
 	pub faces:Vec<Face2>,
 	#[br(count=header.lod_count)]
 	pub lods:Vec<Lod3>,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-struct Header3_36{
-	#[brw(magic=b"version ")]
-	revision:Revision3,
-	#[brw(magic=b"\n\x10\0\x24\x0C\x04\0")]
-	//sizeof_header:u16,//16
-	//sizeof_vertex:u8,//36
-	//sizeof_face:u8,//12
-	//sizeof_lod:u16,//4
-	lod_count:u16,
-	vertex_count:u32,
-	face_count:u32,
-}
-#[binrw::binrw]
-#[brw(little)]
-struct Mesh3_36{
-	header:Header3_36,
-	#[br(count=header.vertex_count)]
-	vertices:Vec<Vertex2_36>,
-	#[br(count=header.face_count)]
-	faces:Vec<Face2>,
-	#[br(count=header.lod_count)]
-	lods:Vec<Lod3>,
 }
 
 #[inline]
@@ -405,46 +334,7 @@ pub fn read_300<R:Read+Seek>(read:R)->Result<Mesh3,Error>{
 }
 
 pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
-	match read.read_le(){
-		//read normally
-		Ok(mesh)=>Ok(mesh),
-		Err(e)=>{
-			//devious error matching
-			match &e{
-				binrw::Error::Backtrace(binrw::error::Backtrace{
-					error,
-					frames:_,
-					..
-				})=>match error.as_ref(){
-					binrw::Error::BadMagic{..}=>(),
-					_=>return Err(Error::BinRead(e)),
-				},
-				_=>return Err(Error::BinRead(e)),
-			}
-			//read truncated vertex mesh
-			let mesh:Mesh3_36=read.read_le().map_err(Error::BinRead)?;
-			//convert to normal
-			Ok(Mesh3{
-				header:Header3{
-					revision:mesh.header.revision,
-					vertex_count:mesh.header.vertex_count,
-					face_count:mesh.header.face_count,
-					lod_count:mesh.header.lod_count,
-				},
-				vertices:mesh.vertices.into_iter().map(|v|{
-					Vertex2{
-						pos:v.pos,
-						norm:v.norm,
-						tex:v.tex,
-						tangent:v.tangent,
-						color:[255u8;4],
-					}
-				}).collect(),
-				faces:mesh.faces,
-				lods:mesh.lods,
-			})
-		},
-	}
+	read.read_le().map_err(Error::BinRead)
 }
 
 #[binrw::binrw]
