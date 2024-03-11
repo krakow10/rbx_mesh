@@ -67,6 +67,8 @@ impl<R:Read> LineMachine<R>{
 
 fn read_ascii<R:Read>(read:R)->Result<obj::ObjData,Error>{
 	let mut lines=LineMachine::new(read);
+	//drop empty line
+	lines.read_line()?;
 	//NumFaces
 	let face_count=lines.read_usize()?;
 	//vertices
