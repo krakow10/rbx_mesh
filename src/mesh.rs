@@ -439,6 +439,12 @@ pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
 }
 
 #[binrw::binrw]
+#[brw(little)]
+pub enum Revision5{
+	#[brw(magic=b"5.00")]
+	Version500,
+}
+#[binrw::binrw]
 #[brw(little,repr=u32)]
 pub enum FacsFormat5{
 	Format1=1,
@@ -446,7 +452,9 @@ pub enum FacsFormat5{
 #[binrw::binrw]
 #[brw(little)]
 pub struct Header5{
-	#[brw(magic=b"version 5.00\n\x20\0")]
+	#[brw(magic=b"version ")]
+	pub revision:Revision5,
+	#[brw(magic=b"\n\x20\0")]
 	//sizeof_header:u16,//32=0x0020
 	pub lod_type:LodType4,
 	pub vertex_count:u32,
