@@ -154,7 +154,7 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 				(Some(pos_capture),Some(norm_capture),Some(tex_capture))=>Some((||{//use a closure to make errors easier
 					let pos={
 						let pos=pos_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.parse().map_err(Error::ParseFloatError)
+							f.trim().parse().map_err(Error::ParseFloatError)
 						).collect::<Result<Vec<f32>,Error>>()?;
 						match pos.as_slice(){
 							&[x,y,z]=>[x,y,z],
@@ -163,7 +163,7 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 					};
 					let norm={
 						let norm=norm_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.parse().map_err(Error::ParseFloatError)
+							f.trim().parse().map_err(Error::ParseFloatError)
 						).collect::<Result<Vec<f32>,Error>>()?;
 						match norm.as_slice(){
 							&[x,y,z]=>[x,y,z],
@@ -172,7 +172,7 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 					};
 					let tex={
 						let tex=tex_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.parse().map_err(Error::ParseFloatError)
+							f.trim().parse().map_err(Error::ParseFloatError)
 						).collect::<Result<Vec<f32>,Error>>()?;
 						match tex.as_slice(){
 							&[x,y,w]=>[x,y,w],
