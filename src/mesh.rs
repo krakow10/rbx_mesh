@@ -35,7 +35,7 @@ pub enum VersionedMesh{
 	//Version7(Mesh7),
 }
 
-pub fn read<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
+pub fn read_versioned<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
 	let mut buf_reader=binrw::io::BufReader::new(read);
 	let buf=buf_reader.fill_buf().map_err(Error::Io)?;
 	match &buf[0..12]{

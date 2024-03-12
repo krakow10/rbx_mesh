@@ -3,7 +3,7 @@ use binrw::BinWrite;
 
 use crate::mesh::*;
 fn load_mesh(name:&str)->Result<VersionedMesh,Error>{
-	read(std::fs::File::open(name).map_err(Error::Io)?)
+	read_versioned(std::fs::File::open(name).map_err(Error::Io)?)
 }
 fn get_mesh_id(mesh:VersionedMesh)->u16{
 	match mesh{
