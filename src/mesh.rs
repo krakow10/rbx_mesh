@@ -343,7 +343,7 @@ pub struct Header4{
 	pub bone_names_len:u32,
 	pub subset_count:u16,
 	pub lod_hq_count:u8,
-	_padding:u8,
+	pub _padding:u8,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -464,7 +464,7 @@ pub struct Header5{
 	pub bone_names_len:u32,
 	pub subset_count:u16,
 	pub lod_hq_count:u8,
-	_padding:u8,
+	pub _padding:u8,
 	pub facs_format:FacsFormat5,
 	pub sizeof_facs:u32,
 }
