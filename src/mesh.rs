@@ -3,6 +3,7 @@ use std::io::{BufRead,Read,Seek};
 use binrw::BinReaderExt;
 
 pub const DEFAULT_VERTEX_TANGENT:[i8;4]=[0,0,-128,127];
+pub const DEFAULT_VERTEX_COLOR:[u8;4]=[255;4];
 
 #[derive(Debug)]
 pub enum Error{
@@ -227,6 +228,40 @@ pub struct Mesh2{
 	pub faces:Vec<Face2>,
 }
 
+impl Mesh2{
+	/// Move vertices_truncated to vertices, converting to Vertex2 using the supplied color value
+	pub fn fill_vertex_color(&mut self,color:[u8;4]){
+		match self.header.sizeof_vertex{
+			SizeOfVertex2::Truncated=>{
+				self.vertices.extend((&mut self.vertices_truncated).into_iter().map(|v|Vertex2{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+					color,
+				}));
+				self.header.sizeof_vertex=SizeOfVertex2::Full;
+			},
+			SizeOfVertex2::Full=>(),
+		}
+	}
+	/// Move vertices to vertices_truncated, converting to Vertex2Truncated by dropping the color value
+	pub fn truncate_vertex_color(&mut self){
+		match self.header.sizeof_vertex{
+			SizeOfVertex2::Truncated=>(),
+			SizeOfVertex2::Full=>{
+				self.vertices_truncated.extend((&mut self.vertices).into_iter().map(|v|Vertex2Truncated{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+				}));
+				self.header.sizeof_vertex=SizeOfVertex2::Truncated;
+			},
+		}
+	}
+}
+
 #[inline]
 pub fn fix2(mesh:&mut Mesh2){
 	for vertex in &mut mesh.vertices{
@@ -287,6 +322,40 @@ pub struct Mesh3{
 	pub faces:Vec<Face2>,
 	#[br(count=header.lod_count)]
 	pub lods:Vec<Lod3>,
+}
+
+impl Mesh3{
+	/// Move vertices_truncated to vertices, converting to Vertex2 using the supplied color value
+	pub fn fill_vertex_color(&mut self,color:[u8;4]){
+		match self.header.sizeof_vertex{
+			SizeOfVertex2::Truncated=>{
+				self.vertices.extend((&mut self.vertices_truncated).into_iter().map(|v|Vertex2{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+					color,
+				}));
+				self.header.sizeof_vertex=SizeOfVertex2::Full;
+			},
+			SizeOfVertex2::Full=>(),
+		}
+	}
+	/// Move vertices to vertices_truncated, converting to Vertex2Truncated by dropping the color value
+	pub fn truncate_vertex_color(&mut self){
+		match self.header.sizeof_vertex{
+			SizeOfVertex2::Truncated=>(),
+			SizeOfVertex2::Full=>{
+				self.vertices_truncated.extend((&mut self.vertices).into_iter().map(|v|Vertex2Truncated{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+				}));
+				self.header.sizeof_vertex=SizeOfVertex2::Truncated;
+			},
+		}
+	}
 }
 
 #[inline]
