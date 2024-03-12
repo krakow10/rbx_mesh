@@ -183,7 +183,7 @@ pub struct Header2{
 	pub revision:Revision2,
 	#[brw(magic=b"\n\x0C\0")]//newline+sizeof_header
 	//sizeof_header:u16,//12=0x000C
-	sizeof_vertex:SizeOfVertex2,
+	pub sizeof_vertex:SizeOfVertex2,
 	#[brw(magic=b"\x0C")]
 	//sizeof_face:u8,//12=0x0C
 	pub vertex_count:u32,
@@ -261,7 +261,7 @@ pub struct Header3{
 	pub revision:Revision3,
 	#[brw(magic=b"\n\x10\0")]//newline+sizeof_header
 	//sizeof_header:u16,//16=0x0010
-	sizeof_vertex:SizeOfVertex2,
+	pub sizeof_vertex:SizeOfVertex2,
 	#[brw(magic=b"\x0C\x04\0")]
 	//sizeof_face:u8,//12=0x0C
 	//sizeof_lod:u16,//4=0x0004
