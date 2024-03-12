@@ -5,6 +5,28 @@ use crate::mesh::*;
 fn load_mesh(name:&str)->Result<VersionedMesh,Error>{
 	read(std::fs::File::open(name).map_err(Error::Io)?)
 }
+fn get_mesh_id(mesh:VersionedMesh)->u16{
+	match mesh{
+		VersionedMesh::Version1(mesh)=>match mesh.header.revision{
+			Revision1::Version100=>100,
+			Revision1::Version101=>101,
+		},
+		VersionedMesh::Version2(mesh)=>match mesh.header.revision{
+			Revision2::Version200=>200,
+		},
+		VersionedMesh::Version3(mesh)=>match mesh.header.revision{
+			Revision3::Version300=>300,
+			Revision3::Version301=>301,
+		},
+		VersionedMesh::Version4(mesh)=>match mesh.header.revision{
+			Revision4::Version400=>400,
+			Revision4::Version401=>401,
+		},
+		VersionedMesh::Version5(mesh)=>match mesh.header.revision{
+			Revision5::Version500=>500,
+		},
+	}
+}
 //Mesh1 has no round trip since there is no writer
 fn round_trip2(name:&str){
 	let mut file=std::fs::File::open(name).unwrap();
@@ -45,17 +67,11 @@ fn round_trip5(name:&str){
 }
 #[test]
 fn mesh_100(){
-	match load_mesh("meshes/158071912").unwrap(){
-		VersionedMesh::Version1(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/158071912").unwrap()),100);
 }
 #[test]
 fn mesh_200(){
-	match load_mesh("meshes/torso.mesh").unwrap(){
-		VersionedMesh::Version2(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/torso.mesh").unwrap()),200)
 }
 #[test]
 fn roundtrip_200(){
@@ -63,10 +79,7 @@ fn roundtrip_200(){
 }
 #[test]
 fn mesh_300(){
-	match load_mesh("meshes/5115672913").unwrap(){
-		VersionedMesh::Version3(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/5115672913").unwrap()),300);
 }
 #[test]
 fn roundtrip_300(){
@@ -74,10 +87,7 @@ fn roundtrip_300(){
 }
 #[test]
 fn mesh_301(){
-	match load_mesh("meshes/5648093777").unwrap(){
-		VersionedMesh::Version3(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/5648093777").unwrap()),301)
 }
 #[test]
 fn roundtrip_301(){
@@ -85,10 +95,7 @@ fn roundtrip_301(){
 }
 #[test]
 fn mesh_401(){
-	match load_mesh("meshes/sphere.mesh").unwrap(){
-		VersionedMesh::Version4(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/sphere.mesh").unwrap()),401)
 }
 #[test]
 fn roundtrip_401(){
@@ -96,10 +103,7 @@ fn roundtrip_401(){
 }
 #[test]
 fn mesh_401_random_padding(){
-	match load_mesh("meshes/7665777615").unwrap(){
-		VersionedMesh::Version4(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/7665777615").unwrap()),401)
 }
 #[test]
 fn roundtrip_401_random_padding(){
@@ -108,10 +112,7 @@ fn roundtrip_401_random_padding(){
 //the only three v5.00 meshes I could find in bhop and surf
 #[test]
 fn mesh_500(){
-	match load_mesh("meshes/13674780763").unwrap(){
-		VersionedMesh::Version5(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/13674780763").unwrap()),500)
 }
 #[test]
 fn roundtrip_500(){
@@ -119,10 +120,7 @@ fn roundtrip_500(){
 }
 #[test]
 fn mesh_500_alt1(){
-	match load_mesh("meshes/14818281896").unwrap(){
-		VersionedMesh::Version5(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/14818281896").unwrap()),500)
 }
 #[test]
 fn roundtrip_500_alt1(){
@@ -130,10 +128,7 @@ fn roundtrip_500_alt1(){
 }
 #[test]
 fn mesh_500_alt2(){
-	match load_mesh("meshes/15256456161").unwrap(){
-		VersionedMesh::Version5(_)=>(),
-		_=>panic!(),
-	}
+	assert_eq!(get_mesh_id(load_mesh("meshes/15256456161").unwrap()),500)
 }
 #[test]
 fn roundtrip_500_alt2(){
