@@ -461,7 +461,7 @@ pub struct Header5{
 #[binrw::binrw]
 #[brw(little)]
 /// Quantized means interpolated from lerp0 to lerp1 based on [0-65535]
-pub enum QuantizedMatrix{
+pub enum QuantizedMatrix5{
 	#[brw(magic=1u16)]
 	Raw{
 		x:u32,
@@ -481,26 +481,26 @@ pub enum QuantizedMatrix{
 }
 #[binrw::binrw]
 #[brw(little)]
-pub struct QuantizedTransforms{
-	pub px:QuantizedMatrix,
-	pub py:QuantizedMatrix,
-	pub pz:QuantizedMatrix,
-	pub rx:QuantizedMatrix,
-	pub ry:QuantizedMatrix,
-	pub rz:QuantizedMatrix,
+pub struct QuantizedTransforms5{
+	pub px:QuantizedMatrix5,
+	pub py:QuantizedMatrix5,
+	pub pz:QuantizedMatrix5,
+	pub rx:QuantizedMatrix5,
+	pub ry:QuantizedMatrix5,
+	pub rz:QuantizedMatrix5,
 }
 #[binrw::binrw]
 #[brw(little)]
-pub struct ControlId(pub u16);
+pub struct ControlId5(pub u16);
 #[binrw::binrw]
 #[brw(little)]
-pub struct TwoPoseCorrective5(pub ControlId,pub ControlId);
+pub struct TwoPoseCorrective5(pub ControlId5,pub ControlId5);
 #[binrw::binrw]
 #[brw(little)]
-pub struct ThreePoseCorrective5(pub ControlId,pub ControlId,pub ControlId);
+pub struct ThreePoseCorrective5(pub ControlId5,pub ControlId5,pub ControlId5);
 #[binrw::binrw]
 #[brw(little)]
-pub struct Facs{
+pub struct Facs5{
 	pub face_bone_names_len:u32,
 	pub face_control_names_len:u32,
 	pub quantized_transforms_len:u64,
@@ -511,7 +511,7 @@ pub struct Facs{
 	#[br(count=face_control_names_len)]
 	pub face_control_names:Vec<u8>,
 	//is this not a list?
-	pub quantized_transforms:QuantizedTransforms,
+	pub quantized_transforms:QuantizedTransforms5,
 	#[br(count=two_pose_correctives_len as usize/std::mem::size_of::<TwoPoseCorrective5>())]
 	pub two_pose_correctives:Vec<TwoPoseCorrective5>,
 	#[br(count=three_pose_correctives_len as usize/std::mem::size_of::<ThreePoseCorrective5>())]
@@ -536,7 +536,7 @@ pub struct Mesh5{
 	pub bone_names:Vec<u8>,
 	#[br(count=header.subset_count)]
 	pub subsets:Vec<Subset4>,
-	pub facs:Facs,
+	pub facs:Facs5,
 }
 
 #[inline]
