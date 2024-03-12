@@ -44,3 +44,26 @@ fn mesh_401_random_padding(){
 		_=>panic!(),
 	}
 }
+//the only three v5.00 meshes I could find in bhop and surf
+#[test]
+fn mesh_500(){
+	match load_mesh("meshes/13674780763").unwrap(){
+		VersionedMesh::Version5(_)=>(),
+		_=>panic!(),
+	}
+}
+#[test]
+fn mesh_500_alt1(){
+	match load_mesh("meshes/14818281896").unwrap(){
+		VersionedMesh::Version5(_)=>(),
+		_=>panic!(),
+	}
+}
+#[test]
+fn mesh_500_alt2(){
+	match load_mesh("meshes/15256456161").unwrap(){
+		VersionedMesh::Version5(_)=>(),
+		_=>panic!(),
+	}
+}
+//also tested against ~2500 meshes from bhop and surf maps
