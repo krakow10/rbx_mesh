@@ -5,17 +5,13 @@ use binrw::BinReaderExt;
 #[derive(Debug)]
 pub enum Error{
 	Io(std::io::Error),
-	Header,
 	UnknownVersion(Vec<u8>),
 	//1.00
+	Header,
 	UnexpectedEof,
 	ParseIntError(std::num::ParseIntError),
 	ParseFloatError(std::num::ParseFloatError),
-	Regex,
-	PositionDimensionNot3(usize),
-	NormalDimensionNot3(usize),
-	TextureCoordsDimensionNot3(usize),
-	VertexTripletCount,
+	DimensionNot3(usize),
 	VertexCount,
 	//2.00
 	BinRead(binrw::Error),
@@ -63,9 +59,6 @@ impl<R:Read> LineMachine<R>{
 		Self{
 			lines:std::io::BufReader::new(read).lines(),
 		}
-	}
-	fn read_u32(&mut self)->Result<u32,Error>{
-		Ok(self.lines.next().ok_or(Error::UnexpectedEof)?.map_err(Error::Io)?.trim().parse().map_err(Error::ParseIntError)?)
 	}
 	fn read_line(&mut self)->Result<String,Error>{
 		Ok(self.lines.next().ok_or(Error::UnexpectedEof)?.map_err(Error::Io)?)
@@ -129,6 +122,18 @@ pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
 	check1(mesh)
 }
 
+fn parse_triple_float(s:&str)->Result<[f32;3],Error>{
+	//split by commas
+	let floats=s.split(",").map(|f|
+		f.trim().parse().map_err(Error::ParseFloatError)
+	).collect::<Result<Vec<f32>,Error>>()?;
+	//only three is allowed
+	match floats.as_slice(){
+		&[x,y,z]=>Ok([x,y,z]),
+		_=>return Err(Error::DimensionNot3(floats.len())),
+	}
+}
+
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
 pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
@@ -137,58 +142,22 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 		"version 1.01"=>Revision1::Version101,
 		_=>return Err(Error::Header),
 	};
-	//NumFaces
-	let face_count=lines.read_u32()?;
-	//vertices
+	let face_count=lines.read_line()?.trim().parse().map_err(Error::ParseIntError)?;
 	let vertices_line=lines.read_line()?;
-	let mut captures_iter=lazy_regex::regex!(r"\[(.*?)\]")
-	.captures_iter(vertices_line.as_str());
+	//match three at a time, otherwise fail
+	let regman=lazy_regex::regex!(r"\[(.*?)\]\[(.*?)\]\[(.*?)\]");
 	Ok(Mesh1{
 		header:Header1{
 			revision,
 			face_count,
 		},
-		vertices:std::iter::from_fn(||{
-			//match three at a time, otherwise fail
-			match (captures_iter.next(),captures_iter.next(),captures_iter.next()){
-				(Some(pos_capture),Some(norm_capture),Some(tex_capture))=>Some((||{//use a closure to make errors easier
-					let pos={
-						let pos=pos_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.trim().parse().map_err(Error::ParseFloatError)
-						).collect::<Result<Vec<f32>,Error>>()?;
-						match pos.as_slice(){
-							&[x,y,z]=>[x,y,z],
-							_=>return Err(Error::PositionDimensionNot3(pos.len())),
-						}
-					};
-					let norm={
-						let norm=norm_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.trim().parse().map_err(Error::ParseFloatError)
-						).collect::<Result<Vec<f32>,Error>>()?;
-						match norm.as_slice(){
-							&[x,y,z]=>[x,y,z],
-							_=>return Err(Error::NormalDimensionNot3(norm.len())),
-						}
-					};
-					let tex={
-						let tex=tex_capture.get(1).ok_or(Error::Regex)?.as_str().split(",").map(|f|
-							f.trim().parse().map_err(Error::ParseFloatError)
-						).collect::<Result<Vec<f32>,Error>>()?;
-						match tex.as_slice(){
-							&[x,y,w]=>[x,y,w],
-							_=>return Err(Error::TextureCoordsDimensionNot3(tex.len())),
-						}
-					};
-					Ok(Vertex1{
-						pos,
-						norm,
-						tex,
-					})
-				})()),//closure called here
-				(None,None,None)=>None,
-				_=>Some(Err(Error::VertexTripletCount)),
-			}
-		}).collect::<Result<Vec<Vertex1>,Error>>()?
+		vertices:regman.captures_iter(vertices_line.as_str()).map(|captures|
+			Ok(Vertex1{
+				pos:parse_triple_float(&captures[1])?,
+				norm:parse_triple_float(&captures[2])?,
+				tex:parse_triple_float(&captures[3])?,
+			})
+		).collect::<Result<Vec<Vertex1>,Error>>()?
 	})
 }
 
