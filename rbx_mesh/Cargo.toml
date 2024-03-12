@@ -1,6 +1,10 @@
 [package]
 name = "rbx_mesh"
 version = "0.1.0"
+repository = "https://github.com/krakow10/rbx_mesh"
+license = "MIT OR Apache-2.0"
+description = "Rust parser for Roblox mesh files."
+authors = ["Rhys Lloyd <krakow20@gmail.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
