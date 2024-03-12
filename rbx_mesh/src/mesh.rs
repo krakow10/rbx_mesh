@@ -2,6 +2,8 @@ use std::io::{BufRead,Read,Seek};
 
 use binrw::BinReaderExt;
 
+pub const DEFAULT_VERTEX_TANGENT:[i8;4]=[0,0,-128,127];
+
 #[derive(Debug)]
 pub enum Error{
 	Io(std::io::Error),
@@ -229,7 +231,7 @@ pub struct Mesh2{
 pub fn fix2(mesh:&mut Mesh2){
 	for vertex in &mut mesh.vertices{
 		match vertex.tangent{
-			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			[-128,-128,-128,-128]=>vertex.tangent=DEFAULT_VERTEX_TANGENT,
 			_=>(),
 		}
 	}
@@ -291,7 +293,7 @@ pub struct Mesh3{
 pub fn fix3(mesh:&mut Mesh3){
 	for vertex in &mut mesh.vertices{
 		match vertex.tangent{
-			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			[-128,-128,-128,-128]=>vertex.tangent=DEFAULT_VERTEX_TANGENT,
 			_=>(),
 		}
 	}
@@ -419,7 +421,7 @@ pub struct Mesh4{
 pub fn fix4(mesh:&mut Mesh4){
 	for vertex in &mut mesh.vertices{
 		match vertex.tangent{
-			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			[-128,-128,-128,-128]=>vertex.tangent=DEFAULT_VERTEX_TANGENT,
 			_=>(),
 		}
 	}
@@ -543,7 +545,7 @@ pub struct Mesh5{
 pub fn fix5(mesh:&mut Mesh5){
 	for vertex in &mut mesh.vertices{
 		match vertex.tangent{
-			[-128,-128,-128,-128]=>vertex.tangent=[0,0,-128,127],
+			[-128,-128,-128,-128]=>vertex.tangent=DEFAULT_VERTEX_TANGENT,
 			_=>(),
 		}
 	}
