@@ -132,7 +132,7 @@ fn parse_triple_float(s:&str)->Result<[f32;3],Error>{
 	//only three is allowed
 	match floats.as_slice(){
 		&[x,y,z]=>Ok([x,y,z]),
-		_=>return Err(Error::DimensionNot3(floats.len())),
+		_=>Err(Error::DimensionNot3(floats.len())),
 	}
 }
 
