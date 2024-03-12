@@ -25,6 +25,7 @@ impl std::fmt::Display for Error{
 }
 impl std::error::Error for Error{}
 
+#[derive(Debug,Clone)]
 pub enum VersionedMesh{
 	Version1(Mesh1),
 	Version2(Mesh2),
@@ -67,19 +68,23 @@ impl<R:Read> LineMachine<R>{
 	}
 }
 
+#[derive(Debug,Clone)]
 pub enum Revision1{
 	Version100,
 	Version101,
 }
+#[derive(Debug,Clone)]
 pub struct Vertex1{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
 	pub tex:[f32;3],
 }
+#[derive(Debug,Clone)]
 pub struct Header1{
 	pub revision:Revision1,
 	pub face_count:u32,
 }
+#[derive(Debug,Clone)]
 pub struct Mesh1{
 	pub header:Header1,
 	pub vertices:Vec<Vertex1>
@@ -166,12 +171,14 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 //the rest is based on https://devforum.roblox.com/t/roblox-mesh-format/326114
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub enum Revision2{
 	#[brw(magic=b"2.00")]
 	Version200,
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub enum SizeOfVertex2{
 	#[brw(magic=36u8)]
 	Truncated,
@@ -180,6 +187,7 @@ pub enum SizeOfVertex2{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Header2{
 	#[brw(magic=b"version ")]
 	pub revision:Revision2,
@@ -193,6 +201,7 @@ pub struct Header2{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Vertex2{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
@@ -202,6 +211,7 @@ pub struct Vertex2{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Vertex2Truncated{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
@@ -210,12 +220,15 @@ pub struct Vertex2Truncated{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct VertexId2(pub u32);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 /// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh2{
 	pub header:Header2,
@@ -250,6 +263,7 @@ pub fn read2<R:BinReaderExt>(mut read:R)->Result<Mesh2,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub enum Revision3{
 	#[brw(magic=b"3.00")]
 	Version300,
@@ -258,6 +272,7 @@ pub enum Revision3{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Header3{
 	#[brw(magic=b"version ")]
 	pub revision:Revision3,
@@ -273,9 +288,11 @@ pub struct Header3{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 /// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh3{
 	pub header:Header3,
@@ -312,6 +329,7 @@ pub fn read3<R:BinReaderExt>(mut read:R)->Result<Mesh3,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub enum Revision4{
 	#[brw(magic=b"4.00")]
 	Version400,
@@ -320,6 +338,7 @@ pub enum Revision4{
 }
 #[binrw::binrw]
 #[brw(little,repr=u16)]
+#[derive(Debug,Clone)]
 pub enum LodType4
 {
 	None=0,
@@ -330,6 +349,7 @@ pub enum LodType4
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Header4{
 	#[brw(magic=b"version ")]
 	pub revision:Revision4,
@@ -347,12 +367,14 @@ pub struct Header4{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Envelope4{
 	pub bones:[u8;4],
 	pub weights:[u8;4],
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct BoneId4(u16);
 impl BoneId4{
 	pub fn new(value:Option<u16>)->Self{
@@ -371,6 +393,7 @@ impl BoneId4{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct CFrame4{
 	pub r00:f32,pub r01:f32,pub r02:f32,
 	pub r10:f32,pub r11:f32,pub r12:f32,
@@ -379,6 +402,7 @@ pub struct CFrame4{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Bone4{
 	pub bone_name_pos:u32,
 	pub parent:BoneId4,
@@ -388,6 +412,7 @@ pub struct Bone4{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Subset4{
 	pub faces_offset:u32,
 	pub faces_len:u32,
@@ -398,6 +423,7 @@ pub struct Subset4{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4{
 	pub header:Header4,
@@ -440,17 +466,20 @@ pub fn read4<R:BinReaderExt>(mut read:R)->Result<Mesh4,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub enum Revision5{
 	#[brw(magic=b"5.00")]
 	Version500,
 }
 #[binrw::binrw]
 #[brw(little,repr=u32)]
+#[derive(Debug,Clone)]
 pub enum FacsFormat5{
 	Format1=1,
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Header5{
 	#[brw(magic=b"version ")]
 	pub revision:Revision5,
@@ -470,6 +499,7 @@ pub struct Header5{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 /// Quantized means interpolated from lerp0 to lerp1 based on [0-65535]
 pub enum QuantizedMatrix5{
 	#[brw(magic=1u16)]
@@ -491,6 +521,7 @@ pub enum QuantizedMatrix5{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct QuantizedTransforms5{
 	pub px:QuantizedMatrix5,
 	pub py:QuantizedMatrix5,
@@ -501,15 +532,19 @@ pub struct QuantizedTransforms5{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct ControlId5(pub u16);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct TwoPoseCorrective5(pub ControlId5,pub ControlId5);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct ThreePoseCorrective5(pub ControlId5,pub ControlId5,pub ControlId5);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 pub struct Facs5{
 	pub face_bone_names_len:u32,
 	pub face_control_names_len:u32,
@@ -529,6 +564,7 @@ pub struct Facs5{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone)]
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh5{
 	pub header:Header5,
