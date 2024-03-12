@@ -214,6 +214,7 @@ pub struct VertexId2(pub u32);
 pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[binrw::binrw]
 #[brw(little)]
+/// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh2{
 	pub header:Header2,
 	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Full=>header.vertex_count,_=>0})]
@@ -273,7 +274,7 @@ pub struct Header3{
 pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
-/// If header.sizeof_vertex is SizeOfVertex2::Truncated then vertices_truncated is populated instead of vertices
+/// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh3{
 	pub header:Header3,
 	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Full=>header.vertex_count,_=>0})]
@@ -395,6 +396,7 @@ pub struct Subset4{
 }
 #[binrw::binrw]
 #[brw(little)]
+/// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4{
 	pub header:Header4,
 	#[br(count=header.vertex_count)]
@@ -517,6 +519,7 @@ pub struct Facs{
 }
 #[binrw::binrw]
 #[brw(little)]
+/// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh5{
 	pub header:Header5,
 	#[br(count=header.vertex_count)]
