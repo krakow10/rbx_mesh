@@ -15,5 +15,6 @@ exclude = ["meshes"]
 
 [dependencies]
 binrw = "0.13.3"
+either = "1.10.0"
 lazy-regex = "3.1.0"
 #obj = { version = "0.10.2", optional = true }

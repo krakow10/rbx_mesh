@@ -1,4 +1,4 @@
-use std::io::{BufRead,Read,Seek};
+use std::{borrow::Cow,io::{BufRead,Read,Seek}};
 
 use binrw::BinReaderExt;
 
@@ -34,6 +34,28 @@ pub enum VersionedMesh{
 	Version5(Mesh5),
 	//Version6(Mesh6),
 	//Version7(Mesh7),
+}
+
+//dynamic dispatch is unfortunate but the compiler was very angry
+impl VersionedMesh{
+	pub fn vertices2<'a>(&'a self)->Box<dyn Iterator<Item=Cow<Vertex2>>+'a>{
+		match self{
+			VersionedMesh::Version1(mesh)=>Box::new(mesh.vertices2()),
+			VersionedMesh::Version2(mesh)=>Box::new(mesh.vertices2()),
+			VersionedMesh::Version3(mesh)=>Box::new(mesh.vertices2()),
+			VersionedMesh::Version4(mesh)=>Box::new(mesh.vertices2()),
+			VersionedMesh::Version5(mesh)=>Box::new(mesh.vertices2()),
+		}
+	}
+	pub fn faces2<'a>(&'a self)->Box<dyn Iterator<Item=Cow<Face2>>+'a>{
+		match self{
+			VersionedMesh::Version1(mesh)=>Box::new(mesh.faces2()),
+			VersionedMesh::Version2(mesh)=>Box::new(mesh.faces2()),
+			VersionedMesh::Version3(mesh)=>Box::new(mesh.faces2()),
+			VersionedMesh::Version4(mesh)=>Box::new(mesh.faces2()),
+			VersionedMesh::Version5(mesh)=>Box::new(mesh.faces2()),
+		}
+	}
 }
 
 pub fn read<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
@@ -84,6 +106,28 @@ pub struct Header1{
 pub struct Mesh1{
 	pub header:Header1,
 	pub vertices:Vec<Vertex1>
+}
+impl Mesh1{
+	pub fn vertices2(&self)->impl Iterator<Item=Cow<Vertex2>>{
+		//fill data with default to fit in with everyone else
+		self.vertices.iter().map(|v|Cow::Owned(Vertex2{
+			pos:v.pos,
+			norm:v.norm,
+			tex:[v.tex[0],v.tex[1]],
+			tangent:DEFAULT_VERTEX_TANGENT,
+			color:DEFAULT_VERTEX_COLOR,
+		}))
+	}
+	pub fn faces2(&self)->impl Iterator<Item=Cow<Face2>>{
+		//generate fake faces to fit in with everyone else
+		(0..self.vertices.len()/3).map(|face_id|
+			Cow::Owned(Face2(
+				VertexId2(0+3*face_id as u32),
+				VertexId2(1+3*face_id as u32),
+				VertexId2(2+3*face_id as u32),
+			))
+		)
+	}
 }
 
 #[inline]
@@ -194,6 +238,7 @@ pub struct Header2{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Clone,Copy)]
 pub struct Vertex2{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
@@ -211,9 +256,11 @@ pub struct Vertex2Truncated{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Clone,Copy)]
 pub struct VertexId2(pub u32);
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Clone,Copy)]
 pub struct Face2(pub VertexId2,pub VertexId2,pub VertexId2);
 #[binrw::binrw]
 #[brw(little)]
@@ -259,6 +306,24 @@ impl Mesh2{
 				self.header.sizeof_vertex=SizeOfVertex2::Truncated;
 			},
 		}
+	}
+	pub fn vertices2(&self)->impl Iterator<Item=Cow<Vertex2>>{
+		match self.header.sizeof_vertex{
+			//automatically fill vertex color
+			SizeOfVertex2::Truncated=>either::Either::Left(self.vertices_truncated.iter().map(|v|
+				Cow::Owned(Vertex2{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+					color:DEFAULT_VERTEX_COLOR,
+				})
+			)),
+			SizeOfVertex2::Full=>either::Either::Right(self.vertices.iter().map(Cow::Borrowed)),
+		}
+	}
+	pub fn faces2(&self)->impl Iterator<Item=Cow<Face2>>{
+		self.faces.iter().map(Cow::Borrowed)
 	}
 }
 
@@ -355,6 +420,24 @@ impl Mesh3{
 				self.header.sizeof_vertex=SizeOfVertex2::Truncated;
 			},
 		}
+	}
+	pub fn vertices2(&self)->impl Iterator<Item=Cow<Vertex2>>{
+		match self.header.sizeof_vertex{
+			//automatically fill vertex color
+			SizeOfVertex2::Truncated=>either::Either::Left(self.vertices_truncated.iter().map(|v|
+				Cow::Owned(Vertex2{
+					pos:v.pos,
+					norm:v.norm,
+					tex:v.tex,
+					tangent:v.tangent,
+					color:DEFAULT_VERTEX_COLOR,
+				})
+			)),
+			SizeOfVertex2::Full=>either::Either::Right(self.vertices.iter().map(Cow::Borrowed)),
+		}
+	}
+	pub fn faces2(&self)->impl Iterator<Item=Cow<Face2>>{
+		self.faces.iter().map(Cow::Borrowed)
 	}
 }
 
@@ -484,6 +567,15 @@ pub struct Mesh4{
 	pub bone_names:Vec<u8>,
 	#[br(count=header.subset_count)]
 	pub subsets:Vec<Subset4>,
+}
+
+impl Mesh4{
+	pub fn vertices2(&self)->impl Iterator<Item=Cow<Vertex2>>{
+		self.vertices.iter().map(Cow::Borrowed)
+	}
+	pub fn faces2(&self)->impl Iterator<Item=Cow<Face2>>{
+		self.faces.iter().map(Cow::Borrowed)
+	}
 }
 
 #[inline]
@@ -616,6 +708,14 @@ pub struct Mesh5{
 	#[br(count=header.subset_count)]
 	pub subsets:Vec<Subset4>,
 	pub facs:Facs5,
+}
+impl Mesh5{
+	pub fn vertices2(&self)->impl Iterator<Item=Cow<Vertex2>>{
+		self.vertices.iter().map(Cow::Borrowed)
+	}
+	pub fn faces2(&self)->impl Iterator<Item=Cow<Face2>>{
+		self.faces.iter().map(Cow::Borrowed)
+	}
 }
 
 #[inline]

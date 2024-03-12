@@ -117,6 +117,7 @@ name = "rbx_mesh"
 version = "0.1.0"
 dependencies = [
  "binrw",
+ "either",
  "lazy-regex",
 ]
 
