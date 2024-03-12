@@ -370,6 +370,7 @@ pub struct Header4{
 	pub bone_names_len:u32,
 	pub subset_count:u16,
 	pub lod_hq_count:u8,
+	_padding:u8,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -426,7 +427,6 @@ pub struct Subset4{
 #[brw(little)]
 pub struct Mesh4{
 	pub header:Header4,
-	#[brw(magic=b"\0")]//padding from header
 	#[br(count=header.vertex_count)]
 	pub vertices:Vec<Vertex2>,
 	#[br(count=if header.bone_count==0{0}else{header.vertex_count})]
@@ -482,7 +482,7 @@ pub struct Header5{
 	pub bone_names_len:u32,
 	pub subset_count:u16,
 	pub lod_hq_count:u8,
-	#[brw(magic=b"\0")]//padding
+	_padding:u8,
 	pub facs_format:FacsFormat5,
 	pub sizeof_facs:u32,
 }
