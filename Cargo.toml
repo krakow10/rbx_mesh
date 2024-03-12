@@ -8,12 +8,6 @@ authors = ["Rhys Lloyd <krakow20@gmail.com>"]
 edition = "2021"
 exclude = ["meshes"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-#[features]
-#obj = ["dep:obj"]
-
 [dependencies]
 binrw = "0.13.3"
 lazy-regex = "3.1.0"
-#obj = { version = "0.10.2", optional = true }
