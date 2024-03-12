@@ -1,4 +1,3 @@
-//based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs
 use std::io::{BufRead,Read,Seek};
 
 use binrw::BinReaderExt;
@@ -130,6 +129,7 @@ pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
 	check1(mesh)
 }
 
+//based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
 pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
 	let revision=match lines.read_line()?.trim(){
@@ -192,6 +192,7 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	})
 }
 
+//the rest is based on https://devforum.roblox.com/t/roblox-mesh-format/326114
 #[binrw::binrw]
 #[brw(little)]
 pub enum Revision2{
