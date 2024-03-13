@@ -191,10 +191,10 @@ pub enum SizeOfVertex2{
 pub struct Header2{
 	#[brw(magic=b"version ")]
 	pub revision:Revision2,
-	#[brw(magic=b"\n\x0C\0")]//newline+sizeof_header
+	#[brw(magic=b"\n\x0C\0")]//newline,sizeof_header
 	//sizeof_header:u16,//12=0x000C
 	pub sizeof_vertex:SizeOfVertex2,
-	#[brw(magic=b"\x0C")]
+	#[brw(magic=b"\x0C")]//sizeof_face
 	//sizeof_face:u8,//12=0x0C
 	pub vertex_count:u32,
 	pub face_count:u32,
@@ -276,10 +276,10 @@ pub enum Revision3{
 pub struct Header3{
 	#[brw(magic=b"version ")]
 	pub revision:Revision3,
-	#[brw(magic=b"\n\x10\0")]//newline+sizeof_header
+	#[brw(magic=b"\n\x10\0")]//newline,sizeof_header
 	//sizeof_header:u16,//16=0x0010
 	pub sizeof_vertex:SizeOfVertex2,
-	#[brw(magic=b"\x0C\x04\0")]
+	#[brw(magic=b"\x0C\x04\0")]//sizeof_face,sizeof_lod
 	//sizeof_face:u8,//12=0x0C
 	//sizeof_lod:u16,//4=0x0004
 	pub lod_count:u16,
@@ -289,6 +289,9 @@ pub struct Header3{
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone,Eq,Hash,PartialEq)]
+/// Lods are indices into faces, representing the start of the range of
+/// faces to be drawn for a particular level of detail, with the end of
+/// the range represented by the next id in the list.
 pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
@@ -353,7 +356,7 @@ pub enum LodType4
 pub struct Header4{
 	#[brw(magic=b"version ")]
 	pub revision:Revision4,
-	#[brw(magic=b"\n\x18\0")]
+	#[brw(magic=b"\n\x18\0")]//newline,sizeof_header
 	//sizeof_header:u16,//24
 	pub lod_type:LodType4,
 	pub vertex_count:u32,
@@ -483,7 +486,7 @@ pub enum FacsFormat5{
 pub struct Header5{
 	#[brw(magic=b"version ")]
 	pub revision:Revision5,
-	#[brw(magic=b"\n\x20\0")]
+	#[brw(magic=b"\n\x20\0")]//newline,sizeof_header
 	//sizeof_header:u16,//32=0x0020
 	pub lod_type:LodType4,
 	pub vertex_count:u32,
