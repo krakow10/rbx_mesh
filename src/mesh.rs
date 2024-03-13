@@ -220,7 +220,7 @@ pub struct Vertex2Truncated{
 }
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Eq,Hash,PartialEq)]
 pub struct VertexId2(pub u32);
 #[binrw::binrw]
 #[brw(little)]
@@ -288,7 +288,7 @@ pub struct Header3{
 }
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Eq,Hash,PartialEq)]
 pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
@@ -374,7 +374,7 @@ pub struct Envelope4{
 }
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Eq,Hash,PartialEq)]
 pub struct BoneId4(u16);
 impl BoneId4{
 	pub fn new(value:Option<u16>)->Self{
@@ -532,7 +532,7 @@ pub struct QuantizedTransforms5{
 }
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Eq,Hash,PartialEq)]
 pub struct ControlId5(pub u16);
 #[binrw::binrw]
 #[brw(little)]
