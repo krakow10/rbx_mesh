@@ -39,6 +39,9 @@ pub enum VersionedMesh{
 pub fn read_versioned<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
 	let mut buf_reader=binrw::io::BufReader::new(read);
 	let buf=buf_reader.fill_buf().map_err(Error::Io)?;
+	if buf.len()<12{
+		return Err(Error::Header);
+	}
 	match &buf[0..12]{
 		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(buf_reader)?)),
 		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(buf_reader)?)),
