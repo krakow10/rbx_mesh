@@ -13,7 +13,6 @@ pub enum Error{
 	UnexpectedEof,
 	ParseIntError(std::num::ParseIntError),
 	ParseFloatError(std::num::ParseFloatError),
-	DimensionNot3(usize),
 	VertexCount,
 	//2.00
 	BinRead(binrw::Error),
@@ -132,16 +131,12 @@ pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
 	check1(mesh)
 }
 
-fn parse_triple_float(s:&str)->Result<[f32;3],Error>{
-	//split by commas
-	let floats=s.split(",").map(|f|
-		f.trim().parse().map_err(Error::ParseFloatError)
-	).collect::<Result<Vec<f32>,Error>>()?;
-	//only three is allowed
-	match floats.as_slice(){
-		&[x,y,z]=>Ok([x,y,z]),
-		_=>Err(Error::DimensionNot3(floats.len())),
-	}
+fn parse_triple_float(x:&str,y:&str,z:&str)->Result<[f32;3],std::num::ParseFloatError>{
+	Ok([
+		x.trim().parse()?,
+		y.trim().parse()?,
+		z.trim().parse()?,
+	])
 }
 
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
@@ -155,19 +150,19 @@ pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
 	let face_count=lines.read_line()?.trim().parse().map_err(Error::ParseIntError)?;
 	let vertices_line=lines.read_line()?;
 	//match three at a time, otherwise fail
-	let regman=lazy_regex::regex!(r"\[(.*?)\]\[(.*?)\]\[(.*?)\]");
+	let vertex_pattern=lazy_regex::regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
 	Ok(Mesh1{
 		header:Header1{
 			revision,
 			face_count,
 		},
-		vertices:regman.captures_iter(vertices_line.as_str()).map(|captures|
+		vertices:vertex_pattern.captures_iter(vertices_line.as_str()).map(|c|
 			Ok(Vertex1{
-				pos:parse_triple_float(&captures[1])?,
-				norm:parse_triple_float(&captures[2])?,
-				tex:parse_triple_float(&captures[3])?,
+				pos:parse_triple_float(&c[1],&c[2],&c[3])?,
+				norm:parse_triple_float(&c[4],&c[5],&c[6])?,
+				tex:parse_triple_float(&c[7],&c[8],&c[9])?,
 			})
-		).collect::<Result<Vec<Vertex1>,Error>>()?
+		).collect::<Result<Vec<Vertex1>,_>>().map_err(Error::ParseFloatError)?
 	})
 }
 
