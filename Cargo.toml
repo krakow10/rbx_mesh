@@ -1,6 +1,6 @@
 [package]
 name = "rbx_mesh"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 repository = "https://github.com/krakow10/rbx_mesh"
 license = "MIT OR Apache-2.0"
@@ -9,5 +9,5 @@ authors = ["Rhys Lloyd <krakow20@gmail.com>"]
 exclude = ["meshes"]
 
 [dependencies]
-binrw = "0.13.3"
+binrw = "0.14.0"
 lazy-regex = "3.1.0"
