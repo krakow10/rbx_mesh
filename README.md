@@ -3,6 +3,8 @@ Roblox Mesh Parser
 
 ## Example
 
+Print the mesh vertices for any mesh version / vertex size
+
 ```rust
 use rbx_mesh::{read_versioned,mesh::{VersionedMesh,SizeOfVertex2}};
 
