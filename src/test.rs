@@ -135,3 +135,11 @@ fn roundtrip_500_alt2(){
 	round_trip5("meshes/15256456161");
 }
 //also tested against ~2500 meshes from bhop and surf maps
+
+#[test]
+fn _3(){
+	const PHYSICS_DATA:&[u8]=include_bytes!("../meshes/3.data");
+	let mut cursor=std::io::Cursor::new(PHYSICS_DATA);
+	let physics_data=crate::read_physics_data(&mut cursor).unwrap();
+	assert_eq!(cursor.position(),PHYSICS_DATA.len() as u64);
+}
