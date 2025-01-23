@@ -135,3 +135,21 @@ fn roundtrip_500_alt2(){
 	round_trip5("meshes/15256456161");
 }
 //also tested against ~2500 meshes from bhop and surf maps
+
+fn read_physics_data(data:&[u8]){
+	let mut cursor=std::io::Cursor::new(data);
+	crate::read_physics_data(&mut cursor).unwrap();
+	assert_eq!(cursor.position(),data.len() as u64);
+}
+#[test]
+fn csgphs_3(){
+	read_physics_data(include_bytes!("../meshes/CSGPHS_3.data"));
+}
+#[test]
+fn csgphs_5(){
+	read_physics_data(include_bytes!("../meshes/CSGPHS_5.data"));
+}
+#[test]
+fn csgk(){
+	read_physics_data(include_bytes!("../meshes/CSGK.data"));
+}
