@@ -43,7 +43,6 @@ pub struct Header{
 pub struct Vertex{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
-	// #[brw(magic=b"\x5B\x5D\x69\xFF")]
 	pub color:[u8;4],
 	pub mystery_number_up_to_6:u32,
 	pub tex:[f32;2],
