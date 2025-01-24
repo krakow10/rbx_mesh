@@ -44,7 +44,7 @@ pub struct Vertex{
 	pub pos:[f32;3],
 	pub norm:[f32;3],
 	pub color:[u8;4],
-	pub mystery_number_up_to_6:u32,
+	pub normal_id:u32,//for textures!
 	pub tex:[f32;2],
 	#[brw(magic=0u128)]
 	pub tangent:[f32;3],

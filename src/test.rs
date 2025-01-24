@@ -165,7 +165,7 @@ fn meshdata(){
 		println!("===VERTEX NUMBER {i}===");
 		println!("pos={:?}",mesh.pos);
 		println!("norm={:?}",mesh.norm);
-		println!("count={}",mesh.mystery_number_up_to_6);
+		println!("normal_id={}",mesh.normal_id);
 		println!("tex={:?}",mesh.tex);
 		println!("tangent={:?}",mesh.tangent);
 	}
