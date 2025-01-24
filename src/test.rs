@@ -153,3 +153,21 @@ fn csgphs_5(){
 fn csgk(){
 	read_physics_data(include_bytes!("../meshes/CSGK.data"));
 }
+
+#[test]
+fn meshdata(){
+	let data=include_bytes!("../meshes/394453730.meshdata");
+	let decoded=crate::mesh_data::decode(std::io::Cursor::new(data)).unwrap();
+	let mut cursor=std::io::Cursor::new(decoded);
+	let mesh_data=crate::mesh_data::read(&mut cursor).unwrap();
+	println!("header._unknown={:?}",mesh_data.header._unknown);
+	for (i,mesh) in mesh_data.vertices.into_iter().enumerate(){
+		println!("===VERTEX NUMBER {i}===");
+		println!("pos={:?}",mesh.pos);
+		println!("norm={:?}",mesh.norm);
+		println!("count={}",mesh.mystery_number_up_to_6);
+		println!("tex={:?}",mesh.tex);
+		println!("tangent={:?}",mesh.tangent);
+	}
+	assert_eq!(cursor.position(),data.len() as u64);
+}
