@@ -17,22 +17,13 @@ pub struct PhysicsInfo{
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct MysteryInfo{
-	pub _unknown1:u32,
-	#[brw(magic=0u128)]
-	pub _unknown2:u32,
-	#[brw(magic=0x3F800000000000000000000000000000u128)]
-	pub _nothing:(),
-}
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug,Clone)]
 pub struct VertexId(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct Mesh{
-	pub mystery_info:MysteryInfo,
+	// concat_bytes!(16u32,0u128,16u32,0x3F800000000000000000000000000000u128)
+	#[brw(magic=b"\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x80\x3F")]
 	pub vertex_count:u32,
 	// vertex_width
 	#[brw(magic=4u32)]
