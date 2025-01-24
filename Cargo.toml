@@ -1,6 +1,6 @@
 [package]
 name = "rbx_mesh"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/krakow10/rbx_mesh"
 license = "MIT OR Apache-2.0"
