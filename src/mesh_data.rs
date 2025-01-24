@@ -33,47 +33,43 @@ pub fn read<R:binrw::BinReaderExt>(mut read:R)->Result<MeshData,Error>{
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct Header{
-	pub version:u32,
-	pub hash:[u8;16],
-	pub _unknown:[u32;4],
-	pub model_count:u32,
+	pub version:u32,//2
+	pub hash:[u8;16],//784f216c8b49e5f6
+	pub _unknown:[u8;16],
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct Model{
-	pub payload:[f32;6],
-	#[brw(magic=b"\x5B\x5D\x69\xFF")]
-	pub payload_count:u32,
+pub struct Vertex{
+	pub pos:[f32;3],
+	pub norm:[f32;3],
+	// #[brw(magic=b"\x5B\x5D\x69\xFF")]
+	pub color:[u8;4],
+	pub mystery_number_up_to_6:u32,
 	pub tex:[f32;2],
 	#[brw(magic=0u128)]
-	pub more_float:[f32;3],
+	pub tangent:[f32;3],
 	#[brw(magic=0u128)]
-	_nothing:(),
+	pub _nothing:(),
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct ModelId(pub u32);
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug,Clone)]
-pub struct Indices{
-	pub count:u32,
-	#[br(count=count)]
-	pub indices:Vec<ModelId>,
-}
+pub struct VertexId(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct MeshData{
 	#[brw(magic=b"CSGMDL")]
 	pub header:Header,
-	// model data length
+	pub vertex_count:u32,
+	// vertex data length
 	#[brw(magic=84u32)]
-	#[br(count=header.model_count)]
-	pub models:Vec<Model>,
-	pub indices:Indices,
+	#[br(count=vertex_count)]
+	pub vertices:Vec<Vertex>,
+	pub face_count:u32,
+	#[br(count=face_count)]
+	pub faces:Vec<VertexId>,
 }
 
 #[test]
@@ -82,12 +78,14 @@ fn do_it(){
 	let decoded=decode(std::io::Cursor::new(data)).unwrap();
 	let mut cursor=std::io::Cursor::new(decoded);
 	let mesh_data=read(&mut cursor).unwrap();
-	for (i,mesh) in mesh_data.models.into_iter().enumerate(){
-		println!("===MESH NUMBER {i}===");
-		println!("payload={:?}",mesh.payload);
-		println!("count={}",mesh.payload_count);
-		println!("tex={:?}",mesh.tex);
-		println!("more_float={:?}",mesh.more_float);
-	}
+	println!("header._unknown={:?}",mesh_data.header._unknown);
+	// for (i,mesh) in mesh_data.vertices.into_iter().enumerate(){
+	// 	println!("===VERTEX NUMBER {i}===");
+	// 	println!("pos={:?}",mesh.pos);
+	// 	println!("norm={:?}",mesh.norm);
+	// 	println!("count={}",mesh.mystery_number_up_to_6);
+	// 	println!("tex={:?}",mesh.tex);
+	// 	println!("tangent={:?}",mesh.tangent);
+	// }
 	assert_eq!(cursor.position(),data.len() as u64);
 }
