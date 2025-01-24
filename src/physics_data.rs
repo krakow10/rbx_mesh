@@ -50,18 +50,29 @@ pub struct Meshes{
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub enum CollisionData{
+pub enum CSGPHS{
+	// concat_bytes!(0u32,b"BLOCK")
 	#[brw(magic=b"\0\0\0\0BLOCK")]
 	Block,
 	#[brw(magic=3u32)]
 	Meshes(Meshes),
+	#[brw(magic=5u32)]
+	Meshes2(Meshes),
 	#[brw(magic=6u32)]
 	PhysicsInfoMesh(PhysicsInfoMesh),
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct PhysicsData{
+pub struct CSGK{
+	pub uuid_ascii_hex:[u8;32],
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub enum PhysicsData{
+	#[brw(magic=b"CSGK")]
+	CSGK(CSGK),
 	#[brw(magic=b"CSGPHS")]
-	pub collision_data:CollisionData,
+	CSGPHS(CSGPHS),
 }
