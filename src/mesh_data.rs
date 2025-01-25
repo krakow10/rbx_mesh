@@ -1,4 +1,5 @@
 use std::io::{Read,Seek};
+use binrw::BinReaderExt;
 
 pub const OBFUSCATION_NOISE_CYCLE_XOR:[u8;31]=[86,46,110,88,49,32,48,4,52,105,12,119,12,1,94,0,26,96,55,105,29,82,43,7,79,36,89,101,83,4,122];
 fn reversible_obfuscate(offset:u64,buf:&mut [u8]){
@@ -32,23 +33,9 @@ impl<R:Read+Seek> Seek for Obfuscator<R>{
 
 pub type Error=binrw::Error;
 
-/// Deobfuscated
-pub struct CSGMDL<R>{
-	inner:R,
-}
-impl<R:binrw::BinReaderExt> CSGMDL<R>{
-	/// MeshData is obfuscated by a cyclic noise pattern
-	pub fn new_obfuscated(read:R)->CSGMDL<Obfuscator<R>>{
-		CSGMDL{inner:Obfuscator::new(read)}
-	}
-	pub fn new_already_deobfuscated(read:R)->Self{
-		Self{inner:read}
-	}
-}
-
 #[inline]
-pub fn read_deobfuscated<R:binrw::BinReaderExt>(mut read:CSGMDL<R>)->Result<MeshData,Error>{
-	read.inner.read_le()
+pub fn read<R:BinReaderExt>(read:R)->Result<MeshData,Error>{
+	Obfuscator::new(read).read_le()
 }
 
 #[binrw::binrw]
