@@ -7,6 +7,7 @@ license = "MIT OR Apache-2.0"
 description = "Rust parser for Roblox mesh files."
 authors = ["Rhys Lloyd <krakow20@gmail.com>"]
 exclude = ["meshes"]
+keywords = ["roblox", "mesh", "parser", "decoder", "union", "physics", "PhysicsData", "MeshData"]
 
 [dependencies]
 binrw = "0.14.0"
