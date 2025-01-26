@@ -148,21 +148,26 @@ pub fn read1<R:BufRead>(read:R)->Result<Mesh1,Error>{
 		_=>return Err(Error::Header),
 	};
 	let face_count=lines.read_line()?.trim().parse().map_err(Error::ParseIntError)?;
+	//final header
+	let header=Header1{
+		revision,
+		face_count,
+	};
+
 	let vertices_line=lines.read_line()?;
 	//match three at a time, otherwise fail
 	let vertex_pattern=lazy_regex::regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
+	let vertices=vertex_pattern.captures_iter(vertices_line.as_str()).map(|c|
+		Ok(Vertex1{
+			pos:parse_triple_float(&c[1],&c[2],&c[3])?,
+			norm:parse_triple_float(&c[4],&c[5],&c[6])?,
+			tex:parse_triple_float(&c[7],&c[8],&c[9])?,
+		})
+	).collect::<Result<Vec<Vertex1>,_>>().map_err(Error::ParseFloatError)?;
+
 	Ok(Mesh1{
-		header:Header1{
-			revision,
-			face_count,
-		},
-		vertices:vertex_pattern.captures_iter(vertices_line.as_str()).map(|c|
-			Ok(Vertex1{
-				pos:parse_triple_float(&c[1],&c[2],&c[3])?,
-				norm:parse_triple_float(&c[4],&c[5],&c[6])?,
-				tex:parse_triple_float(&c[7],&c[8],&c[9])?,
-			})
-		).collect::<Result<Vec<Vertex1>,_>>().map_err(Error::ParseFloatError)?
+		header,
+		vertices,
 	})
 }
 
