@@ -56,13 +56,13 @@ pub fn read_versioned<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
 	}
 }
 
-struct LineMachine<R:Read>{
-	lines:std::io::Lines<std::io::BufReader<R>>,
+struct LineMachine<R:BufRead>{
+	lines:std::io::Lines<R>,
 }
-impl<R:Read> LineMachine<R>{
+impl<R:BufRead> LineMachine<R>{
 	fn new(read:R)->Self{
 		Self{
-			lines:std::io::BufReader::new(read).lines(),
+			lines:read.lines(),
 		}
 	}
 	fn read_line(&mut self)->Result<String,Error>{
@@ -116,7 +116,7 @@ pub fn check1(mesh:Mesh1)->Result<Mesh1,Error>{
 }
 
 #[inline]
-pub fn read_100<R:Read>(read:R)->Result<Mesh1,Error>{
+pub fn read_100<R:BufRead>(read:R)->Result<Mesh1,Error>{
 	let mut mesh=read1(read)?;
 	//we'll fix it in post
 	fix1(&mut mesh);
@@ -125,7 +125,7 @@ pub fn read_100<R:Read>(read:R)->Result<Mesh1,Error>{
 }
 
 #[inline]
-pub fn read_101<R:Read>(read:R)->Result<Mesh1,Error>{
+pub fn read_101<R:BufRead>(read:R)->Result<Mesh1,Error>{
 	let mut mesh=read1(read)?;
 	fix1(&mut mesh);
 	check1(mesh)
@@ -140,7 +140,7 @@ fn parse_triple_float(x:&str,y:&str,z:&str)->Result<[f32;3],std::num::ParseFloat
 }
 
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
-pub fn read1<R:Read>(read:R)->Result<Mesh1,Error>{
+pub fn read1<R:BufRead>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
 	let revision=match lines.read_line()?.trim(){
 		"version 1.00"=>Revision1::Version100,
