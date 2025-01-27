@@ -7,7 +7,7 @@ pub const DEFAULT_VERTEX_TANGENT:[i8;4]=[0,0,-128,127];
 #[derive(Debug)]
 pub enum Error{
 	Io(std::io::Error),
-	UnknownVersion(Vec<u8>),
+	UnknownVersion([u8;12]),
 	//1.00
 	Header,
 	UnexpectedEof,
@@ -35,24 +35,22 @@ pub enum VersionedMesh{
 	//Version7(Mesh7),
 }
 
-pub fn read_versioned<R:Read+Seek>(read:R)->Result<VersionedMesh,Error>{
-	let mut buf_reader=binrw::io::BufReader::new(read);
-	let buf=buf_reader.fill_buf().map_err(Error::Io)?;
-	if buf.len()<12{
-		return Err(Error::Header);
-	}
-	match &buf[0..12]{
-		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(buf_reader)?)),
-		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(buf_reader)?)),
-		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(buf_reader)?)),
+pub fn read_versioned<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
+	let mut peek=[0u8;12];
+	read.read_exact(&mut peek).map_err(Error::Io)?;
+	read.seek(std::io::SeekFrom::Start(0)).map_err(Error::Io)?;
+	match &peek{
+		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(binrw::io::BufReader::new(read))?)),
+		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(binrw::io::BufReader::new(read))?)),
+		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(read)?)),
 		b"version 3.00"
-		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(buf_reader)?)),
+		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(read)?)),
 		b"version 4.00"
-		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(buf_reader)?)),
-		b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(buf_reader)?)),
-		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(buf_reader)?)),
-		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(buf_reader)?)),
-		other=>Err(Error::UnknownVersion(other.to_vec())),
+		|b"version 4.01"=>Ok(VersionedMesh::Version4(read_400(read)?)),
+		b"version 5.00"=>Ok(VersionedMesh::Version5(read_500(read)?)),
+		//b"version 6.00"=>Ok(VersionedMesh::Version6(read_600(read)?)),
+		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(read)?)),
+		&other=>Err(Error::UnknownVersion(other)),
 	}
 }
 
