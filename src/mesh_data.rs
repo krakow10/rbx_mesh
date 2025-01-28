@@ -34,35 +34,49 @@ impl<R:Read+Seek> Seek for Obfuscator<R>{
 pub type Error=binrw::Error;
 
 #[inline]
-pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<VersionedMesh,Error>{
-	let mut obfuscator=Obfuscator::new(&mut read);
-	let header:Header=obfuscator.read_le()?;
-	obfuscator.seek(std::io::SeekFrom::Start(0))?;
-	Ok(match header.version{
-		Version::Version2=>VersionedMesh::Version2(obfuscator.read_le()?),
-		Version::Version4=>VersionedMesh::Version4(obfuscator.read_le()?),
-		// in version 5 only the header is obfuscated.
-		Version::Version5=>VersionedMesh::Version5(read.read_le()?),
+pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<CSGPHS,Error>{
+	let header:Header=read.read_le()?;
+	Ok(match header{
+		Header::CSGK(csgk)=>CSGPHS::CSGK(csgk),
+		Header::CSGPHS(header_version)=>{
+			read.seek(std::io::SeekFrom::Start(0))?;
+			match header_version{
+				HeaderVersion::CSGPHS2=>CSGPHS::CSGPHS2(Obfuscator::new(read).read_le()?),
+				HeaderVersion::CSGPHS4=>CSGPHS::CSGPHS4(Obfuscator::new(read).read_le()?),
+				// in version 5 only the header is obfuscated.
+				HeaderVersion::CSGPHS5=>CSGPHS::CSGPHS5(read.read_le()?),
+			}
+		}
 	})
 }
 
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone,Eq,PartialEq)]
-pub enum Version{
-	#[brw(magic=2u32)]
-	Version2,
-	#[brw(magic=4u32)]
-	Version4,
-	#[brw(magic=5u32)]
-	Version5,
+pub enum HeaderVersion{
+	// #[brw(magic=b"CSGMDL")] #[brw(magic=2u32)]
+	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x32\x04\x34\x69")]
+	CSGPHS2,
+	// #[brw(magic=b"CSGMDL")] #[brw(magic=4u32)]
+	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x34\x04\x34\x69")]
+	CSGPHS4,
+	// #[brw(magic=b"CSGMDL")] #[brw(magic=5u32)]
+	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
+	CSGPHS5,
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct Header{
-	#[brw(magic=b"CSGMDL")]
-	pub version:Version,
+pub struct CSGK{
+	pub uuid_ascii_hex:[u8;32],
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub enum Header{
+	#[brw(magic=b"CSGK")]
+	CSGK(CSGK),
+	CSGPHS(HeaderVersion),
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -185,10 +199,10 @@ pub struct MeshData5{
 	// #[br(parse_with=binrw::helpers::until_eof)]
 	// pub rest:Vec<u8>,
 }
-
 #[derive(Debug,Clone)]
-pub enum VersionedMesh{
-	Version2(MeshData2),
-	Version4(MeshData4),
-	Version5(MeshData5),
+pub enum CSGPHS{
+	CSGK(CSGK),
+	CSGPHS2(MeshData2),
+	CSGPHS4(MeshData4),
+	CSGPHS5(MeshData5),
 }
