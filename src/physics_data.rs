@@ -37,13 +37,25 @@ pub struct Mesh{
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct PhysicsInfoMesh{
+	#[brw(magic=6u32)]
 	pub physics_info:PhysicsInfo,
 	pub mesh:Mesh,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub enum MeshesVersion{
+	#[brw(magic=3u32)]
+	Meshes3,
+	#[brw(magic=5u32)]
+	Meshes5,
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct Meshes{
+	pub version:MeshesVersion,
 	#[br(parse_with=binrw::helpers::until_eof)]
 	pub meshes:Vec<Mesh>,
 }
@@ -54,11 +66,7 @@ pub enum CSGPHS{
 	// concat_bytes!(0u32,b"BLOCK")
 	#[brw(magic=b"\0\0\0\0BLOCK")]
 	Block,
-	#[brw(magic=3u32)]
-	Meshes3(Meshes),
-	#[brw(magic=5u32)]
-	Meshes5(Meshes),
-	#[brw(magic=6u32)]
+	Meshes(Meshes),
 	PhysicsInfoMesh(PhysicsInfoMesh),
 }
 #[binrw::binrw]

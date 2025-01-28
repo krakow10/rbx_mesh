@@ -41,9 +41,7 @@ let physics_data=read_physics_data(input)?;
 
 match physics_data{
 	// the most common format (99% of the 100000 unions in my testing)
-	PhysicsData::CSGPHS(CSGPHS::Meshes3(meshes))
-	// this format is identical but has a different magic number.
-	|PhysicsData::CSGPHS(CSGPHS::Meshes5(meshes))=>println!("CSGPHS::Meshes"),
+	PhysicsData::CSGPHS(CSGPHS::Meshes(meshes))=>println!("CSGPHS::Meshes"),
 	// Only one occurence in my data set.
 	// Who writes a uuid as ascii hex in a binary format!?
 	PhysicsData::CSGK(csgk)=>println!("CSGK"),
