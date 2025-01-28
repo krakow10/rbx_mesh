@@ -41,14 +41,17 @@ fn meshdata_394453730_2(){
 	// unknown = [44, 128, 126, 197, 153, 213, 233, 128, 178, 234, 201, 204, 83, 191, 103, 214]
 }
 #[test]
+fn meshdata_5692112940_2(){
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/5692112940.meshdata")).unwrap();
+	dbg_mesh_data(mesh_data,Version::Version2);
+}
+#[test]
 fn meshdata_4500696697_4(){
 	let mesh_data=read_mesh_data(include_bytes!("../../meshes/4500696697_4.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,Version::Version4);
-	// unknown = [44, 128, 126, 197, 153, 213, 233, 128, 178, 234, 201, 204, 83, 191, 103, 214]
 }
 #[test]
 fn meshdata_15124417947_5(){
 	let mesh_data=read_mesh_data(include_bytes!("../../meshes/15124417947_5.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,Version::Version5);
-	// unknown = [44, 128, 126, 197, 153, 213, 233, 128, 178, 234, 201, 204, 83, 191, 103, 214]
 }
