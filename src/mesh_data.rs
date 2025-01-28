@@ -143,7 +143,7 @@ pub struct MeshData5{
 	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
 	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
 	#[br(parse_with=binrw::helpers::until_eof)]
-	pub floats:Vec<f32>,
+	pub floats:Vec<u8>,
 }
 
 pub enum VersionedMesh{
