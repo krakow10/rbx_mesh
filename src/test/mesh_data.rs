@@ -27,6 +27,35 @@ fn dbg_mesh_data(mesh_data:VersionedMesh,expected_version:Version){
 	// 	println!("tex={:?}",mesh.tex);
 	// 	println!("tangent={:?}",mesh.tangent);
 	// }
+	match mesh_data{
+		VersionedMesh::Version2(_)=>(),
+		VersionedMesh::Version4(mesh_data4)=>{
+			println!("==V4");
+			for f in mesh_data4._unknown{
+				println!("{f:?}");
+			}
+		},
+		VersionedMesh::Version5(mesh_data5)=>{
+			println!("===V5===");
+			println!("pos_count={}",mesh_data5.pos_count);
+			println!("_unknown1_count={}",mesh_data5._unknown1_count);
+			println!("_unknown1_len={}",mesh_data5._unknown1_len);
+			println!("color_count={}",mesh_data5.color_count);
+			println!("normal_id_count={}",mesh_data5.normal_id_count);
+			println!("tex_count={}",mesh_data5.tex_count);
+			println!("_unknown4_count={}",mesh_data5._unknown4_count);
+			println!("_unknown5_count1={} bytes={:?}",mesh_data5._unknown5_count1,mesh_data5._unknown5_count1.to_le_bytes());
+			println!("_unknown5_count2={} bytes={:?}",mesh_data5._unknown5_count2,mesh_data5._unknown5_count2.to_le_bytes());
+			for (i,thing) in mesh_data5._unknown5_chunks.into_iter().enumerate().skip(900){
+				println!("u5 row={i} list={thing:?}");
+			}
+			println!("_unknown6={:?}",mesh_data5._unknown6);
+			// println!("===REST===");
+			// let len=mesh_data5.rest.len();
+			// let e=len.min(64);
+			// println!("len={len} {:?}",&mesh_data5.rest[..e]);
+		},
+}
 }
 #[test]
 fn meshdata_385416572_2(){
