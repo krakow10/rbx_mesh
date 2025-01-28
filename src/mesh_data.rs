@@ -146,6 +146,7 @@ pub struct MeshData5{
 	pub floats:Vec<u8>,
 }
 
+#[derive(Debug,Clone)]
 pub enum VersionedMesh{
 	Version2(MeshData2),
 	Version4(MeshData4),
