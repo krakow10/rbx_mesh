@@ -9,10 +9,10 @@ fn reversible_obfuscate(offset:u64,buf:&mut [u8]){
 	}
 }
 
-pub struct Obfuscator<R:Read+Seek>{
+pub struct Obfuscator<R>{
 	inner:R,
 }
-impl<R:Read+Seek> Obfuscator<R>{
+impl<R> Obfuscator<R>{
 	pub fn new(read:R)->Self{
 		Self{inner:read}
 	}
@@ -25,7 +25,7 @@ impl<R:Read+Seek> Read for Obfuscator<R>{
 		Ok(read_amount)
 	}
 }
-impl<R:Read+Seek> Seek for Obfuscator<R>{
+impl<R:Seek> Seek for Obfuscator<R>{
 	fn seek(&mut self,pos:std::io::SeekFrom)->std::io::Result<u64>{
 		self.inner.seek(pos)
 	}
