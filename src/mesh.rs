@@ -24,9 +24,11 @@ impl std::fmt::Display for Error{
 }
 impl std::error::Error for Error{}
 
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug,Clone)]
 pub enum VersionedMesh{
-	Version1(Mesh1),
+	Version1(Mesh1Raw),
 	Version2(Mesh2),
 	Version3(Mesh3),
 	Version4(Mesh4),
@@ -40,8 +42,8 @@ pub fn read_versioned<R:Read+Seek>(mut read:R)->Result<VersionedMesh,Error>{
 	read.read_exact(&mut peek).map_err(Error::Io)?;
 	read.seek(std::io::SeekFrom::Start(0)).map_err(Error::Io)?;
 	match &peek{
-		b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(binrw::io::BufReader::new(read))?)),
-		b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(binrw::io::BufReader::new(read))?)),
+		//b"version 1.00"=>Ok(VersionedMesh::Version1(read_100(binrw::io::BufReader::new(read))?)),
+		//b"version 1.01"=>Ok(VersionedMesh::Version1(read_101(binrw::io::BufReader::new(read))?)),
 		b"version 2.00"=>Ok(VersionedMesh::Version2(read_200(read)?)),
 		b"version 3.00"
 		|b"version 3.01"=>Ok(VersionedMesh::Version3(read_300(read)?)),
@@ -88,6 +90,14 @@ pub struct Header1{
 pub struct Mesh1{
 	pub header:Header1,
 	pub vertices:Vec<Vertex1>
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct Mesh1Raw{
+	#[brw(magic=b"version 1.")]
+	#[br(parse_with=binrw::helpers::until_eof)]
+	data:Vec<u8>,
 }
 
 #[inline]
