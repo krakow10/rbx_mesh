@@ -1,4 +1,4 @@
-use std::io::{Read,Seek};
+use std::io::{Read,Seek,Write};
 use binrw::BinReaderExt;
 
 pub const OBFUSCATION_NOISE_CYCLE_XOR:[u8;31]=[86,46,110,88,49,32,48,4,52,105,12,119,12,1,94,0,26,96,55,105,29,82,43,7,79,36,89,101,83,4,122];
@@ -23,6 +23,18 @@ impl<R:Read+Seek> Read for Obfuscator<R>{
 		let read_amount=self.inner.read(buf)?;
 		reversible_obfuscate(pos,&mut buf[..read_amount]);
 		Ok(read_amount)
+	}
+}
+impl<R:Write+Seek> Write for Obfuscator<R>{
+	fn write(&mut self,buf:&[u8])->std::io::Result<usize>{
+		// avoiding allocation in Read was fortunate
+		let mut copy=buf.to_owned();
+		let pos=self.inner.stream_position()?;
+		reversible_obfuscate(pos,&mut copy);
+		self.inner.write(&copy)
+	}
+	fn flush(&mut self)->std::io::Result<()>{
+		self.inner.flush()
 	}
 }
 impl<R:Seek> Seek for Obfuscator<R>{
@@ -219,4 +231,20 @@ pub enum CSGPHS{
 	CSGPHS2(MeshData2),
 	CSGPHS4(MeshData4),
 	CSGPHS5(MeshData5),
+}
+impl binrw::BinWrite for CSGPHS{
+	type Args<'a>=();
+	fn write_options<W:Write+Seek>(
+		&self,
+		writer:&mut W,
+		endian:binrw::Endian,
+		args:Self::Args<'_>,
+	)->binrw::BinResult<()>{
+		match self{
+			CSGPHS::CSGK(csgk)=>csgk.write_options(writer,endian,args),
+			CSGPHS::CSGPHS2(mesh_data2)=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
+			CSGPHS::CSGPHS4(mesh_data4)=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
+			CSGPHS::CSGPHS5(mesh_data5)=>mesh_data5.write_options(writer,endian,args),
+		}
+	}
 }
