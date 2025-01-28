@@ -175,7 +175,8 @@ pub struct MeshData5{
 	pub pos_count:u16,//208
 	#[br(count=pos_count)]
 	pub pos:Vec<[f32;3]>,
-	// ???
+
+	// probably has to do with normals
 	pub _unknown1_count:u16,//208
 	pub _unknown1_len:u32,//208*6 = 1248
 	#[br(count=_unknown1_count)]
@@ -193,6 +194,7 @@ pub struct MeshData5{
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 
+	// probably has to do with tangents
 	pub _unknown4_count:u16,//208
 	pub _unknown4_len:u32,//208*6 = 1248
 	#[br(count=_unknown4_count)]
@@ -204,8 +206,9 @@ pub struct MeshData5{
 	#[br(count=_unknown5_count2)]
 	pub _unknown5_list:Vec<u8>,
 
-	pub _unknown6_count:u8,//3
+	pub _unknown6_count:u8,//2-3
 	#[br(count=_unknown6_count)]
+	// the numbers in this list seem to match various list lengths
 	pub _unknown6_list:Vec<u32>,
 	// #[br(parse_with=binrw::helpers::until_eof)]
 	// pub rest:Vec<u8>,
