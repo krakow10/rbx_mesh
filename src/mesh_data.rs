@@ -132,9 +132,9 @@ pub struct MeshData4{
 	#[brw(magic=b"CSGMDL\x04\0\0\0")]
 	pub hash:Hash,
 	pub mesh:Mesh2,
-	// either 12 or 16 bytes
-	#[br(parse_with=binrw::helpers::until_eof)]
-	pub _unknown:Vec<f32>,
+	pub _unknown1_count:u32,
+	#[br(count=_unknown1_count)]
+	pub _unknown1_list:Vec<u32>,
 }
 #[binrw::binrw]
 #[brw(little,repr=u8)]
@@ -161,25 +161,27 @@ pub struct MeshData5{
 	pub _unknown1_count:u16,//208
 	pub _unknown1_len:u32,//208*6 = 1248
 	#[br(count=_unknown1_count)]
-	pub _unknown1_chunks:Vec<[u8;6]>,// 1248 bytes long
+	pub _unknown1_list:Vec<[u8;6]>,// 1248 bytes long
 	pub color_count:u16,//208
 	#[br(count=color_count)]
 	pub colors:Vec<[u8;4]>,
 	pub normal_id_count:u16,//208
 	#[br(count=normal_id_count)]
-	pub normal_id_chunks:Vec<NormalId5>,
+	pub normal_id_list:Vec<NormalId5>,
 	pub tex_count:u16,//208
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 	pub _unknown4_count:u16,//208
 	pub _unknown4_len:u32,//208*6 = 1248
 	#[br(count=_unknown4_count)]
-	pub _unknown4_chunks:Vec<[u8;6]>,// 1248 bytes long
+	pub _unknown4_list:Vec<[u8;6]>,// 1248 bytes long
 	pub _unknown5_count1:u32,//984
 	pub _unknown5_count2:u32,//986
-	#[br(count=_unknown5_count2+1)]
-	pub _unknown5_chunks:Vec<u8>,
-	pub _unknown6:[u32;3],
+	#[br(count=_unknown5_count2)]
+	pub _unknown5_list:Vec<u8>,
+	pub _unknown6_count:u8,//3
+	#[br(count=_unknown6_count)]
+	pub _unknown6_list:Vec<u32>,
 	// #[br(parse_with=binrw::helpers::until_eof)]
 	// pub rest:Vec<u8>,
 }

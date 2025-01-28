@@ -31,8 +31,9 @@ fn dbg_mesh_data(mesh_data:VersionedMesh,expected_version:Version){
 		VersionedMesh::Version2(_)=>(),
 		VersionedMesh::Version4(mesh_data4)=>{
 			println!("==V4");
-			for f in mesh_data4._unknown{
-				println!("{f:?}");
+			println!("_unknown1={:?}",mesh_data4._unknown1_count);
+			for (i,thing) in mesh_data4._unknown1_list.into_iter().enumerate(){
+				println!("u6 row={i} list={thing:?}");
 			}
 		},
 		VersionedMesh::Version5(mesh_data5)=>{
@@ -46,10 +47,13 @@ fn dbg_mesh_data(mesh_data:VersionedMesh,expected_version:Version){
 			println!("_unknown4_count={}",mesh_data5._unknown4_count);
 			println!("_unknown5_count1={} bytes={:?}",mesh_data5._unknown5_count1,mesh_data5._unknown5_count1.to_le_bytes());
 			println!("_unknown5_count2={} bytes={:?}",mesh_data5._unknown5_count2,mesh_data5._unknown5_count2.to_le_bytes());
-			for (i,thing) in mesh_data5._unknown5_chunks.into_iter().enumerate().skip(900){
+			for (i,thing) in mesh_data5._unknown5_list.into_iter().enumerate().skip(mesh_data5._unknown5_count2 as usize-10){
 				println!("u5 row={i} list={thing:?}");
 			}
-			println!("_unknown6={:?}",mesh_data5._unknown6);
+			println!("_unknown6={:?}",mesh_data5._unknown6_count);
+			for (i,thing) in mesh_data5._unknown6_list.into_iter().enumerate(){
+				println!("u6 row={i} list={thing:?}");
+			}
 			// println!("===REST===");
 			// let len=mesh_data5.rest.len();
 			// let e=len.min(64);
@@ -82,5 +86,10 @@ fn meshdata_4500696697_4(){
 #[test]
 fn meshdata_15124417947_5(){
 	let mesh_data=read_mesh_data(include_bytes!("../../meshes/15124417947_5.meshdata")).unwrap();
+	dbg_mesh_data(mesh_data,Version::Version5);
+}
+#[test]
+fn meshdata_14846974687_5(){
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/14846974687_5.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,Version::Version5);
 }
