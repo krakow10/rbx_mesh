@@ -86,7 +86,7 @@ fn meshdata_394453730_2(){
 }
 #[test]
 fn meshdata_5692112940_2(){
-	let mesh_data=read_mesh_data(include_bytes!("../../meshes/5692112940.meshdata")).unwrap();
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/5692112940_2.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,"CSGPHS2");
 }
 #[test]
