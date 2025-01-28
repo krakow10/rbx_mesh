@@ -72,13 +72,13 @@ pub enum HeaderVersion{
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub struct CSGK{
+	#[brw(magic=b"CSGK")]
 	pub uuid_ascii_hex:[u8;32],
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub enum Header{
-	#[brw(magic=b"CSGK")]
 	CSGK(CSGK),
 	CSGPHS(HeaderVersion),
 }
