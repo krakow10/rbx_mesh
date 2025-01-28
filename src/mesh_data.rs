@@ -75,7 +75,7 @@ pub struct Hash{
 #[brw(little,repr=u32)]
 #[derive(Debug,Clone)]
 // Why does this differ from Roblox's own standard?
-pub enum NormalId{
+pub enum NormalId2{
 	Right=1,
 	Top=2,
 	Back=3,
@@ -93,7 +93,7 @@ pub struct Vertex{
 	// NormalId is redundant and can simply be computed
 	// from the normal axis with the largest magnitude.
 	// Primarily used for textures.
-	pub normal_id:NormalId,
+	pub normal_id:NormalId2,
 	pub tex:[f32;2],
 	#[brw(magic=0u128)]
 	pub tangent:[f32;3],
