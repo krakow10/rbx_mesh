@@ -34,16 +34,40 @@ impl<R:Read+Seek> Seek for Obfuscator<R>{
 pub type Error=binrw::Error;
 
 #[inline]
-pub fn read<R:BinReaderExt>(read:R)->Result<MeshData,Error>{
-	Obfuscator::new(read).read_le()
+pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<VersionedMesh,Error>{
+	let mut obfuscator=Obfuscator::new(&mut read);
+	let header:Header=obfuscator.read_le()?;
+	obfuscator.seek(std::io::SeekFrom::Start(0))?;
+	Ok(match header.version{
+		Version::Version2=>VersionedMesh::Version2(obfuscator.read_le()?),
+		Version::Version4=>VersionedMesh::Version4(obfuscator.read_le()?),
+		// in version 5 only the header is obfuscated.
+		Version::Version5=>VersionedMesh::Version5(read.read_le()?),
+	})
 }
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug,Clone,Eq,PartialEq)]
+pub enum Version{
+	#[brw(magic=2u32)]
+	Version2,
+	#[brw(magic=4u32)]
+	Version4,
+	#[brw(magic=5u32)]
+	Version5,
+}
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug,Clone)]
 pub struct Header{
-	#[brw(magic=2u32)]
-	//pub version:u32,
+	#[brw(magic=b"CSGMDL")]
+	pub version:Version,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct Hash{
 	pub hash:[u8;16],//784f216c8b49e5f6
 	pub _unknown:[u8;16],
 }
@@ -83,9 +107,7 @@ pub struct VertexId(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct MeshData{
-	#[brw(magic=b"CSGMDL")]
-	pub header:Header,
+pub struct Mesh2{
 	pub vertex_count:u32,
 	// vertex data length
 	#[brw(magic=84u32)]
@@ -94,4 +116,38 @@ pub struct MeshData{
 	pub face_count:u32,
 	#[br(count=face_count)]
 	pub faces:Vec<VertexId>,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct MeshData2{
+	#[brw(magic=b"CSGMDL\x02\0\0\0")]
+	pub hash:Hash,
+	pub mesh:Mesh2,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct MeshData4{
+	#[brw(magic=b"CSGMDL\x04\0\0\0")]
+	pub hash:Hash,
+	pub mesh:Mesh2,
+	// either 12 or 16 bytes
+	#[br(parse_with=binrw::helpers::until_eof)]
+	pub _unknown:Vec<f32>,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct MeshData5{
+	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
+	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
+	#[br(parse_with=binrw::helpers::until_eof)]
+	pub floats:Vec<f32>,
+}
+
+pub enum VersionedMesh{
+	Version2(MeshData2),
+	Version4(MeshData4),
+	Version5(MeshData5),
 }
