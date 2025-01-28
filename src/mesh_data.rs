@@ -49,6 +49,10 @@ pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<CSGPHS,Error>{
 		}
 	})
 }
+#[inline]
+pub fn read_header<R:BinReaderExt>(mut read:R)->Result<Header,Error>{
+	read.read_le()
+}
 
 #[binrw::binrw]
 #[brw(little)]
