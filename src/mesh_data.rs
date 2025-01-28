@@ -66,6 +66,9 @@ pub enum HeaderVersion{
 	// #[brw(magic=4u32)]
 	#[brw(magic=b"\x34\x04\x34\x69")]
 	CSGMDL4,
+	// #[brw(magic=5u32)]
+	#[brw(magic=b"\x35\x04\x34\x69")]
+	CSGMDL5,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -162,11 +165,71 @@ pub struct CSGMDL4{
 // TODO use read_options to directly read MeshData
 // instead of reading header and then seeking back
 #[binrw::binrw]
+#[brw(little,repr=u8)]
+#[derive(Debug,Clone)]
+// Why does this differ from Roblox's own standard?
+pub enum NormalId5{
+	Right=1,
+	Top=2,
+	Back=3,
+	Left=4,
+	Bottom=5,
+	Front=6,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct CSGMDL5{
+	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
+	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
+	pub pos_count:u16,//208
+	#[br(count=pos_count)]
+	pub pos:Vec<[f32;3]>,
+
+	// probably has to do with normals
+	pub _unknown1_count:u16,//208
+	pub _unknown1_len:u32,//208*6 = 1248
+	#[br(count=_unknown1_count)]
+	pub _unknown1_list:Vec<[u8;6]>,// 1248 bytes long
+
+	pub color_count:u16,//208
+	#[br(count=color_count)]
+	pub colors:Vec<[u8;4]>,
+
+	pub normal_id_count:u16,//208
+	#[br(count=normal_id_count)]
+	pub normal_id_list:Vec<NormalId5>,
+
+	pub tex_count:u16,//208
+	#[br(count=tex_count)]
+	pub tex:Vec<[f32;2]>,
+
+	// probably has to do with tangents
+	pub _unknown4_count:u16,//208
+	pub _unknown4_len:u32,//208*6 = 1248
+	#[br(count=_unknown4_count)]
+	pub _unknown4_list:Vec<[u8;6]>,// 1248 bytes long
+
+	// triangle strip? u8 because each one is an increment on previous ids?
+	pub _unknown5_count1:u32,//984
+	pub _unknown5_count2:u32,//986
+	#[br(count=_unknown5_count2)]
+	pub _unknown5_list:Vec<u8>,
+
+	pub _unknown6_count:u8,//2-3
+	#[br(count=_unknown6_count)]
+	// the numbers in this list seem to match various list lengths
+	pub _unknown6_list:Vec<u32>,
+	// #[br(parse_with=binrw::helpers::until_eof)]
+	// pub rest:Vec<u8>,
+}
+#[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub enum CSGMDL{
 	V2(CSGMDL2),
 	V4(CSGMDL4),
+	V5(CSGMDL5),
 }
 #[derive(Debug,Clone)]
 pub enum MeshData{
@@ -188,6 +251,8 @@ impl binrw::BinRead for MeshData{
 				match header_version{
 					HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::V2(CSGMDL2::read_options(&mut Obfuscator::new(reader),endian,args)?)),
 					HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::V4(CSGMDL4::read_options(&mut Obfuscator::new(reader),endian,args)?)),
+					// in version 5 only the header is obfuscated.
+					HeaderVersion::CSGMDL5=>MeshData::CSGMDL(CSGMDL::V5(CSGMDL5::read_options(reader,endian,args)?)),
 				}
 			}
 		})
@@ -205,6 +270,7 @@ impl binrw::BinWrite for MeshData{
 			MeshData::CSGK(csgk)=>csgk.write_options(writer,endian,args),
 			MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
 			MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
+			MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>mesh_data5.write_options(writer,endian,args),
 		}
 	}
 }
