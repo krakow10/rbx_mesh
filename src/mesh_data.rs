@@ -139,8 +139,8 @@ pub struct Mesh2{
 	#[br(count=vertex_count)]
 	pub vertices:Vec<Vertex>,
 	pub face_count:u32,
-	#[br(count=face_count)]
-	pub faces:Vec<VertexId>,
+	#[br(count=face_count/3)]
+	pub faces:Vec<[VertexId;3]>,
 }
 #[binrw::binrw]
 #[brw(little)]
