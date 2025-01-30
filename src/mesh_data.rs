@@ -98,7 +98,7 @@ pub struct Hash{
 }
 #[binrw::binrw]
 #[brw(little,repr=u32)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Copy,Hash,Eq,PartialEq)]
 // Why does this differ from Roblox's own standard?
 pub enum NormalId2{
 	Right=1,
