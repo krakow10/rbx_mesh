@@ -46,15 +46,15 @@ impl<R:Seek> Seek for Obfuscator<R>{
 pub type Error=binrw::Error;
 
 #[inline]
-pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<CSGPHS,Error>{
+pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<MeshData,Error>{
 	let header:Header=read.read_le()?;
 	Ok(match header{
-		Header::CSGK(csgk)=>CSGPHS::CSGK(csgk),
-		Header::CSGPHS(header_version)=>{
+		Header::CSGK(csgk)=>MeshData::CSGK(csgk),
+		Header::CSGMDL(header_version)=>{
 			read.seek(std::io::SeekFrom::Start(0))?;
 			match header_version{
-				HeaderVersion::CSGPHS2=>CSGPHS::CSGPHS2(Obfuscator::new(read).read_le()?),
-				HeaderVersion::CSGPHS4=>CSGPHS::CSGPHS4(Obfuscator::new(read).read_le()?),
+				HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::CSGMDL2(Obfuscator::new(read).read_le()?)),
+				HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::CSGMDL4(Obfuscator::new(read).read_le()?)),
 			}
 		}
 	})
@@ -70,10 +70,10 @@ pub fn read_header<R:BinReaderExt>(mut read:R)->Result<Header,Error>{
 pub enum HeaderVersion{
 	// #[brw(magic=b"CSGMDL")] #[brw(magic=2u32)]
 	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x32\x04\x34\x69")]
-	CSGPHS2,
+	CSGMDL2,
 	// #[brw(magic=b"CSGMDL")] #[brw(magic=4u32)]
 	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x34\x04\x34\x69")]
-	CSGPHS4,
+	CSGMDL4,
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -87,7 +87,7 @@ pub struct CSGK{
 #[derive(Debug,Clone)]
 pub enum Header{
 	CSGK(CSGK),
-	CSGPHS(HeaderVersion),
+	CSGMDL(HeaderVersion),
 }
 #[binrw::binrw]
 #[brw(little)]
@@ -161,13 +161,19 @@ pub struct MeshData4{
 	#[br(count=_unknown1_count)]
 	pub _unknown1_list:Vec<u32>,
 }
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug,Clone)]
-pub enum CSGPHS{
-	CSGK(CSGK),
-	CSGPHS2(MeshData2),
-	CSGPHS4(MeshData4),
+pub enum CSGMDL{
+	CSGMDL2(MeshData2),
+	CSGMDL4(MeshData4),
 }
-impl binrw::BinWrite for CSGPHS{
+#[derive(Debug,Clone)]
+pub enum MeshData{
+	CSGK(CSGK),
+	CSGMDL(CSGMDL),
+}
+impl binrw::BinWrite for MeshData{
 	type Args<'a>=();
 	fn write_options<W:Write+Seek>(
 		&self,
@@ -176,9 +182,9 @@ impl binrw::BinWrite for CSGPHS{
 		args:Self::Args<'_>,
 	)->binrw::BinResult<()>{
 		match self{
-			CSGPHS::CSGK(csgk)=>csgk.write_options(writer,endian,args),
-			CSGPHS::CSGPHS2(mesh_data2)=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
-			CSGPHS::CSGPHS4(mesh_data4)=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
+			MeshData::CSGK(csgk)=>csgk.write_options(writer,endian,args),
+			MeshData::CSGMDL(CSGMDL::CSGMDL2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
+			MeshData::CSGMDL(CSGMDL::CSGMDL4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
 		}
 	}
 }
