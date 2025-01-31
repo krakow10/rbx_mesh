@@ -32,12 +32,34 @@ match versioned_mesh{
 
 ## Union Example
 ```rust
-use rbx_mesh::{read_physics_data,PhysicsData,CSGPHS};
+// PART 1: MeshData
+use rbx_mesh::read_mesh_data_versioned;
+use rbx_mesh::mesh_data::{MeshData,CSGMDL};
+
+// this data is extracted from the "MeshData" property of UnionOperation
+// the data is not usually contained in the roblox file itself
+// but is sourced from the associated "AssetId" of the UnionOperation
+let mesh_file=std::fs::File::open("4500696697_4.meshdata")?;
+let input=std::io::BufReader::new(mesh_file);
+let mesh_data=read_mesh_data_versioned(input)?;
+
+// print mesh vertices
+match mesh_data{
+	MeshData::CSGK(_)=>(),
+	MeshData::CSGMDL(CSGMDL::CSGMDL2(mesh_data2))=>println!("{:?}",mesh_data2.mesh.vertices),
+	MeshData::CSGMDL(CSGMDL::CSGMDL4(mesh_data4))=>println!("{:?}",mesh_data4.mesh.vertices),
+	// There is a branch with code for csgmdl5, but the data is not fully labeled yet
+}
+
+
+// PART 2: PhysicsData
+use rbx_mesh::read_physics_data_versioned;
+use rbx_mesh::physics_data::{PhysicsData,CSGPHS};
 
 // this data is extracted from the "PhysicsData" property of UnionOperation
-let file=std::fs::File::open("CSGPHS_3.data")?;
-let input=std::io::BufReader::new(file);
-let physics_data=read_physics_data(input)?;
+let phys_file=std::fs::File::open("CSGPHS_3.data")?;
+let input=std::io::BufReader::new(phys_file);
+let physics_data=read_physics_data_versioned(input)?;
 
 match physics_data{
 	// the most common format (99% of the 100000 unions in my testing)
