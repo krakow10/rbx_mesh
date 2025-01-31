@@ -1,6 +1,6 @@
 fn read_physics_data(data:&[u8]){
 	let mut cursor=std::io::Cursor::new(data);
-	crate::read_physics_data(&mut cursor).unwrap();
+	crate::read_physics_data_versioned(&mut cursor).unwrap();
 	assert_eq!(cursor.position(),data.len() as u64);
 }
 #[test]

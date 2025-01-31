@@ -1,7 +1,7 @@
 pub type Error=binrw::Error;
 
 #[inline]
-pub fn read<R:binrw::BinReaderExt>(mut read:R)->Result<PhysicsData,Error>{
+pub fn read_versioned<R:binrw::BinReaderExt>(mut read:R)->Result<PhysicsData,Error>{
 	read.read_le()
 }
 
