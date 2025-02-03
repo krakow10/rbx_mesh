@@ -246,10 +246,10 @@ pub struct MeshData5{
 	pub pos:Vec<[f32;3]>,
 
 	// probably has to do with normals
-	pub _unknown1_count:u16,//208
-	pub _unknown1_len:u32,//208*6 = 1248
-	#[br(count=_unknown1_count)]
-	pub _unknown1_list:Vec<[u8;6]>,// 1248 bytes long
+	pub norm_count:u16,//208
+	pub norm_len:u32,//208*6 = 1248
+	#[br(count=norm_count)]
+	pub norm_list:Vec<[i16;3]>,// 1248 bytes long
 
 	pub color_count:u16,//208
 	#[br(count=color_count)]
