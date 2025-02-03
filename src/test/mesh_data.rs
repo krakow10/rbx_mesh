@@ -41,30 +41,34 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 		MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
 			println!("===V5===");
 			println!("pos_count={}",mesh_data5.pos_count);
-			println!("_unknown1_count={}",mesh_data5._unknown1_count);
-			println!("_unknown1_len={}",mesh_data5._unknown1_len);
-			for (i,thing) in mesh_data5._unknown1_list.into_iter().enumerate(){
-				println!("u1 row={i} list={thing:?}");
+			println!("norm_count={}",mesh_data5.norm_count);
+			println!("norm_len={}",mesh_data5.norm_len);
+			for (i,thing) in mesh_data5.norm_list.into_iter().enumerate(){
+				print!("u1 row={i:03} bin=");
+				for byte in thing{
+					print!("{byte:016b} ");
+				}
+				println!("list={thing:?}");
 			}
-			println!("color_count={}",mesh_data5.color_count);
-			println!("normal_id_count={}",mesh_data5.normal_id_count);
-			println!("tex_count={}",mesh_data5.tex_count);
-			println!("_unknown4_count={}",mesh_data5._unknown4_count);
-			println!("_unknown4_len={}",mesh_data5._unknown4_len);
-			for (i,thing) in mesh_data5._unknown4_list.into_iter().enumerate(){
-				println!("u4 row={i} list={thing:?}");
-			}
-			println!("_unknown5_count1={} bytes={:?}",mesh_data5._unknown5_count1,mesh_data5._unknown5_count1.to_le_bytes());
-			println!("_unknown5_count2={} bytes={:?}",mesh_data5._unknown5_count2,mesh_data5._unknown5_count2.to_le_bytes());
-			let mut accumulate=0i32;
-			for (i,thing) in mesh_data5._unknown5_list.into_iter().enumerate(){//}.skip(mesh_data5._unknown5_count2 as usize-32){
-				accumulate=(accumulate+thing as i8 as i32).rem_euclid(mesh_data5.pos_count as i32);
-				println!("u5 row={i} accumulated={accumulate:?}");
-			}
-			println!("_unknown6={:?}",mesh_data5._unknown6_count);
-			for (i,thing) in mesh_data5._unknown6_list.into_iter().enumerate(){
-				println!("u6 row={i} list={thing:?}");
-			}
+			// println!("color_count={}",mesh_data5.color_count);
+			// println!("normal_id_count={}",mesh_data5.normal_id_count);
+			// println!("tex_count={}",mesh_data5.tex_count);
+			// println!("_unknown4_count={}",mesh_data5._unknown4_count);
+			// println!("_unknown4_len={}",mesh_data5._unknown4_len);
+			// for (i,thing) in mesh_data5._unknown4_list.into_iter().enumerate(){
+			// 	println!("u4 row={i} list={thing:?}");
+			// }
+			// println!("_unknown5_count1={} bytes={:?}",mesh_data5._unknown5_count1,mesh_data5._unknown5_count1.to_le_bytes());
+			// println!("_unknown5_count2={} bytes={:?}",mesh_data5._unknown5_count2,mesh_data5._unknown5_count2.to_le_bytes());
+			// let mut accumulate=0i32;
+			// for (i,thing) in mesh_data5._unknown5_list.into_iter().enumerate(){//}.skip(mesh_data5._unknown5_count2 as usize-32){
+			// 	accumulate=(accumulate+thing as i8 as i32).rem_euclid(mesh_data5.pos_count as i32);
+			// 	println!("u5 row={i} accumulated={accumulate:?}");
+			// }
+			// println!("_unknown6={:?}",mesh_data5._unknown6_count);
+			// for (i,thing) in mesh_data5._unknown6_list.into_iter().enumerate(){
+			// 	println!("u6 row={i} list={thing:?}");
+			// }
 			// println!("===REST===");
 			// let len=mesh_data5.rest.len();
 			// let e=len.min(64);
