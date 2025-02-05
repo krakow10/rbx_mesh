@@ -47,17 +47,7 @@ pub type Error=binrw::Error;
 
 #[inline]
 pub fn read_versioned<R:BinReaderExt>(mut read:R)->Result<MeshData,Error>{
-	let header:Header=read.read_le()?;
-	Ok(match header{
-		Header::CSGK(csgk)=>MeshData::CSGK(csgk),
-		Header::CSGMDL(header_version)=>{
-			read.seek(std::io::SeekFrom::Start(0))?;
-			match header_version{
-				HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::CSGMDL2(Obfuscator::new(read).read_le()?)),
-				HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::CSGMDL4(Obfuscator::new(read).read_le()?)),
-			}
-		}
-	})
+	read.read_le()
 }
 #[inline]
 pub fn read_header<R:BinReaderExt>(mut read:R)->Result<Header,Error>{
@@ -172,6 +162,26 @@ pub enum CSGMDL{
 pub enum MeshData{
 	CSGK(CSGK),
 	CSGMDL(CSGMDL),
+}
+impl binrw::BinRead for MeshData{
+	type Args<'a>=();
+	fn read_options<R:Read+Seek>(
+		reader:&mut R,
+		endian:binrw::Endian,
+		args:Self::Args<'_>,
+	)->binrw::BinResult<Self>{
+		let header=Header::read_options(reader,endian,args)?;
+		Ok(match header{
+			Header::CSGK(csgk)=>MeshData::CSGK(csgk),
+			Header::CSGMDL(header_version)=>{
+				reader.seek(std::io::SeekFrom::Start(0))?;
+				match header_version{
+					HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::CSGMDL2(MeshData2::read_options(&mut Obfuscator::new(reader),endian,args)?)),
+					HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::CSGMDL4(MeshData4::read_options(&mut Obfuscator::new(reader),endian,args)?)),
+				}
+			}
+		})
+	}
 }
 impl binrw::BinWrite for MeshData{
 	type Args<'a>=();
