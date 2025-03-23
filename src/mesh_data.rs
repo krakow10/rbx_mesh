@@ -56,20 +56,22 @@ pub fn read_header<R:BinReaderExt>(mut read:R)->Result<Header,Error>{
 
 #[binrw::binrw]
 #[brw(little)]
+// #[brw(magic=b"CSGMDL")]
+#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c")]
 #[derive(Debug,Clone,Eq,PartialEq)]
 pub enum HeaderVersion{
-	// #[brw(magic=b"CSGMDL")] #[brw(magic=2u32)]
-	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x32\x04\x34\x69")]
+	// #[brw(magic=2u32)]
+	#[brw(magic=b"\x32\x04\x34\x69")]
 	CSGMDL2,
-	// #[brw(magic=b"CSGMDL")] #[brw(magic=4u32)]
-	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x34\x04\x34\x69")]
+	// #[brw(magic=4u32)]
+	#[brw(magic=b"\x34\x04\x34\x69")]
 	CSGMDL4,
 }
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic=b"CSGK")]
 #[derive(Debug,Clone)]
 pub struct CSGK{
-	#[brw(magic=b"CSGK")]
 	pub uuid_ascii_hex:[u8;32],
 }
 #[binrw::binrw]
@@ -138,17 +140,19 @@ pub struct Mesh2{
 }
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic=b"CSGMDL")]
 #[derive(Debug,Clone)]
 pub struct MeshData2{
-	#[brw(magic=b"CSGMDL\x02\0\0\0")]
+	#[brw(magic=2u32)]
 	pub hash:Hash,
 	pub mesh:Mesh2,
 }
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic=b"CSGMDL")]
 #[derive(Debug,Clone)]
 pub struct MeshData4{
-	#[brw(magic=b"CSGMDL\x04\0\0\0")]
+	#[brw(magic=4u32)]
 	pub hash:Hash,
 	pub mesh:Mesh2,
 	pub _unknown1_count:u32,
