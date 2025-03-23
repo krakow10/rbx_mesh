@@ -112,8 +112,12 @@ pub struct Vertex{
 	pub tex:[f32;2],
 	#[brw(magic=0u128)]
 	pub tangent:[f32;3],
+	// This field does not exist in the final struct and
+	// exists purely to de/serialize the magic number.
+	#[br(temp)]
+	#[bw(ignore)]
 	#[brw(magic=0u128)]
-	pub _nothing:(),
+	_magic:(),
 }
 #[binrw::binrw]
 #[brw(little)]
