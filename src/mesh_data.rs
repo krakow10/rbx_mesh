@@ -60,17 +60,21 @@ pub fn read_header<R:BinReaderExt>(mut read:R)->Result<Header,Error>{
 	read.read_le()
 }
 
+const CSGMDL_OBFUSCATED:&[u8;6]=&obfuscate_literal(*b"CSGMDL");
+const CSGMDL_2U32_OBFUSCATED:&[u8;4]=&obfuscate_literal(2u32.to_le_bytes());
+const CSGMDL_4U32_OBFUSCATED:&[u8;4]=&obfuscate_literal(4u32.to_le_bytes());
+
 #[binrw::binrw]
 #[brw(little)]
 // #[brw(magic=b"CSGMDL")]
-#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c")]
+#[brw(magic=CSGMDL_OBFUSCATED)]
 #[derive(Debug,Clone,Eq,PartialEq)]
 pub enum HeaderVersion{
 	// #[brw(magic=2u32)]
-	#[brw(magic=b"\x32\x04\x34\x69")]
+	#[brw(magic=CSGMDL_2U32_OBFUSCATED)]
 	CSGMDL2,
 	// #[brw(magic=4u32)]
-	#[brw(magic=b"\x34\x04\x34\x69")]
+	#[brw(magic=CSGMDL_4U32_OBFUSCATED)]
 	CSGMDL4,
 }
 #[binrw::binrw]
