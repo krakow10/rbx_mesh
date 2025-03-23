@@ -2,11 +2,17 @@ use std::io::{Read,Seek,Write};
 use binrw::BinReaderExt;
 
 pub const OBFUSCATION_NOISE_CYCLE_XOR:[u8;31]=[86,46,110,88,49,32,48,4,52,105,12,119,12,1,94,0,26,96,55,105,29,82,43,7,79,36,89,101,83,4,122];
-fn reversible_obfuscate(offset:u64,buf:&mut [u8]){
+const fn reversible_obfuscate(offset:u64,buf:&mut [u8]){
 	const LEN:u64=OBFUSCATION_NOISE_CYCLE_XOR.len() as u64;
-	for (i,b) in buf.iter_mut().enumerate(){
-		*b^=OBFUSCATION_NOISE_CYCLE_XOR[((offset+i as u64)%LEN) as usize];
+	let mut i=0;
+	while i<buf.len(){
+		buf[i]^=OBFUSCATION_NOISE_CYCLE_XOR[((offset+i as u64)%LEN) as usize];
+		i+=1;
 	}
+}
+const fn obfuscate_literal<const N:usize>(mut literal:[u8;N])->[u8;N]{
+	reversible_obfuscate(0,&mut literal);
+	literal
 }
 
 pub struct Obfuscator<R>{
