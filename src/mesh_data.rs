@@ -159,6 +159,8 @@ pub struct MeshData4{
 	#[br(count=_unknown1_count)]
 	pub _unknown1_list:Vec<u32>,
 }
+// TODO use read_options to directly read MeshData
+// instead of reading header and then seeking back
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
