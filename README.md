@@ -1,6 +1,9 @@
 Roblox Mesh Parser
 ==================
 
+[![Latest version](https://img.shields.io/crates/v/rbx_mesh.svg)](https://crates.io/crates/rbx_mesh)
+![License](https://img.shields.io/crates/l/rbx_mesh.svg)
+
 ## Mesh Example
 
 Print the mesh vertices for any mesh version / vertex size
