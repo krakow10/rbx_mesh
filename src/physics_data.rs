@@ -36,41 +36,36 @@ pub struct Mesh{
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
-pub struct PhysicsInfoMesh{
-	#[brw(magic=6u32)]
-	pub physics_info:PhysicsInfo,
-	pub mesh:Mesh,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug,Clone)]
-pub enum MeshesVersion{
-	#[brw(magic=3u32)]
-	Meshes3,
-	#[brw(magic=5u32)]
-	Meshes5,
-}
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug,Clone)]
-pub struct Meshes{
-	pub version:MeshesVersion,
+pub struct CSGPHS3{
 	#[br(parse_with=binrw::helpers::until_eof)]
 	pub meshes:Vec<Mesh>,
 }
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
+pub struct CSGPHS6{
+	pub physics_info:PhysicsInfo,
+	pub mesh:Mesh,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[brw(magic=b"CSGPHS")]
+#[derive(Debug,Clone)]
 pub enum CSGPHS{
 	// concat_bytes!(0u32,b"BLOCK")
 	#[brw(magic=b"\0\0\0\0BLOCK")]
 	Block,
-	Meshes(Meshes),
-	PhysicsInfoMesh(PhysicsInfoMesh),
+	#[brw(magic=3u32)]
+	V3(CSGPHS3),
+	#[brw(magic=5u32)]
+	V5(CSGPHS3),
+	#[brw(magic=6u32)]
+	V6(CSGPHS6),
 }
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic=b"CSGK")]
 #[derive(Debug,Clone)]
 pub struct CSGK{
 	pub uuid_ascii_hex:[u8;32],
@@ -79,8 +74,6 @@ pub struct CSGK{
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub enum PhysicsData{
-	#[brw(magic=b"CSGK")]
 	CSGK(CSGK),
-	#[brw(magic=b"CSGPHS")]
 	CSGPHS(CSGPHS),
 }
