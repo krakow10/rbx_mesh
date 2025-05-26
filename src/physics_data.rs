@@ -47,6 +47,15 @@ pub struct CSGPHS6{
 	pub physics_info:PhysicsInfo,
 	pub mesh:Mesh,
 }
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct CSGPHS7{
+	#[brw(magic=3u8)]
+	pub physics_info:PhysicsInfo,
+	#[br(parse_with=binrw::helpers::until_eof)]
+	pub meshes:Vec<Mesh>,
+}
 
 #[binrw::binrw]
 #[brw(little)]
@@ -62,6 +71,8 @@ pub enum CSGPHS{
 	V5(CSGPHS3),
 	#[brw(magic=6u32)]
 	V6(CSGPHS6),
+	#[brw(magic=7u32)]
+	V7(CSGPHS7),
 }
 #[binrw::binrw]
 #[brw(little)]
