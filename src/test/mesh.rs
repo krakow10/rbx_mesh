@@ -2,27 +2,27 @@ use std::io::Read;
 use binrw::BinWrite;
 
 use crate::mesh::*;
-fn load_mesh(name:&str)->Result<VersionedMesh,Error>{
+fn load_mesh(name:&str)->Result<Mesh,Error>{
 	read_versioned(std::fs::File::open(name).map_err(Error::Io)?)
 }
-fn get_mesh_id(mesh:VersionedMesh)->u16{
+fn get_mesh_id(mesh:Mesh)->u16{
 	match mesh{
-		VersionedMesh::Version1(mesh)=>match mesh.header.revision{
+		Mesh::V1(mesh)=>match mesh.header.revision{
 			Revision1::Version100=>100,
 			Revision1::Version101=>101,
 		},
-		VersionedMesh::Version2(mesh)=>match mesh.header.revision{
+		Mesh::V2(mesh)=>match mesh.header.revision{
 			Revision2::Version200=>200,
 		},
-		VersionedMesh::Version3(mesh)=>match mesh.header.revision{
+		Mesh::V3(mesh)=>match mesh.header.revision{
 			Revision3::Version300=>300,
 			Revision3::Version301=>301,
 		},
-		VersionedMesh::Version4(mesh)=>match mesh.header.revision{
+		Mesh::V4(mesh)=>match mesh.header.revision{
 			Revision4::Version400=>400,
 			Revision4::Version401=>401,
 		},
-		VersionedMesh::Version5(mesh)=>match mesh.header.revision{
+		Mesh::V5(mesh)=>match mesh.header.revision{
 			Revision5::Version500=>500,
 		},
 	}
