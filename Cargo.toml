@@ -10,5 +10,5 @@ exclude = ["meshes"]
 keywords = ["roblox", "mesh", "parser", "decoder", "union"]
 
 [dependencies]
-binrw = "0.14.0"
+binrw = "0.15.0"
 lazy-regex = "3.1.0"
