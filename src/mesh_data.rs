@@ -142,7 +142,7 @@ pub struct Mesh2{
 #[brw(little)]
 #[brw(magic=b"CSGMDL")]
 #[derive(Debug,Clone)]
-pub struct MeshData2{
+pub struct CSGMDL2{
 	#[brw(magic=2u32)]
 	pub hash:Hash,
 	pub mesh:Mesh2,
@@ -151,7 +151,7 @@ pub struct MeshData2{
 #[brw(little)]
 #[brw(magic=b"CSGMDL")]
 #[derive(Debug,Clone)]
-pub struct MeshData4{
+pub struct CSGMDL4{
 	#[brw(magic=4u32)]
 	pub hash:Hash,
 	pub mesh:Mesh2,
@@ -165,8 +165,8 @@ pub struct MeshData4{
 #[brw(little)]
 #[derive(Debug,Clone)]
 pub enum CSGMDL{
-	CSGMDL2(MeshData2),
-	CSGMDL4(MeshData4),
+	V2(CSGMDL2),
+	V4(CSGMDL4),
 }
 #[derive(Debug,Clone)]
 pub enum MeshData{
@@ -186,8 +186,8 @@ impl binrw::BinRead for MeshData{
 			Header::CSGMDL(header_version)=>{
 				reader.seek(std::io::SeekFrom::Start(0))?;
 				match header_version{
-					HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::CSGMDL2(MeshData2::read_options(&mut Obfuscator::new(reader),endian,args)?)),
-					HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::CSGMDL4(MeshData4::read_options(&mut Obfuscator::new(reader),endian,args)?)),
+					HeaderVersion::CSGMDL2=>MeshData::CSGMDL(CSGMDL::V2(CSGMDL2::read_options(&mut Obfuscator::new(reader),endian,args)?)),
+					HeaderVersion::CSGMDL4=>MeshData::CSGMDL(CSGMDL::V4(CSGMDL4::read_options(&mut Obfuscator::new(reader),endian,args)?)),
 				}
 			}
 		})
@@ -203,8 +203,8 @@ impl binrw::BinWrite for MeshData{
 	)->binrw::BinResult<()>{
 		match self{
 			MeshData::CSGK(csgk)=>csgk.write_options(writer,endian,args),
-			MeshData::CSGMDL(CSGMDL::CSGMDL2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
-			MeshData::CSGMDL(CSGMDL::CSGMDL4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
+			MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
+			MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
 		}
 	}
 }

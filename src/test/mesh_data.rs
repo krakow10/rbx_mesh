@@ -3,8 +3,8 @@ use crate::mesh_data::{Error,MeshData,CSGMDL};
 fn get_version(mesh_data:&MeshData)->&str{
 	match mesh_data{
 		MeshData::CSGK(_)=>"CSGK",
-		MeshData::CSGMDL(CSGMDL::CSGMDL2(_))=>"CSGMDL2",
-		MeshData::CSGMDL(CSGMDL::CSGMDL4(_))=>"CSGMDL4",
+		MeshData::CSGMDL(CSGMDL::V2(_))=>"CSGMDL2",
+		MeshData::CSGMDL(CSGMDL::V4(_))=>"CSGMDL4",
 	}
 }
 
@@ -29,8 +29,8 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 	// }
 	match mesh_data{
 		MeshData::CSGK(_)=>(),
-		MeshData::CSGMDL(CSGMDL::CSGMDL2(_))=>(),
-		MeshData::CSGMDL(CSGMDL::CSGMDL4(mesh_data4))=>{
+		MeshData::CSGMDL(CSGMDL::V2(_))=>(),
+		MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>{
 			println!("==V4");
 			println!("_unknown1={:?}",mesh_data4._unknown1_count);
 			for (i,thing) in mesh_data4._unknown1_list.into_iter().enumerate(){
