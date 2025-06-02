@@ -213,7 +213,7 @@ impl binrw::BinRead for Faces5{
 				if v0&(1<<6)==0{
 					index+=v0 as u32;
 				}else{
-					// 127 is -1
+					// 64..127 is mapped to -64..-1
 					index-=-((v0|0x80) as i8) as u32;
 				}
 			}else{
