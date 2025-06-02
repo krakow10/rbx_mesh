@@ -264,9 +264,9 @@ impl binrw::BinRead for QuantizedF32x3{
 			let y=i16::read_le(reader)?;
 			let z=i16::read_le(reader)?;
 			values.push([
-				(x as f32)*SCALE,
-				(y as f32)*SCALE,
-				(z as f32)*SCALE,
+				(x.wrapping_sub(0x7FFF) as f32)*SCALE,
+				(y.wrapping_sub(0x7FFF) as f32)*SCALE,
+				(z.wrapping_sub(0x7FFF) as f32)*SCALE,
 			]);
 		}
 		Ok(Self{
