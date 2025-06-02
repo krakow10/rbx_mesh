@@ -274,21 +274,21 @@ impl binrw::BinRead for QuantizedF32x3{
 pub struct CSGMDL5{
 	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
 	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
-	pub pos_count:u16,//208
+	pub pos_count:u16,
 	#[br(count=pos_count)]
 	pub positions:Vec<[f32;3]>,
 
 	pub normals:QuantizedF32x3,
 
-	pub color_count:u16,//208
+	pub color_count:u16,
 	#[br(count=color_count)]
 	pub colors:Vec<[u8;4]>,
 
-	pub normal_id_count:u16,//208
+	pub normal_id_count:u16,
 	#[br(count=normal_id_count)]
 	pub normal_ids:Vec<NormalId5>,
 
-	pub tex_count:u16,//208
+	pub tex_count:u16,
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 
