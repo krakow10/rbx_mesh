@@ -192,16 +192,16 @@ impl Iterator for VertexIndicesIterator<'_>{
 	type Item=usize;
 	fn next(&mut self)->Option<Self::Item>{
 		match self.bytes{
-			// there are 3 numbers
 			&[v0,ref rest@..]=>{
-				if v0<128{
+				if v0&0x80==0{
 					self.offset+=v0 as usize;
 					self.bytes=rest;
 					Some(self.offset)
 				}else{
+					// there are 3 numbers
 					match rest{
 						&[v1,v2,ref rest@..]=>{
-							let offset=u32::from_le_bytes([v0,v1,v2,0]);
+							let offset=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
 							println!("yoo {offset:b}");
 							self.offset+=offset as usize;
 							self.bytes=rest;
