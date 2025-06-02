@@ -198,7 +198,7 @@ impl binrw::BinRead for Faces5{
 			if v0&0x80==0{
 				index+=v0 as u32;
 			}else{
-				let [v2,v1]=u16::read_le(reader)?.to_le_bytes();
+				let [v1,v2]=u16::read_le(reader)?.to_le_bytes();
 				index+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
 			}
 			faces.push(index);
