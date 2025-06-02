@@ -215,40 +215,80 @@ impl Iterator for VertexIndicesIterator<'_>{
 		}
 	}
 }
-#[binrw::binrw]
-#[brw(little)]
+
 #[derive(Debug,Clone)]
 pub struct Faces5{
-	pub vertex_count:u32,//984
-	pub faces_data_len:u32,//986
-	#[br(count=faces_data_len)]
-	faces:Vec<u8>,
+	pub faces:Vec<u32>,
 }
-impl Faces5{
-	// pub fn new(vertex_indices:Vec<u16>)->Self{
-	// 	Self{
-	// 		faces_vertex_count:vertex_indices.len() as u32,
-	// 	}
-	// }
-	pub fn iter(&self)->VertexIndicesIterator{
-		VertexIndicesIterator::new(&self.faces)
+impl binrw::BinRead for Faces5{
+	type Args<'a>=();
+	fn read_options<R:Read+Seek>(
+		reader:&mut R,
+		_endian:binrw::Endian,
+		_args:Self::Args<'_>,
+	)->binrw::BinResult<Self>{
+		let vertex_count=u32::read_le(reader)?;
+		// ignore validation
+		let _faces_data_len=u32::read_le(reader)?;
+		let mut faces=Vec::with_capacity(vertex_count as usize);
+		let mut index=0;
+		for _ in 0..vertex_count{
+			let v0=u8::read_le(reader)?;
+			if v0&0x80==0{
+				index+=v0 as u32;
+			}else{
+				let [v2,v1]=u16::read_le(reader)?.to_le_bytes();
+				index+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
+			}
+			faces.push(index);
+		}
+		Ok(Self{
+			faces,
+		})
 	}
 }
-#[binrw::binrw]
-#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct QuantizedF32x3{
+	pub values:Vec<[f32;3]>,
+}
+impl binrw::BinRead for QuantizedF32x3{
+	type Args<'a>=();
+	fn read_options<R:Read+Seek>(
+		reader:&mut R,
+		_endian:binrw::Endian,
+		_args:Self::Args<'_>,
+	)->binrw::BinResult<Self>{
+		const SCALE: f32 = 1.0 / 32_767.0; // ? ok
+		let values_count=u16::read_le(reader)?;
+		// ignore validation
+		let _data_len=u32::read_le(reader)?;
+		let mut values=Vec::with_capacity(values_count as usize);
+		for _ in 0..values_count{
+			let x=i16::read_le(reader)?;
+			let y=i16::read_le(reader)?;
+			let z=i16::read_le(reader)?;
+			values.push([
+				(x as f32)*SCALE,
+				(y as f32)*SCALE,
+				(z as f32)*SCALE,
+			]);
+		}
+		Ok(Self{
+			values,
+		})
+	}
+}
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug,Clone)]
 pub struct CSGMDL5{
 	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
 	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
 	pub pos_count:u16,//208
 	#[br(count=pos_count)]
-	pub pos:Vec<[f32;3]>,
+	pub positions:Vec<[f32;3]>,
 
-	// probably has to do with normals
-	pub norm_count:u16,//208
-	pub norm_len:u32,//208*6 = 1248
-	#[br(count=norm_count)]
-	pub norm_list:Vec<[i16;3]>,// 1248 bytes long
+	pub normals:QuantizedF32x3,
 
 	pub color_count:u16,//208
 	#[br(count=color_count)]
@@ -256,30 +296,24 @@ pub struct CSGMDL5{
 
 	pub normal_id_count:u16,//208
 	#[br(count=normal_id_count)]
-	pub normal_id_list:Vec<NormalId5>,
+	pub normal_ids:Vec<NormalId5>,
 
 	pub tex_count:u16,//208
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 
-	// probably has to do with tangents
-	pub _unknown4_count:u16,//208
-	pub _unknown4_len:u32,//208*6 = 1248
-	#[br(count=_unknown4_count)]
-	pub _unknown4_list:Vec<[i16;3]>,// 1248 bytes long
+	pub tangents:QuantizedF32x3,
 
 	// delta encoded vertex indices
 	pub faces:Faces5,
 
-	pub _unknown6_count:u8,//2-3
-	#[br(count=_unknown6_count)]
+	pub range_marker_count:u8,//2-3
+	#[br(count=range_marker_count)]
 	// the numbers in this list seem to match various list lengths
-	pub _unknown6_list:Vec<u32>,
-	// #[br(parse_with=binrw::helpers::until_eof)]
-	// pub rest:Vec<u8>,
+	pub range_markers:Vec<u32>,
 }
-#[binrw::binrw]
-#[brw(little)]
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug,Clone)]
 pub enum CSGMDL{
 	V2(CSGMDL2),
@@ -325,7 +359,7 @@ impl binrw::BinWrite for MeshData{
 			MeshData::CSGK(csgk)=>csgk.write_options(writer,endian,args),
 			MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
 			MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
-			MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>mesh_data5.write_options(writer,endian,args),
+			MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>panic!(),//mesh_data5.write_options(writer,endian,args),
 		}
 	}
 }
