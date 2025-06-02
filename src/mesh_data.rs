@@ -208,8 +208,14 @@ impl binrw::BinRead for Faces5{
 		let mut index=0;
 		for _ in 0..vertex_count{
 			let v0=u8::read_le(reader)?;
-			if v0&0x80==0{
-				index+=v0 as u32;
+			if v0&(1<<7)==0{
+				// TODO: test whether 64 goes to top or bottom case
+				if v0&(1<<6)==0{
+					index+=v0 as u32;
+				}else{
+					// 127 is -1
+					index-=-((v0|0x80) as i8) as u32;
+				}
 			}else{
 				let [v1,v2]=u16::read_le(reader)?.to_le_bytes();
 				index+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
