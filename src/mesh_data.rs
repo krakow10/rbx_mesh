@@ -1,5 +1,5 @@
 use std::io::{Read,Seek,Write};
-use binrw::BinReaderExt;
+use binrw::{BinReaderExt, parser, BinResult};
 
 pub const OBFUSCATION_NOISE_CYCLE_XOR:[u8;31]=[86,46,110,88,49,32,48,4,52,105,12,119,12,1,94,0,26,96,55,105,29,82,43,7,79,36,89,101,83,4,122];
 fn reversible_obfuscate(offset:u64,buf:&mut [u8]){
@@ -237,51 +237,93 @@ pub enum NormalId5{
 }
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug,Clone)]
-pub struct MeshData5{
-	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
-	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
-	pub pos_count:u16,//208
-	#[br(count=pos_count)]
-	pub pos:Vec<[f32;3]>,
+#[derive(Debug, Clone)]
+pub struct MeshData5 {
+	#[brw(magic = b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
 
-	// probably has to do with normals
-	pub norm_count:u16,//208
-	pub norm_len:u32,//208*6 = 1248
-	#[br(count=norm_count)]
-	pub norm_list:Vec<[i16;3]>,// 1248 bytes long
+	vertex_count: u16,
+	#[br(count = vertex_count)]
+	pub vertices: Vec<[f32; 3]>,
 
-	pub color_count:u16,//208
-	#[br(count=color_count)]
-	pub colors:Vec<[u8;4]>,
+	#[br(parse_with = parse_normals)]
+	pub normals: Vec<[f32; 3]>,
 
-	pub normal_id_count:u16,//208
-	#[br(count=normal_id_count)]
-	pub normal_id_list:Vec<NormalId5>,
+	vert_col_count: u16,
+	#[br(count = vert_col_count)]
+	pub vert_cols: Vec<(u8, u8, u8, u8)>, // pulling "colors" out of thin air but might be accurate
 
-	pub tex_count:u16,//208
-	#[br(count=tex_count)]
-	pub tex:Vec<[f32;2]>,
+	normal_id_count: u16,
+	#[br(count = normal_id_count)]
+	pub normal_ids: Vec<NormalId5>,
 
-	// probably has to do with tangents
-	pub _unknown4_count:u16,//208
-	pub _unknown4_len:u32,//208*6 = 1248
-	#[br(count=_unknown4_count)]
-	pub _unknown4_list:Vec<[u8;6]>,// 1248 bytes long
+	flat_xz_count: u16, // repeated vertex position data, but it's {x,-z} instead!
+	#[br(count = flat_xz_count)]
+	pub flat_xz: Vec<[f32; 2]>,
 
-	// triangle strip? u8 because each one is an increment on previous ids?
-	pub _unknown5_count1:u32,//984
-	pub _unknown5_count2:u32,//986
-	#[br(count=_unknown5_count2)]
-	pub _unknown5_list:Vec<u8>,
+	#[br(parse_with = parse_normals)]
+	pub tangents: Vec<[f32; 3]>,
 
-	pub _unknown6_count:u8,//2-3
-	#[br(count=_unknown6_count)]
-	// the numbers in this list seem to match various list lengths
-	pub _unknown6_list:Vec<u32>,
-	// #[br(parse_with=binrw::helpers::until_eof)]
-	// pub rest:Vec<u8>,
+	#[br(parse_with = parse_indices)] // flat list of vertex ids. ranges of this array are specified by the following range_markers
+	pub indices: Vec<u32>, // in the portion of the array before 'n' (below), the vertex indices are normal. beyond this bit 23 is flipped
+
+	range_marker_count: u8,
+	#[br(count = range_marker_count)]
+	pub range_markers: Vec<u32>, // always 3 vals? 0,n,len(indices)
 }
+
+#[parser(reader, endian)]
+fn parse_normals() -> BinResult<Vec<[f32; 3]>> {
+	
+	const SCALE15: f32 = 1.0 / 32_767.0; // ? ok
+	
+	let count: u16 = reader.read_le()?;
+	let blob_len: u32 = reader.read_le()?;
+	let expected = count as u32 * 6;
+
+	let mut out = Vec::with_capacity(count as usize);
+	for _ in 0..count {
+		let x: u16 = reader.read_le()?;
+		let y: u16 = reader.read_le()?;
+		let z: u16 = reader.read_le()?;
+		out.push([
+			(x.wrapping_sub(0x7FFF) as f32) * SCALE15,
+			(y.wrapping_sub(0x7FFF) as f32) * SCALE15,
+			(z.wrapping_sub(0x7FFF) as f32) * SCALE15,
+		]);
+	}
+	if blob_len > expected {
+		reader.seek_relative((blob_len - expected) as i64)?;
+	}
+	Ok(out)
+}
+
+#[parser(reader, endian)]
+fn parse_indices() -> BinResult<Vec<u32>> { // delta encoding with variable-length integers
+	let total: u32 = reader.read_le()?;
+	let blob_size: u32 = reader.read_le()?;
+	let mut blob = vec![0u8; blob_size as usize];
+	reader.read_exact(&mut blob)?;
+
+	let mut out = Vec::with_capacity(total as usize);
+	let mut acc = 0u32;
+	let mut off = 0usize;
+	while out.len() < total as usize {
+		let b0 = blob[off];
+		off += 1;
+		let delta = if (b0 & 0x80) == 0 {
+			b0 as u32
+		} else {
+			let b1 = blob[off];
+			let b2 = blob[off + 1];
+			off += 2;
+			(((b0 & 0x7F) as u32) << 16) | ((b1 as u32) << 8) | b2 as u32
+		};
+		acc = acc.wrapping_add(delta);
+		out.push(acc);
+	}
+	Ok(out)
+}
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
