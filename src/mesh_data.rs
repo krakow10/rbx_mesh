@@ -220,7 +220,7 @@ impl binrw::BinRead for Faces5{
 				let [v1,v2]=u16::read_le(reader)?.to_le_bytes();
 				index+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
 			}
-			indices.push(index);
+			indices.push(index&0x7FFFFF);
 		}
 		let range_marker_count=u8::read_le(reader)?;
 		let has_extra_range=match range_marker_count{
