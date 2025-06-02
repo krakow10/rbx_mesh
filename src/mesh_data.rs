@@ -208,7 +208,7 @@ pub struct CSGMDL5{
 	pub _unknown4_count:u16,//208
 	pub _unknown4_len:u32,//208*6 = 1248
 	#[br(count=_unknown4_count)]
-	pub _unknown4_list:Vec<[u8;6]>,// 1248 bytes long
+	pub _unknown4_list:Vec<[i16;3]>,// 1248 bytes long
 
 	// triangle strip? u8 because each one is an increment on previous ids?
 	pub _unknown5_count1:u32,//984
