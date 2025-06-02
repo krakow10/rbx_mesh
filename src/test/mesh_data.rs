@@ -40,16 +40,17 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 		},
 		MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
 			println!("===V5===");
-			println!("pos_count={}",mesh_data5.pos_count);
-			println!("norm_count={}",mesh_data5.norm_count);
-			println!("norm_len={}",mesh_data5.norm_len);
-			for (i,thing) in mesh_data5.norm_list.into_iter().enumerate(){
-				print!("u1 row={i:03} bin=");
-				for byte in thing{
-					print!("{byte:016b} ");
-				}
-				println!("list={thing:?}");
-			}
+			println!("{:?}", mesh_data5);
+			// println!("pos_count={}",mesh_data5.pos_count);
+			// println!("norm_count={}",mesh_data5.norm_count);
+			// println!("norm_len={}",mesh_data5.norm_len);
+			// for (i,thing) in mesh_data5.norm_list.into_iter().enumerate(){
+			// 	print!("u1 row={i:03} bin=");
+			// 	for byte in thing{
+			// 		print!("{byte:016b} ");
+			// 	}
+			// 	println!("list={thing:?}");
+			// }
 			// println!("color_count={}",mesh_data5.color_count);
 			// println!("normal_id_count={}",mesh_data5.normal_id_count);
 			// println!("tex_count={}",mesh_data5.tex_count);
