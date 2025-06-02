@@ -40,7 +40,9 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 		},
 		MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
 			println!("===V5===");
-			dbg!(mesh_data5);
+			println!("{:?}", mesh_data5);
+			println!("faces={:?}",mesh_data5.faces.faces());
+			println!("extra={:?}",mesh_data5.faces.extra());
 		},
 	}
 }
