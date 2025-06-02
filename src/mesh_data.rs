@@ -176,6 +176,64 @@ pub enum NormalId5{
 	Bottom=5,
 	Front=6,
 }
+pub struct VertexIndicesIterator<'a>{
+	offset:usize,
+	bytes:&'a [u8],
+}
+impl<'a> VertexIndicesIterator<'a>{
+	fn new(bytes:&'a [u8])->Self{
+		Self{
+			offset:0,
+			bytes,
+		}
+	}
+}
+impl Iterator for VertexIndicesIterator<'_>{
+	type Item=usize;
+	fn next(&mut self)->Option<Self::Item>{
+		match self.bytes{
+			// there are 3 numbers
+			&[v0,ref rest@..]=>{
+				if v0<128{
+					self.offset+=v0 as usize;
+					self.bytes=rest;
+					Some(self.offset)
+				}else{
+					match rest{
+						&[v1,v2,ref rest@..]=>{
+							let offset=u32::from_le_bytes([v0,v1,v2,0]);
+							println!("yoo {offset:b}");
+							self.offset+=offset as usize;
+							self.bytes=rest;
+							Some(self.offset)
+						},
+						_=>panic!("missing 2"),
+					}
+				}
+			},
+			&[]=>return None,
+		}
+	}
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug,Clone)]
+pub struct Faces5{
+	pub vertex_count:u32,//984
+	pub faces_data_len:u32,//986
+	#[br(count=faces_data_len)]
+	faces:Vec<u8>,
+}
+impl Faces5{
+	// pub fn new(vertex_indices:Vec<u16>)->Self{
+	// 	Self{
+	// 		faces_vertex_count:vertex_indices.len() as u32,
+	// 	}
+	// }
+	pub fn iter(&self)->VertexIndicesIterator{
+		VertexIndicesIterator::new(&self.faces)
+	}
+}
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone)]
@@ -210,11 +268,8 @@ pub struct CSGMDL5{
 	#[br(count=_unknown4_count)]
 	pub _unknown4_list:Vec<[i16;3]>,// 1248 bytes long
 
-	// triangle strip? u8 because each one is an increment on previous ids?
-	pub _unknown5_count1:u32,//984
-	pub _unknown5_count2:u32,//986
-	#[br(count=_unknown5_count2)]
-	pub _unknown5_list:Vec<u8>,
+	// delta encoded vertex indices
+	pub faces:Faces5,
 
 	pub _unknown6_count:u8,//2-3
 	#[br(count=_unknown6_count)]
