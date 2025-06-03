@@ -164,6 +164,18 @@ pub struct CSGMDL4{
 }
 // TODO use read_options to directly read MeshData
 // instead of reading header and then seeking back
+#[binrw::binrw]
+#[brw(little,repr=u8)]
+#[derive(Debug,Clone)]
+// Why does this differ from Roblox's own standard?
+pub enum NormalId5{
+	Right=1,
+	Top=2,
+	Back=3,
+	Left=4,
+	Bottom=5,
+	Front=6,
+}
 
 #[derive(Debug,Clone)]
 pub struct Faces5{
@@ -269,7 +281,7 @@ pub struct CSGMDL5{
 
 	pub normal_id_count:u16,
 	#[br(count=normal_id_count)]
-	pub normal_ids:Vec<NormalId2>,
+	pub normal_ids:Vec<NormalId5>,
 
 	pub tex_count:u16,
 	#[br(count=tex_count)]
