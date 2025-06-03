@@ -166,7 +166,7 @@ pub struct CSGMDL4{
 // instead of reading header and then seeking back
 #[binrw::binrw]
 #[brw(little,repr=u8)]
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Copy,Hash,Eq,PartialEq)]
 // Why does this differ from Roblox's own standard?
 pub enum NormalId5{
 	Right=1,
