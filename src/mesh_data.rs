@@ -108,43 +108,10 @@ pub enum NormalId{
 	Bottom=5,
 	Front=6,
 }
-impl From<&NormalId> for u8{
-	#[inline]
-	fn from(&value:&NormalId)->u8{
-		value as u8
-	}
-}
-impl TryFrom<u8> for NormalId{
-	type Error=NormalIDError;
-	#[inline]
-	fn try_from(value:u8)->Result<NormalId,NormalIDError>{
-		Ok(match value{
-			1=>NormalId::Right,
-			2=>NormalId::Top,
-			3=>NormalId::Back,
-			4=>NormalId::Left,
-			5=>NormalId::Bottom,
-			6=>NormalId::Front,
-			_=>return Err(NormalIDError),
-		})
-	}
-}
 #[binrw::binrw]
 #[brw(little,repr=u32)]
 #[derive(Debug,Clone,Copy,Hash,Eq,PartialEq)]
 pub struct NormalId2(pub NormalId);
-impl From<NormalId2> for NormalId{
-	#[inline]
-	fn from(NormalId2(value):NormalId2)->Self{
-		value
-	}
-}
-impl From<NormalId> for NormalId2{
-	#[inline]
-	fn from(value:NormalId)->Self{
-		NormalId2(value)
-	}
-}
 impl From<&NormalId2> for u32{
 	#[inline]
 	fn from(&NormalId2(value):&NormalId2)->u32{
@@ -231,18 +198,6 @@ pub struct CSGMDL4{
 #[brw(little,repr=u8)]
 #[derive(Debug,Clone,Copy,Hash,Eq,PartialEq)]
 pub struct NormalId5(pub NormalId);
-impl From<NormalId5> for NormalId{
-	#[inline]
-	fn from(NormalId5(value):NormalId5)->Self{
-		value
-	}
-}
-impl From<NormalId> for NormalId5{
-	#[inline]
-	fn from(value:NormalId)->Self{
-		NormalId5(value)
-	}
-}
 impl From<&NormalId5> for u8{
 	#[inline]
 	fn from(&NormalId5(value):&NormalId5)->u8{
@@ -253,7 +208,15 @@ impl TryFrom<u8> for NormalId5{
 	type Error=NormalIDError;
 	#[inline]
 	fn try_from(value:u8)->Result<NormalId5,NormalIDError>{
-		Ok(NormalId5(value.try_into()?))
+		Ok(NormalId5(match value{
+			1=>NormalId::Right,
+			2=>NormalId::Top,
+			3=>NormalId::Back,
+			4=>NormalId::Left,
+			5=>NormalId::Bottom,
+			6=>NormalId::Front,
+			_=>return Err(NormalIDError),
+		}))
 	}
 }
 
