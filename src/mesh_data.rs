@@ -179,20 +179,8 @@ pub enum NormalId5{
 
 #[derive(Debug,Clone)]
 pub struct Faces5{
-	indices:Vec<u32>,
-	range_start:usize,
-	range_end:usize,
-	range_extra:Option<usize>,
-}
-impl Faces5{
-	pub fn faces(&self)->&[u32]{
-		&self.indices[self.range_start..self.range_end]
-	}
-	pub fn extra(&self)->Option<&[u32]>{
-		self.range_extra.map(|range_extra|
-			&self.indices[self.range_end..range_extra]
-		)
-	}
+	pub faces:Vec<u32>,
+	pub _unknown:Vec<u32>,
 }
 impl binrw::BinRead for Faces5{
 	type Args<'a>=();
@@ -228,18 +216,19 @@ impl binrw::BinRead for Faces5{
 			3=>true,
 			_=>panic!("Assumption about CSGMDL5 format is incorrect"),
 		};
-		let range_start=u32::read_le(reader)? as usize;
+		// this is implicitly 0
+		let _range_start=u32::read_le(reader)? as usize;
 		let range_end=u32::read_le(reader)? as usize;
-		let range_extra=if has_extra_range{
-			Some(u32::read_le(reader)? as usize)
+		let _unknown=if has_extra_range{
+			// this is implicitly the end of the range
+			let _range_extra=u32::read_le(reader)? as usize;
+			indices.split_off(range_end)
 		}else{
-			None
+			Vec::new()
 		};
 		Ok(Self{
-			indices,
-			range_start,
-			range_end,
-			range_extra,
+			faces:indices,
+			_unknown,
 		})
 	}
 }
