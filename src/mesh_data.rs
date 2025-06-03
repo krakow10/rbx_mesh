@@ -232,6 +232,7 @@ impl binrw::BinRead for Faces5{
 		})
 	}
 }
+// TODO: use #[br(parse_with=function)] instead
 #[derive(Debug,Clone)]
 pub struct QuantizedF32x3{
 	pub values:Vec<[f32;3]>,
