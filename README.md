@@ -4,6 +4,8 @@ Roblox Mesh Parser
 [![Latest version](https://img.shields.io/crates/v/rbx_mesh.svg)](https://crates.io/crates/rbx_mesh)
 ![License](https://img.shields.io/crates/l/rbx_mesh.svg)
 
+`rbx_mesh` is a collection of deserializers for the different mesh versions in Roblox, and a function to detect the version and invoke the correct deserializer.  The meshes are decoded into a structure that reflects the on-disk format of the particular mesh version, rather than being translated into a catch-all structure.
+
 ## Mesh Example
 
 Print the mesh vertices for any mesh version / vertex size
