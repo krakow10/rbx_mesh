@@ -318,6 +318,8 @@ impl binrw::BinRead for Faces5{
 		Ok(match faces_inner.range_markers{
 			FacesRangeMarkers::Two{..}=>{
 				// TODO: check range markers against observed counts
+				// assert_eq!(range_start,0);
+				// assert_eq!(range_end as usize,indices.len());
 				Self{
 					indices,
 					_unknown:Vec::new(),
@@ -325,7 +327,11 @@ impl binrw::BinRead for Faces5{
 			},
 			FacesRangeMarkers::Three{range_end,..}=>{
 				// TODO: check range markers against observed counts
+				// assert_eq!(range_start,0);
+				// assert_eq!(range_end as usize,indices.len());
 				let _unknown=indices.split_off(range_end as usize);
+				// assert_eq!( indices.len(),(range_start..range_end).len());
+				// assert_eq!(_unknown.len(),(range_end..range_extra).len());
 				Self{
 					indices,
 					_unknown,
