@@ -275,38 +275,28 @@ impl binrw::BinRead for Faces5{
 		})
 	}
 }
-// TODO: use #[br(parse_with=function)] instead
+
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug,Clone)]
-pub struct QuantizedF32x3{
-	pub values:Vec<[f32;3]>,
+#[expect(dead_code)]
+struct QuantizedF32x3{
+	values_count:u16,
+	data_len:u32,
+	#[br(count=values_count)]
+	values:Vec<[i16;3]>,
 }
-impl binrw::BinRead for QuantizedF32x3{
-	type Args<'a>=();
-	fn read_options<R:Read+Seek>(
-		reader:&mut R,
-		_endian:binrw::Endian,
-		_args:Self::Args<'_>,
-	)->binrw::BinResult<Self>{
-		const SCALE: f32 = 1.0 / 32_767.0; // ? ok
-		let values_count=u16::read_le(reader)?;
-		// ignore validation
-		let _data_len=u32::read_le(reader)?;
-		let mut values=Vec::with_capacity(values_count as usize);
-		for _ in 0..values_count{
-			let x=i16::read_le(reader)?;
-			let y=i16::read_le(reader)?;
-			let z=i16::read_le(reader)?;
-			values.push([
-				(x.wrapping_sub(0x7FFF) as f32)*SCALE,
-				(y.wrapping_sub(0x7FFF) as f32)*SCALE,
-				(z.wrapping_sub(0x7FFF) as f32)*SCALE,
-			]);
-		}
-		Ok(Self{
-			values,
-		})
-	}
+#[binrw::parser(reader)]
+fn read_quantized_f32x3()->binrw::BinResult<Vec<[f32;3]>>{
+	const SCALE:f32=1.0/32_767.0; // ? ok
+	let quantized:QuantizedF32x3=reader.read_le()?;
+	Ok(quantized.values.into_iter().map(|[x,y,z]|[
+		(x.wrapping_sub(0x7FFF) as f32)*SCALE,
+		(y.wrapping_sub(0x7FFF) as f32)*SCALE,
+		(z.wrapping_sub(0x7FFF) as f32)*SCALE,
+	]).collect())
 }
+
 #[binrw::binread]
 #[br(little)]
 #[derive(Debug,Clone)]
@@ -317,7 +307,8 @@ pub struct CSGMDL5{
 	#[br(count=pos_count)]
 	pub positions:Vec<[f32;3]>,
 
-	pub normals:QuantizedF32x3,
+	#[br(parse_with=read_quantized_f32x3)]
+	pub normals:Vec<[f32;3]>,
 
 	pub color_count:u16,
 	#[br(count=color_count)]
@@ -331,7 +322,8 @@ pub struct CSGMDL5{
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 
-	pub tangents:QuantizedF32x3,
+	#[br(parse_with=read_quantized_f32x3)]
+	pub tangents:Vec<[f32;3]>,
 
 	// delta encoded vertex indices
 	pub faces:Faces5,
