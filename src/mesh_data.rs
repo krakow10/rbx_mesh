@@ -278,23 +278,30 @@ impl binrw::BinRead for Faces5{
 
 #[binrw::binread]
 #[br(little)]
-#[derive(Debug,Clone)]
-#[expect(dead_code)]
-struct QuantizedF32x3{
-	values_count:u16,
-	data_len:u32,
-	#[br(count=values_count)]
-	values:Vec<[i16;3]>,
+#[br(map=Self::read)]
+#[repr(transparent)]
+struct QuantizedF32x3([f32;3]);
+impl QuantizedF32x3{
+	fn read([x,y,z]:[i16;3])->Self{
+		const SCALE:f32=1.0/32_767.0; // ? ok
+		Self([
+			(x.wrapping_sub(0x7FFF) as f32)*SCALE,
+			(y.wrapping_sub(0x7FFF) as f32)*SCALE,
+			(z.wrapping_sub(0x7FFF) as f32)*SCALE,
+		])
+	}
 }
-#[binrw::parser(reader)]
-fn read_quantized_f32x3()->binrw::BinResult<Vec<[f32;3]>>{
-	const SCALE:f32=1.0/32_767.0; // ? ok
-	let quantized:QuantizedF32x3=reader.read_le()?;
-	Ok(quantized.values.into_iter().map(|[x,y,z]|[
-		(x.wrapping_sub(0x7FFF) as f32)*SCALE,
-		(y.wrapping_sub(0x7FFF) as f32)*SCALE,
-		(z.wrapping_sub(0x7FFF) as f32)*SCALE,
-	]).collect())
+fn parse_quantized_f32x3_array<R:binrw::io::Read+binrw::io::Seek>(
+	reader:&mut R,
+	_endian:binrw::Endian,
+	args:binrw::VecArgs<()>,
+)->binrw::BinResult<Vec<[f32;3]>>{
+	// read quantized values directly into Vec
+	let quantized:Vec<QuantizedF32x3>=reader.read_le_args(args)?;
+	// transmute into expected type
+	// SAFETY: QuantizedF32x3 is #[repr(transparent)]
+	let transmuted:Vec<[f32;3]>=unsafe{core::mem::transmute(quantized)};
+	Ok(transmuted)
 }
 
 #[binrw::binread]
@@ -307,7 +314,9 @@ pub struct CSGMDL5{
 	#[br(count=pos_count)]
 	pub positions:Vec<[f32;3]>,
 
-	#[br(parse_with=read_quantized_f32x3)]
+	pub normals_count:u16,
+	pub normals_len:u32,
+	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:normals_count as usize,inner:()})]
 	pub normals:Vec<[f32;3]>,
 
 	pub color_count:u16,
@@ -322,7 +331,9 @@ pub struct CSGMDL5{
 	#[br(count=tex_count)]
 	pub tex:Vec<[f32;2]>,
 
-	#[br(parse_with=read_quantized_f32x3)]
+	pub tangents_count:u16,
+	pub tangents_len:u32,
+	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:tangents_count as usize,inner:()})]
 	pub tangents:Vec<[f32;3]>,
 
 	// delta encoded vertex indices
