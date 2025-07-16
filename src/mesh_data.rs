@@ -435,6 +435,19 @@ impl binrw::BinRead for MeshData{
 		})
 	}
 }
+
+#[derive(Debug)]
+pub enum WriteMeshDataError{
+	CSGMDL5,
+}
+impl std::fmt::Display for WriteMeshDataError{
+	fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {
+		match self{
+			Self::CSGMDL5=>write!(f,"Writing CSGMDL5 is not supported")
+		}
+	}
+}
+impl core::error::Error for WriteMeshDataError{}
 impl binrw::BinWrite for MeshData{
 	type Args<'a>=();
 	fn write_options<W:Write+Seek>(
@@ -447,7 +460,13 @@ impl binrw::BinWrite for MeshData{
 			MeshData::CSGK(csgk)=>csgk.write_options(writer,endian,args),
 			MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>mesh_data2.write_options(&mut Obfuscator::new(writer),endian,args),
 			MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>mesh_data4.write_options(&mut Obfuscator::new(writer),endian,args),
-			MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>panic!(),//mesh_data5.write_options(writer,endian,args),
+			MeshData::CSGMDL(CSGMDL::V5(_mesh_data5))=>{
+				//mesh_data5.write_options(writer,endian,args),
+				Err(Error::Custom{
+					pos:0,
+					err:Box::new(WriteMeshDataError::CSGMDL5),
+				})
+			},
 		}
 	}
 }
