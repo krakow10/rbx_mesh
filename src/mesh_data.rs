@@ -98,6 +98,7 @@ impl std::fmt::Display for NormalIDError{
 		write!(f,"{self:?}")
 	}
 }
+impl core::error::Error for NormalIDError{}
 // Why does this differ from Roblox's own standard?
 #[derive(Debug,Clone,Copy,Hash,Eq,PartialEq)]
 pub enum NormalId{
@@ -220,6 +221,18 @@ impl TryFrom<u8> for NormalId5{
 	}
 }
 
+#[derive(Debug)]
+pub enum FacesStateMachineError{
+	UnexpectedEOF,
+	UnusedData,
+}
+impl std::fmt::Display for FacesStateMachineError{
+	fn fmt(&self,f:&mut std::fmt::Formatter<'_>)->std::fmt::Result {
+		write!(f,"{self:?}")
+	}
+}
+impl core::error::Error for FacesStateMachineError{}
+
 #[derive(Debug,Clone)]
 pub struct Faces5{
 	pub faces:Vec<u32>,
@@ -232,46 +245,92 @@ impl binrw::BinRead for Faces5{
 		_endian:binrw::Endian,
 		_args:Self::Args<'_>,
 	)->binrw::BinResult<Self>{
-		let vertex_count=u32::read_le(reader)?;
-		// ignore validation
-		let _faces_data_len=u32::read_le(reader)?;
-		let mut indices=Vec::with_capacity(vertex_count as usize);
-		let mut index=0;
-		for _ in 0..vertex_count{
-			let v0=u8::read_le(reader)?;
-			if v0&(1<<7)==0{
-				// TODO: test whether 64 goes to top or bottom case
-				if v0&(1<<6)==0{
-					index+=v0 as u32;
-				}else{
-					// 64..127 is mapped to -64..-1
-					index-=-((v0|0x80) as i8) as u32;
-				}
-			}else{
-				let [v1,v2]=u16::read_le(reader)?.to_le_bytes();
-				index+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
-			}
-			indices.push(index&0x7FFFFF);
+		#[binrw::binrw]
+		#[brw(little)]
+		enum FacesRangeMarkers{
+			#[brw(magic=2u8)]
+			Two{
+				range_start:u32,
+				range_end:u32,
+			},
+			#[brw(magic=3u8)]
+			Three{
+				range_start:u32,
+				range_end:u32,
+				range_extra:u32,
+			},
 		}
-		let range_marker_count=u8::read_le(reader)?;
-		let has_extra_range=match range_marker_count{
-			2=>false,
-			3=>true,
-			_=>panic!("Assumption about CSGMDL5 format is incorrect"),
-		};
-		// this is implicitly 0
-		let _range_start=u32::read_le(reader)? as usize;
-		let range_end=u32::read_le(reader)? as usize;
-		let _unknown=if has_extra_range{
-			// this is implicitly the end of the range
-			let _range_extra=u32::read_le(reader)? as usize;
-			indices.split_off(range_end)
-		}else{
-			Vec::new()
-		};
-		Ok(Self{
-			faces:indices,
-			_unknown,
+		// complete faces data
+		#[binrw::binrw]
+		#[brw(little)]
+		struct Faces5Inner{
+			vertex_count:u32,
+			vertex_data_len:u32,
+			#[br(count=vertex_data_len)]
+			vertex_data:Vec<u8>,
+			range_markers:FacesRangeMarkers,
+		}
+
+		fn read_state_machine(data:Vec<u8>,expected_output_count:usize)->Result<Vec<u32>,FacesStateMachineError>{
+			let mut indices=Vec::with_capacity(expected_output_count);
+			let mut it=data.into_iter();
+			let mut index_out=0;
+			for _ in 0..expected_output_count{
+				let v0=it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+				if v0&(1<<7)==0{
+					// TODO: test whether 64 goes to top or bottom case
+					if v0&(1<<6)==0{
+						index_out+=v0 as u32;
+					}else{
+						// 64..127 is mapped to -64..-1
+						index_out-=-((v0|0x80) as i8) as u32;
+					}
+				}else{
+					let v1=it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+					let v2=it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+					index_out+=u32::from_le_bytes([v2,v1,v0&0x7F,0]);
+				}
+				indices.push(index_out&0x7FFFFF);
+			}
+
+			// iterator should be fully depleted
+			if it.next().is_some(){
+				return Err(FacesStateMachineError::UnusedData);
+			}
+
+			Ok(indices)
+		}
+
+		// read complete data
+		let faces_inner:Faces5Inner=reader.read_le()?;
+
+		// accumulate vertex indices using state machine
+		let mut faces=read_state_machine(faces_inner.vertex_data,faces_inner.vertex_count as usize)
+		.map_err(|e|{
+			Error::Custom{
+				// TODO: inject position
+				pos:0,
+				err:Box::new(e),
+			}
+		})?;
+
+		// split indices according to range marker count
+		Ok(match faces_inner.range_markers{
+			FacesRangeMarkers::Two{..}=>{
+				// TODO: check range markers against observed counts
+				Self{
+					faces,
+					_unknown:Vec::new(),
+				}
+			},
+			FacesRangeMarkers::Three{range_end,..}=>{
+				// TODO: check range markers against observed counts
+				let _unknown=faces.split_off(range_end as usize);
+				Self{
+					faces,
+					_unknown,
+				}
+			},
 		})
 	}
 }
