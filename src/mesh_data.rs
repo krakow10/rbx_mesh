@@ -235,7 +235,7 @@ impl core::error::Error for FacesStateMachineError{}
 
 #[derive(Debug,Clone)]
 pub struct Faces5{
-	pub faces:Vec<u32>,
+	pub indices:Vec<u32>,
 	pub _unknown:Vec<u32>,
 }
 impl binrw::BinRead for Faces5{
@@ -305,7 +305,7 @@ impl binrw::BinRead for Faces5{
 		let faces_inner:Faces5Inner=reader.read_le()?;
 
 		// accumulate vertex indices using state machine
-		let mut faces=read_state_machine(faces_inner.vertex_data,faces_inner.vertex_count as usize)
+		let mut indices=read_state_machine(faces_inner.vertex_data,faces_inner.vertex_count as usize)
 		.map_err(|e|{
 			Error::Custom{
 				// TODO: inject position
@@ -319,15 +319,15 @@ impl binrw::BinRead for Faces5{
 			FacesRangeMarkers::Two{..}=>{
 				// TODO: check range markers against observed counts
 				Self{
-					faces,
+					indices,
 					_unknown:Vec::new(),
 				}
 			},
 			FacesRangeMarkers::Three{range_end,..}=>{
 				// TODO: check range markers against observed counts
-				let _unknown=faces.split_off(range_end as usize);
+				let _unknown=indices.split_off(range_end as usize);
 				Self{
-					faces,
+					indices,
 					_unknown,
 				}
 			},

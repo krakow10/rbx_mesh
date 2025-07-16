@@ -42,7 +42,7 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 			println!("===V5===");
 			println!("{:?}", mesh_data5);
 			println!("pos_count={}", mesh_data5.pos_count);
-			println!("faces={:?}",mesh_data5.faces.faces);
+			println!("faces={:?}",mesh_data5.faces.indices);
 			println!("extra={:?}",mesh_data5.faces._unknown);
 		},
 	}

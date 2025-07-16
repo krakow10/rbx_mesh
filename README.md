@@ -50,7 +50,7 @@ match mesh_data{
 	MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>println!("{:?}",mesh_data2.mesh.vertices),
 	MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>println!("{:?}",mesh_data4.mesh.vertices),
 	MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
-		for face_vertex_indices in mesh_data5.faces.faces.chunks_exact(3){
+		for face_vertex_indices in mesh_data5.faces.indices.chunks_exact(3){
 			// construct face triangle from indices
 			let face_vertex_positions=[
 				mesh_data5.positions[face_vertex_indices[0] as usize],
