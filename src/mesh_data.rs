@@ -296,11 +296,13 @@ fn parse_quantized_f32x3_array<R:binrw::io::Read+binrw::io::Seek>(
 	_endian:binrw::Endian,
 	args:binrw::VecArgs<()>,
 )->binrw::BinResult<Vec<[f32;3]>>{
-	// read quantized values directly into Vec
+	// read quantized i16 values directly into Vec, converting to f32 on the fly
 	let quantized:Vec<QuantizedF32x3>=reader.read_le_args(args)?;
 	// transmute into expected type
 	// SAFETY: QuantizedF32x3 is #[repr(transparent)]
 	let transmuted:Vec<[f32;3]>=unsafe{core::mem::transmute(quantized)};
+	// Equivalent safe code
+	// let transmuted=quantized.into_iter().map(|QuantizedF32x3(value)|value).collect();
 	Ok(transmuted)
 }
 
