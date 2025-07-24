@@ -373,10 +373,12 @@ fn parse_quantized_f32x3_array<R:binrw::io::Read+binrw::io::Seek>(
 
 #[binrw::binread]
 #[br(little)]
+// #[brw(magic=b"CSGMDL")] but obfuscated
+#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c")]
 #[derive(Debug,Clone)]
 pub struct CSGMDL5{
-	// #[brw(magic=b"CSGMDL\x05\0\0\0")] but obfuscated
-	#[brw(magic=b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
+	// #[brw(magic=5u32)] but obfuscated
+	#[brw(magic=b"\x35\x04\x34\x69")]
 	pub pos_count:u16,
 	#[br(count=pos_count)]
 	pub positions:Vec<[f32;3]>,
