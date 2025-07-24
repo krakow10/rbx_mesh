@@ -51,7 +51,23 @@ match mesh_data{
 	MeshData::CSGK(_)=>(),
 	MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>println!("{:?}",mesh_data2.mesh.vertices),
 	MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>println!("{:?}",mesh_data4.mesh.vertices),
-	// There is a branch with code for csgmdl v5, but the data is not fully labeled yet
+	MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
+		// CSGMDL::V5
+		let vertices:Vec<_>=mesh_data5
+			.faces
+			.indices
+			.chunks_exact(3)
+			.map(|face_vertex_indices|{
+				// construct face triangle from indices
+				[
+					mesh_data5.positions[face_vertex_indices[0] as usize],
+					mesh_data5.positions[face_vertex_indices[1] as usize],
+					mesh_data5.positions[face_vertex_indices[2] as usize],
+				]
+			})
+			.collect();
+		println!("{:?}",vertices);
+	},
 }
 
 

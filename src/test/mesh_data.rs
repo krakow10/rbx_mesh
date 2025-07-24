@@ -5,6 +5,7 @@ fn get_version(mesh_data:&MeshData)->&str{
 		MeshData::CSGK(_)=>"CSGK",
 		MeshData::CSGMDL(CSGMDL::V2(_))=>"CSGMDL2",
 		MeshData::CSGMDL(CSGMDL::V4(_))=>"CSGMDL4",
+		MeshData::CSGMDL(CSGMDL::V5(_))=>"CSGMDL5",
 	}
 }
 
@@ -37,6 +38,13 @@ fn dbg_mesh_data(mesh_data:MeshData,expected_version:&str){
 				println!("u6 row={i} list={thing:?}");
 			}
 		},
+		MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
+			println!("===V5===");
+			println!("{:?}", mesh_data5);
+			println!("pos_count={}", mesh_data5.pos_count);
+			println!("faces={:?}",mesh_data5.faces.indices);
+			println!("extra={:?}",mesh_data5.faces._unknown);
+		},
 	}
 }
 #[test]
@@ -60,4 +68,14 @@ fn meshdata_5692112940_2(){
 fn meshdata_4500696697_4(){
 	let mesh_data=read_mesh_data(include_bytes!("../../meshes/4500696697_4.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,"CSGMDL4");
+}
+#[test]
+fn meshdata_15124417947_5(){
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/15124417947_5.meshdata")).unwrap();
+	dbg_mesh_data(mesh_data,"CSGMDL5");
+}
+#[test]
+fn meshdata_14846974687_5(){
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/14846974687_5.meshdata")).unwrap();
+	dbg_mesh_data(mesh_data,"CSGMDL5");
 }
