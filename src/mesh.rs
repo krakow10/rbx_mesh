@@ -137,6 +137,15 @@ fn parse_triple_float(x:&str,y:&str,z:&str)->Result<[f32;3],std::num::ParseFloat
 	])
 }
 
+macro_rules! lazy_regex{
+	($r:literal)=>{{
+		use regex::Regex;
+		use std::sync::LazyLock;
+		static RE:LazyLock<Regex>=LazyLock::new(||Regex::new($r).unwrap());
+		&RE
+	}};
+}
+
 //based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
 pub fn read1<R:BufRead>(read:R)->Result<Mesh1,Error>{
 	let mut lines=LineMachine::new(read);
@@ -154,7 +163,7 @@ pub fn read1<R:BufRead>(read:R)->Result<Mesh1,Error>{
 
 	let vertices_line=lines.read_line()?;
 	//match three at a time, otherwise fail
-	let vertex_pattern=lazy_regex::regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
+	let vertex_pattern=lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
 	let vertices=vertex_pattern.captures_iter(vertices_line.as_str()).map(|c|
 		Ok(Vertex1{
 			pos:parse_triple_float(&c[1],&c[2],&c[3])?,
