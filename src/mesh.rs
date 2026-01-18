@@ -388,20 +388,13 @@ pub struct Envelope4{
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug,Clone,Eq,Hash,PartialEq)]
-pub struct BoneId4(u16);
+pub struct BoneId4(Option<core::num::NonZeroU16>);
 impl BoneId4{
 	pub fn new(value:Option<u16>)->Self{
-		Self(match value{
-			None=>0xFFFF,
-			//|Some(0xFFFF)//whatever
-			Some(other)=>other,
-		})
+		Self(value.and_then(|value|core::num::NonZeroU16::new(!value)))
 	}
 	pub fn get(&self)->Option<u16>{
-		match self.0{
-			0xFFFF=>None,
-			other=>Some(other),
-		}
+		self.0.map(|value|!value.get())
 	}
 }
 #[binrw::binrw]
