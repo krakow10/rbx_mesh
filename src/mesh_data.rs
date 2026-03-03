@@ -392,6 +392,117 @@ impl binrw::BinRead for Faces5{
 	}
 }
 
+struct Faces5Inner{
+	vertex_count:u32,
+	vertex_data_len:u32,
+	vertex_data:Vec<u8>,
+	range_marker_count:u8,
+	range_markers:Vec<u32>,
+}
+fn a(faces_inner:Faces5Inner,mut indices:Vec<u32>)->Result<Faces5,Error>{
+	// Validate markers
+	{
+		let mut it=faces_inner.range_markers.iter().copied().enumerate();
+		if let Some((i,mut last_marker))=it.next(){
+			if indices.len()<(last_marker as usize){
+				return Err(Error::Custom{
+					// TODO: inject position
+					pos:0,
+					err:Box::new(format!("Marker {i} (value {last_marker}) out of range")),
+				});
+			}
+			for (i,marker) in it{
+				if marker<last_marker{
+					return Err(Error::Custom{
+						// TODO: inject position
+						pos:0,
+						err:Box::new(format!("Marker {i} (value {marker}) is less than marker {} (value {last_marker})",i-1)),
+					});
+				}
+				if indices.len()<(marker as usize){
+					return Err(Error::Custom{
+						// TODO: inject position
+						pos:0,
+						err:Box::new(format!("Marker {i} (value {marker}) out of range")),
+					});
+				}
+				last_marker=marker;
+			}
+		}
+	}
+
+	// split indices according to range marker count
+	let mut it=faces_inner.range_markers.into_iter();
+	let Some(marker0)=it.next()else{
+		return Err(Error::Custom{
+			// TODO: inject position
+			pos:0,
+			err:Box::new("Not enough range markers: 0"),
+		});
+	};
+	let mut remaining_start_index=marker0;
+	if marker0!=0{
+		// drop indices at the start of the list
+		indices.drain(..marker0 as usize);
+	}
+	let Some(marker1)=it.next()else{
+		return Err(Error::Custom{
+			// TODO: inject position
+			pos:0,
+			err:Box::new("Not enough range markers: 1"),
+		});
+	};
+	let Some(mut marker2)=it.next()else{
+		// TODO: check range markers against observed counts
+		// assert_eq!(range_start,0);
+		// assert_eq!(range_end as usize,indices.len());
+		return Ok(Faces5{
+			indices,
+			_unknown:Vec::new(),
+		});
+	};
+
+	// split indices according to marker points
+	let mut _unknown=Vec::new();
+	let mut remaining_indices=indices.split_off((marker1-remaining_start_index) as usize);
+	remaining_start_index=marker1;
+
+	for marker in it{
+		let next_remaining_indices=remaining_indices.split_off((marker2-remaining_start_index) as usize);
+		_unknown.push(remaining_indices);
+		remaining_indices=next_remaining_indices;
+		remaining_start_index=marker2;
+
+		marker2=marker;
+	}
+
+	// insert the final range
+	if ((marker2-remaining_start_index) as usize)<remaining_indices.len(){
+		// drop indices at the end of the list
+		remaining_indices.drain((marker2-remaining_start_index) as usize..);
+	}
+	_unknown.push(remaining_indices);
+
+	Ok(Faces5{
+		indices,
+		_unknown,
+	})
+}
+#[test]
+fn adasds(){
+	let Faces5{
+		indices,
+		_unknown,
+	}=a(
+		Faces5Inner{vertex_count:0,vertex_data_len:0,vertex_data:Vec::new(),range_marker_count:0,
+			range_markers:vec![0,0,3,3,7,8,8],
+		},
+		vec![0,1,2,3,4,5,6,7],
+	).unwrap();
+	println!("indices={indices:?}");
+	println!("_unknown={_unknown:?}");
+}
+
 #[binrw::binread]
 #[br(little)]
 #[br(map=Self::read)]
