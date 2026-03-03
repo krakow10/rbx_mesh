@@ -79,3 +79,8 @@ fn meshdata_14846974687_5(){
 	let mesh_data=read_mesh_data(include_bytes!("../../meshes/14846974687_5.meshdata")).unwrap();
 	dbg_mesh_data(mesh_data,"CSGMDL5");
 }
+#[test]
+fn meshdata_13626979828_5(){
+	let mesh_data=read_mesh_data(include_bytes!("../../meshes/13626979828.meshdata5")).unwrap();
+	dbg_mesh_data(mesh_data,"CSGMDL5");
+}
