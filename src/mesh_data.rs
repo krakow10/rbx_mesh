@@ -236,7 +236,8 @@ impl core::error::Error for FacesStateMachineError{}
 #[derive(Debug,Clone)]
 pub struct Faces5{
 	pub indices:Vec<u32>,
-	pub _unknown:Vec<u32>,
+	/// Additional lists of unknown content.  Assumed to be more indices.  Possibly LODs or something.
+	pub _unknown:Vec<Vec<u32>>,
 }
 impl binrw::BinRead for Faces5{
 	type Args<'a>=();
@@ -245,21 +246,6 @@ impl binrw::BinRead for Faces5{
 		_endian:binrw::Endian,
 		_args:Self::Args<'_>,
 	)->binrw::BinResult<Self>{
-		#[binrw::binrw]
-		#[brw(little)]
-		enum FacesRangeMarkers{
-			#[brw(magic=2u8)]
-			Two{
-				range_start:u32,
-				range_end:u32,
-			},
-			#[brw(magic=3u8)]
-			Three{
-				range_start:u32,
-				range_end:u32,
-				range_extra:u32,
-			},
-		}
 		// complete faces data
 		#[binrw::binrw]
 		#[brw(little)]
@@ -268,8 +254,13 @@ impl binrw::BinRead for Faces5{
 			vertex_data_len:u32,
 			#[br(count=vertex_data_len)]
 			vertex_data:Vec<u8>,
-			range_markers:FacesRangeMarkers,
+			range_marker_count:u8,
+			#[br(count=range_marker_count)]
+			range_markers:Vec<u32>,
 		}
+
+		// use the stream position at the beginning of the Faces data
+		let pos=reader.stream_position()?;
 
 		fn read_state_machine(data:Vec<u8>,expected_output_count:usize)->Result<Vec<u32>,FacesStateMachineError>{
 			let mut indices=Vec::with_capacity(expected_output_count);
@@ -308,35 +299,89 @@ impl binrw::BinRead for Faces5{
 		let mut indices=read_state_machine(faces_inner.vertex_data,faces_inner.vertex_count as usize)
 		.map_err(|e|{
 			Error::Custom{
-				// TODO: inject position
-				pos:0,
+				pos,
 				err:Box::new(e),
 			}
 		})?;
 
+		// Validate markers
+		{
+			let mut it=faces_inner.range_markers.iter().copied().enumerate();
+			if let Some((i,mut last_marker))=it.next(){
+				if indices.len()<(last_marker as usize){
+					return Err(Error::Custom{
+						pos,
+						err:Box::new(format!("Marker {i} (value {last_marker}) out of range")),
+					});
+				}
+				for (i,marker) in it{
+					if marker<last_marker{
+						return Err(Error::Custom{
+							pos,
+							err:Box::new(format!("Marker {i} (value {marker}) is less than marker {} (value {last_marker})",i-1)),
+						});
+					}
+					if indices.len()<(marker as usize){
+						return Err(Error::Custom{
+							pos,
+							err:Box::new(format!("Marker {i} (value {marker}) out of range")),
+						});
+					}
+					last_marker=marker;
+				}
+			}
+		}
+
 		// split indices according to range marker count
-		Ok(match faces_inner.range_markers{
-			FacesRangeMarkers::Two{..}=>{
-				// TODO: check range markers against observed counts
-				// assert_eq!(range_start,0);
-				// assert_eq!(range_end as usize,indices.len());
-				Self{
-					indices,
-					_unknown:Vec::new(),
-				}
-			},
-			FacesRangeMarkers::Three{range_end,..}=>{
-				// TODO: check range markers against observed counts
-				// assert_eq!(range_start,0);
-				// assert_eq!(range_end as usize,indices.len());
-				let _unknown=indices.split_off(range_end as usize);
-				// assert_eq!( indices.len(),(range_start..range_end).len());
-				// assert_eq!(_unknown.len(),(range_end..range_extra).len());
-				Self{
-					indices,
-					_unknown,
-				}
-			},
+		let mut it=faces_inner.range_markers.into_iter();
+		let Some(marker0)=it.next()else{
+			return Err(Error::Custom{
+				pos,
+				err:Box::new("Not enough range markers: 0"),
+			});
+		};
+		let mut remaining_start_index=marker0;
+		if marker0!=0{
+			// drop indices at the start of the list
+			indices.drain(..marker0 as usize);
+		}
+		let Some(marker1)=it.next()else{
+			return Err(Error::Custom{
+				pos,
+				err:Box::new("Not enough range markers: 1"),
+			});
+		};
+		let Some(mut marker2)=it.next()else{
+			return Ok(Self{
+				indices,
+				_unknown:Vec::new(),
+			});
+		};
+
+		// split indices according to marker points
+		let mut _unknown=Vec::new();
+		let mut remaining_indices=indices.split_off((marker1-remaining_start_index) as usize);
+		remaining_start_index=marker1;
+
+		for marker in it{
+			let next_remaining_indices=remaining_indices.split_off((marker2-remaining_start_index) as usize);
+			_unknown.push(remaining_indices);
+			remaining_indices=next_remaining_indices;
+			remaining_start_index=marker2;
+
+			marker2=marker;
+		}
+
+		// insert the final range
+		if ((marker2-remaining_start_index) as usize)<remaining_indices.len(){
+			// drop indices at the end of the list
+			remaining_indices.drain((marker2-remaining_start_index) as usize..);
+		}
+		_unknown.push(remaining_indices);
+
+		Ok(Self{
+			indices,
+			_unknown,
 		})
 	}
 }
