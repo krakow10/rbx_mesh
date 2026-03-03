@@ -306,8 +306,7 @@ impl binrw::BinRead for Faces5{
 		{
 			let mut it=faces_inner.range_markers.iter().copied().enumerate();
 			if let Some((i,mut last_marker))=it.next(){
-				let range=0..indices.len();
-				if !range.contains(&(last_marker as usize)){
+				if indices.len()<(last_marker as usize){
 					return Err(Error::Custom{
 						// TODO: inject position
 						pos:0,
@@ -322,7 +321,7 @@ impl binrw::BinRead for Faces5{
 							err:Box::new(format!("Marker {i} (value {marker}) is less than marker {} (value {last_marker})",i-1)),
 						});
 					}
-					if !range.contains(&(marker as usize)){
+					if indices.len()<(marker as usize){
 						return Err(Error::Custom{
 							// TODO: inject position
 							pos:0,
