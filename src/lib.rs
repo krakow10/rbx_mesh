@@ -1,7 +1,7 @@
 #[cfg(feature = "mesh")]
 pub mod mesh;
 #[cfg(feature = "mesh")]
-pub use mesh::read_versioned;
+pub use mesh::read_versioned as read_mesh_versioned;
 
 #[cfg(feature = "union-graphics")]
 pub mod union_graphics;

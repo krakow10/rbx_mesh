@@ -11,10 +11,10 @@ Roblox Mesh Parser
 Print the mesh vertices for any mesh version / vertex size
 
 ```rust
-use rbx_mesh::{read_versioned,mesh::{Mesh,SizeOfVertex2}};
+use rbx_mesh::{read_mesh_versioned,mesh::{Mesh,SizeOfVertex2}};
 
 let file=std::fs::read("torso.mesh")?;
-let versioned_mesh=read_versioned(std::io::Cursor::new(file))?;
+let versioned_mesh=read_mesh_versioned(std::io::Cursor::new(file))?;
 match versioned_mesh{
 	Mesh::V1(mesh)=>println!("{:?}",mesh.vertices),
 	Mesh::V2(mesh)=>{
