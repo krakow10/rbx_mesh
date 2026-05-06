@@ -1,5 +1,7 @@
 // v1 based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
+#[cfg(feature = "mesh-v1")]
 mod v1;
+#[cfg(feature = "mesh-v1")]
 pub use v1::*;
 // the rest are based on https://devforum.roblox.com/t/roblox-mesh-format/326114
 mod v2;
@@ -20,6 +22,7 @@ pub enum Error {
 	Io(std::io::Error),
 	UnknownVersion([u8; 12]),
 	//1.00
+	#[cfg(feature = "mesh-v1")]
 	V1(Error1),
 	//2.00+
 	BinRead(binrw::Error),
@@ -33,6 +36,7 @@ impl std::error::Error for Error {}
 
 #[derive(Debug, Clone)]
 pub enum Mesh {
+	#[cfg(feature = "mesh-v1")]
 	V1(Mesh1),
 	V2(Mesh2),
 	V3(Mesh3),
@@ -47,9 +51,11 @@ pub fn read_versioned<R: Read + Seek>(mut read: R) -> Result<Mesh, Error> {
 	read.read_exact(&mut peek).map_err(Error::Io)?;
 	read.seek(std::io::SeekFrom::Start(0)).map_err(Error::Io)?;
 	match &peek {
+		#[cfg(feature = "mesh-v1")]
 		b"version 1.00" => Ok(Mesh::V1(
 			read_100(binrw::io::BufReader::new(read)).map_err(Error::V1)?,
 		)),
+		#[cfg(feature = "mesh-v1")]
 		b"version 1.01" => Ok(Mesh::V1(
 			read_101(binrw::io::BufReader::new(read)).map_err(Error::V1)?,
 		)),

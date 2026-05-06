@@ -7,6 +7,7 @@ fn load_mesh(name: &str) -> Result<Mesh, Error> {
 }
 fn get_mesh_id(mesh: Mesh) -> u16 {
 	match mesh {
+		#[cfg(feature = "mesh-v1")]
 		Mesh::V1(mesh) => match mesh.header.revision {
 			Revision1::Version100 => 100,
 			Revision1::Version101 => 101,
@@ -73,6 +74,8 @@ fn round_trip5(name: &str) {
 		.unwrap();
 	assert_eq!(rbuf, wbuf);
 }
+
+#[cfg(feature = "mesh-v1")]
 #[test]
 fn mesh_100() {
 	assert_eq!(get_mesh_id(load_mesh("meshes/158071912").unwrap()), 100);
