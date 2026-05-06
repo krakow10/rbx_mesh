@@ -1,4 +1,6 @@
-use std::io::{BufRead, Read, Seek};
+mod v1;
+pub use v1::*;
+use std::io::{Read, Seek};
 
 use binrw::BinReaderExt;
 
@@ -9,12 +11,8 @@ pub enum Error {
 	Io(std::io::Error),
 	UnknownVersion([u8; 12]),
 	//1.00
-	Header,
-	UnexpectedEof,
-	ParseIntError(std::num::ParseIntError),
-	ParseFloatError(std::num::ParseFloatError),
-	VertexCount,
-	//2.00
+	V1(Error1),
+	//2.00+
 	BinRead(binrw::Error),
 }
 impl std::fmt::Display for Error {
@@ -40,8 +38,8 @@ pub fn read_versioned<R: Read + Seek>(mut read: R) -> Result<Mesh, Error> {
 	read.read_exact(&mut peek).map_err(Error::Io)?;
 	read.seek(std::io::SeekFrom::Start(0)).map_err(Error::Io)?;
 	match &peek {
-		b"version 1.00" => Ok(Mesh::V1(read_100(binrw::io::BufReader::new(read))?)),
-		b"version 1.01" => Ok(Mesh::V1(read_101(binrw::io::BufReader::new(read))?)),
+		b"version 1.00" => Ok(Mesh::V1(read_100(binrw::io::BufReader::new(read)).map_err(Error::V1)?)),
+		b"version 1.01" => Ok(Mesh::V1(read_101(binrw::io::BufReader::new(read)).map_err(Error::V1)?)),
 		b"version 2.00" => Ok(Mesh::V2(read_200(read)?)),
 		b"version 3.00" | b"version 3.01" => Ok(Mesh::V3(read_300(read)?)),
 		b"version 4.00" | b"version 4.01" => Ok(Mesh::V4(read_400(read)?)),
@@ -50,136 +48,6 @@ pub fn read_versioned<R: Read + Seek>(mut read: R) -> Result<Mesh, Error> {
 		//b"version 7.00"=>Ok(VersionedMesh::Version7(read_700(read)?)),
 		&other => Err(Error::UnknownVersion(other)),
 	}
-}
-
-struct LineMachine<R: BufRead> {
-	lines: std::io::Lines<R>,
-}
-impl<R: BufRead> LineMachine<R> {
-	fn new(read: R) -> Self {
-		Self {
-			lines: read.lines(),
-		}
-	}
-	fn read_line(&mut self) -> Result<String, Error> {
-		Ok(self
-			.lines
-			.next()
-			.ok_or(Error::UnexpectedEof)?
-			.map_err(Error::Io)?)
-	}
-}
-
-#[derive(Debug, Clone)]
-pub enum Revision1 {
-	Version100,
-	Version101,
-}
-#[derive(Debug, Clone)]
-pub struct Vertex1 {
-	pub pos: [f32; 3],
-	pub norm: [f32; 3],
-	pub tex: [f32; 3],
-}
-#[derive(Debug, Clone)]
-pub struct Header1 {
-	pub revision: Revision1,
-	pub face_count: u32,
-}
-#[derive(Debug, Clone)]
-pub struct Mesh1 {
-	pub header: Header1,
-	pub vertices: Vec<Vertex1>,
-}
-
-#[inline]
-pub fn fix_100(mesh: &mut Mesh1) {
-	for vertex in &mut mesh.vertices {
-		for p in &mut vertex.pos {
-			*p = *p * 0.5;
-		}
-	}
-}
-#[inline]
-pub fn fix1(mesh: &mut Mesh1) {
-	for vertex in &mut mesh.vertices {
-		vertex.tex[1] = 1.0 - vertex.tex[1];
-	}
-}
-#[inline]
-pub fn check1(mesh: Mesh1) -> Result<Mesh1, Error> {
-	if 3 * (mesh.header.face_count as usize) == mesh.vertices.len() {
-		Ok(mesh)
-	} else {
-		Err(Error::VertexCount)
-	}
-}
-
-#[inline]
-pub fn read_100<R: BufRead>(read: R) -> Result<Mesh1, Error> {
-	let mut mesh = read1(read)?;
-	//we'll fix it in post
-	fix1(&mut mesh);
-	fix_100(&mut mesh);
-	check1(mesh)
-}
-
-#[inline]
-pub fn read_101<R: BufRead>(read: R) -> Result<Mesh1, Error> {
-	let mut mesh = read1(read)?;
-	fix1(&mut mesh);
-	check1(mesh)
-}
-
-fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
-	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
-}
-
-macro_rules! lazy_regex {
-	($r:literal) => {{
-		use regex::Regex;
-		use std::sync::LazyLock;
-		static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new($r).unwrap());
-		&RE
-	}};
-}
-
-//based on https://github.com/MaximumADHD/Rbx2Source/blob/main/Geometry/Mesh.cs LoadGeometry_Ascii function
-pub fn read1<R: BufRead>(read: R) -> Result<Mesh1, Error> {
-	let mut lines = LineMachine::new(read);
-	let revision = match lines.read_line()?.trim() {
-		"version 1.00" => Revision1::Version100,
-		"version 1.01" => Revision1::Version101,
-		_ => return Err(Error::Header),
-	};
-	let face_count = lines
-		.read_line()?
-		.trim()
-		.parse()
-		.map_err(Error::ParseIntError)?;
-	//final header
-	let header = Header1 {
-		revision,
-		face_count,
-	};
-
-	let vertices_line = lines.read_line()?;
-	//match three at a time, otherwise fail
-	let vertex_pattern =
-		lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
-	let vertices = vertex_pattern
-		.captures_iter(vertices_line.as_str())
-		.map(|c| {
-			Ok(Vertex1 {
-				pos: parse_triple_float(&c[1], &c[2], &c[3])?,
-				norm: parse_triple_float(&c[4], &c[5], &c[6])?,
-				tex: parse_triple_float(&c[7], &c[8], &c[9])?,
-			})
-		})
-		.collect::<Result<Vec<Vertex1>, _>>()
-		.map_err(Error::ParseFloatError)?;
-
-	Ok(Mesh1 { header, vertices })
 }
 
 //the rest is based on https://devforum.roblox.com/t/roblox-mesh-format/326114
