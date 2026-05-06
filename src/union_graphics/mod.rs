@@ -80,6 +80,7 @@ pub enum HeaderVersion {
 	#[brw(magic = b"\x35\x04\x34\x69")]
 	CSGMDL5,
 }
+
 /// CSGK contains no actual mesh data.  rbx_mesh does not have a method
 /// to extract any meaningful information from it.
 #[binrw::binrw]
@@ -89,6 +90,7 @@ pub enum HeaderVersion {
 pub struct CSGK {
 	pub uuid_ascii_hex: [u8; 32],
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -96,6 +98,7 @@ pub enum Header {
 	CSGK(CSGK),
 	CSGMDL(HeaderVersion),
 }
+
 #[derive(Debug)]
 pub struct NormalIDError;
 impl std::fmt::Display for NormalIDError {
@@ -104,6 +107,7 @@ impl std::fmt::Display for NormalIDError {
 	}
 }
 impl core::error::Error for NormalIDError {}
+
 // Why does this differ from Roblox's own standard?
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum NormalId {
@@ -123,6 +127,7 @@ pub enum CSGMDL {
 	V4(CSGMDL4),
 	V5(CSGMDL5),
 }
+
 #[derive(Debug, Clone)]
 pub enum UnionGraphics {
 	CSGK(CSGK),
