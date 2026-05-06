@@ -14,6 +14,7 @@ pub enum Revision3 {
 	#[brw(magic = b"3.01")]
 	Version301,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -30,6 +31,7 @@ pub struct Header3 {
 	pub vertex_count: u32,
 	pub face_count: u32,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
@@ -37,6 +39,7 @@ pub struct Header3 {
 /// faces to be drawn for a particular level of detail, with the end of
 /// the range represented by the next id in the list.
 pub struct Lod3(pub u32);
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]

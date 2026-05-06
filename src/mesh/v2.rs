@@ -11,6 +11,7 @@ pub enum Revision2 {
 	#[brw(magic = b"2.00")]
 	Version200,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -20,6 +21,7 @@ pub enum SizeOfVertex2 {
 	#[brw(magic = 40u8)]
 	Full,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -34,6 +36,7 @@ pub struct Header2 {
 	pub vertex_count: u32,
 	pub face_count: u32,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -44,6 +47,7 @@ pub struct Vertex2 {
 	pub tangent: [i8; 4], // Tangent Vector & Bi-Normal Direction
 	pub color: [u8; 4],
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -53,14 +57,17 @@ pub struct Vertex2Truncated {
 	pub tex: [f32; 2],
 	pub tangent: [i8; 4], // Tangent Vector & Bi-Normal Direction
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct VertexId2(pub u32);
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Face2(pub VertexId2, pub VertexId2, pub VertexId2);
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
