@@ -1,5 +1,4 @@
 use binrw::{BinReaderExt, BinWrite};
-use std::io::Read;
 
 use crate::mesh::*;
 fn load_mesh(name: &str) -> Result<Mesh, Error> {
@@ -30,44 +29,35 @@ fn get_mesh_id(mesh: Mesh) -> u16 {
 }
 //Mesh1 has no round trip since there is no writer
 fn round_trip2(name: &str) {
-	let mut file = std::fs::File::open(name).unwrap();
-	let mut rbuf = Vec::new();
-	let mut wbuf = Vec::new();
-	file.read_to_end(&mut rbuf).unwrap();
+	let mut rbuf = binrw::io::Cursor::new(std::fs::read(name).unwrap());
+	let mut wbuf = binrw::io::Cursor::new(Vec::new());
 	//read and then write mesh
-	let mesh: Mesh2 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
-	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
-		.unwrap();
+	let mesh: Mesh2 = rbuf.read_le().unwrap();
+	mesh.write_le(&mut wbuf).unwrap();
 	assert_eq!(rbuf, wbuf);
 }
 fn round_trip3(name: &str) {
-	let mut file = std::fs::File::open(name).unwrap();
-	let mut rbuf = Vec::new();
-	let mut wbuf = Vec::new();
-	file.read_to_end(&mut rbuf).unwrap();
-	let mesh: Mesh3 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
-	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
-		.unwrap();
+	let mut rbuf = binrw::io::Cursor::new(std::fs::read(name).unwrap());
+	let mut wbuf = binrw::io::Cursor::new(Vec::new());
+	//read and then write mesh
+	let mesh: Mesh3 = rbuf.read_le().unwrap();
+	mesh.write_le(&mut wbuf).unwrap();
 	assert_eq!(rbuf, wbuf);
 }
 fn round_trip4(name: &str) {
-	let mut file = std::fs::File::open(name).unwrap();
-	let mut rbuf = Vec::new();
-	let mut wbuf = Vec::new();
-	file.read_to_end(&mut rbuf).unwrap();
-	let mesh: Mesh4 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
-	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
-		.unwrap();
+	let mut rbuf = binrw::io::Cursor::new(std::fs::read(name).unwrap());
+	let mut wbuf = binrw::io::Cursor::new(Vec::new());
+	//read and then write mesh
+	let mesh: Mesh4 = rbuf.read_le().unwrap();
+	mesh.write_le(&mut wbuf).unwrap();
 	assert_eq!(rbuf, wbuf);
 }
 fn round_trip5(name: &str) {
-	let mut file = std::fs::File::open(name).unwrap();
-	let mut rbuf = Vec::new();
-	let mut wbuf = Vec::new();
-	file.read_to_end(&mut rbuf).unwrap();
-	let mesh: Mesh5 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
-	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
-		.unwrap();
+	let mut rbuf = binrw::io::Cursor::new(std::fs::read(name).unwrap());
+	let mut wbuf = binrw::io::Cursor::new(Vec::new());
+	//read and then write mesh
+	let mesh: Mesh5 = rbuf.read_le().unwrap();
+	mesh.write_le(&mut wbuf).unwrap();
 	assert_eq!(rbuf, wbuf);
 }
 
