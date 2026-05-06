@@ -1,7 +1,7 @@
 pub type Error = binrw::Error;
 
 #[inline]
-pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<PhysicsData, Error> {
+pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysics, Error> {
 	read.read_le()
 }
 
@@ -86,7 +86,7 @@ pub struct CSGK {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub enum PhysicsData {
+pub enum UnionPhysics {
 	CSGK(CSGK),
 	CSGPHS(CSGPHS),
 }
