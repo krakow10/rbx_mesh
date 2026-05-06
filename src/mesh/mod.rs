@@ -15,8 +15,6 @@ pub use v5::*;
 
 use binrw::BinReaderExt;
 
-pub const DEFAULT_VERTEX_TANGENT: [i8; 4] = [0, 0, -128, 127];
-
 pub type Error = binrw::Error;
 
 #[binrw::binread]

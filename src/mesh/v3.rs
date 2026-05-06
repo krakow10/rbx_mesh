@@ -1,7 +1,7 @@
 use binrw::BinReaderExt;
 
+use super::v2::DEFAULT_VERTEX_TANGENT;
 use super::v2::{Face2, SizeOfVertex2, Vertex2, Vertex2Truncated};
-use super::DEFAULT_VERTEX_TANGENT;
 
 #[binrw::binrw]
 #[brw(little)]

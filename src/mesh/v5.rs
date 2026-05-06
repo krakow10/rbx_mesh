@@ -1,9 +1,9 @@
 use binrw::BinReaderExt;
 
+use super::v2::DEFAULT_VERTEX_TANGENT;
 use super::v2::{Face2, Vertex2};
 use super::v3::Lod3;
 use super::v4::{Bone4, Envelope4, LodType4, Subset4};
-use super::DEFAULT_VERTEX_TANGENT;
 
 #[binrw::binrw]
 #[brw(little)]

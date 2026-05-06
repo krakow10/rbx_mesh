@@ -1,6 +1,6 @@
 use binrw::BinReaderExt;
 
-use super::DEFAULT_VERTEX_TANGENT;
+pub const DEFAULT_VERTEX_TANGENT: [i8; 4] = [0, 0, -128, 127];
 
 #[binrw::binrw]
 #[brw(little)]
