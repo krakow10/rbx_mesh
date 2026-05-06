@@ -1,7 +1,5 @@
 use binrw::BinReaderExt;
 
-use std::io::{Read, Seek};
-
 use super::v2::{Face2, SizeOfVertex2, Vertex2, Vertex2Truncated};
 use super::DEFAULT_VERTEX_TANGENT;
 
@@ -9,9 +7,9 @@ use super::DEFAULT_VERTEX_TANGENT;
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision3 {
-	#[brw(magic = b"3.00")]
+	#[brw(magic = b"version 3.00")]
 	Version300,
-	#[brw(magic = b"3.01")]
+	#[brw(magic = b"version 3.01")]
 	Version301,
 }
 
@@ -19,7 +17,6 @@ pub enum Revision3 {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Header3 {
-	#[brw(magic = b"version ")]
 	pub revision: Revision3,
 	#[brw(magic = b"\n\x10\0")] //newline,sizeof_header
 	//sizeof_header:u16,//16=0x0010
@@ -67,7 +64,7 @@ pub fn fix3(mesh: &mut Mesh3) {
 }
 
 #[inline]
-pub fn read_300<R: Read + Seek>(read: R) -> Result<Mesh3, binrw::Error> {
+pub fn read_300<R: BinReaderExt>(read: R) -> Result<Mesh3, binrw::Error> {
 	let mut mesh = read3(read)?;
 	fix3(&mut mesh);
 	Ok(mesh)

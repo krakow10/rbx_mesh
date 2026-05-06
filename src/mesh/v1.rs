@@ -1,8 +1,9 @@
 use std::io::BufRead;
 
+use binrw::BinReaderExt;
+
 #[derive(Debug)]
 pub enum Error1 {
-	Io(std::io::Error),
 	Header,
 	UnexpectedEof,
 	ParseIntError(std::num::ParseIntError),
@@ -16,6 +17,27 @@ impl std::fmt::Display for Error1 {
 }
 impl std::error::Error for Error1 {}
 
+enum InnerError {
+	Io(std::io::Error),
+	Other(Error1),
+}
+impl From<Error1> for InnerError {
+	fn from(value: Error1) -> Self {
+		Self::Other(value)
+	}
+}
+impl From<InnerError> for binrw::Error {
+	fn from(value: InnerError) -> Self {
+		match value {
+			InnerError::Io(error) => Self::Io(error),
+			InnerError::Other(error1) => Self::Custom {
+				pos: 0,
+				err: Box::new(error1),
+			},
+		}
+	}
+}
+
 struct LineMachine<R: BufRead> {
 	lines: std::io::Lines<R>,
 }
@@ -25,53 +47,59 @@ impl<R: BufRead> LineMachine<R> {
 			lines: read.lines(),
 		}
 	}
-	fn read_line(&mut self) -> Result<String, Error1> {
+	fn read_line(&mut self) -> Result<String, InnerError> {
 		Ok(self
 			.lines
 			.next()
-			.ok_or(Error1::UnexpectedEof)?
-			.map_err(Error1::Io)?)
+			.ok_or(InnerError::Other(Error1::UnexpectedEof))?
+			.map_err(InnerError::Io)?)
 	}
 }
 
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision1 {
+	#[brw(magic = b"version 1.00")]
 	Version100,
+	#[brw(magic = b"version 1.01")]
 	Version101,
 }
+
 #[derive(Debug, Clone)]
 pub struct Vertex1 {
 	pub pos: [f32; 3],
 	pub norm: [f32; 3],
 	pub tex: [f32; 3],
 }
+
 #[derive(Debug, Clone)]
 pub struct Header1 {
 	pub revision: Revision1,
 	pub face_count: u32,
 }
+
 #[derive(Debug, Clone)]
 pub struct Mesh1 {
 	pub header: Header1,
 	pub vertices: Vec<Vertex1>,
 }
 
-#[inline]
-pub fn fix_100(mesh: &mut Mesh1) {
+fn fix_100(mesh: &mut Mesh1) {
 	for vertex in &mut mesh.vertices {
 		for p in &mut vertex.pos {
 			*p = *p * 0.5;
 		}
 	}
 }
-#[inline]
-pub fn fix1(mesh: &mut Mesh1) {
+
+fn fix1(mesh: &mut Mesh1) {
 	for vertex in &mut mesh.vertices {
 		vertex.tex[1] = 1.0 - vertex.tex[1];
 	}
 }
-#[inline]
-pub fn check1(mesh: Mesh1) -> Result<Mesh1, Error1> {
+
+fn check1(mesh: Mesh1) -> Result<Mesh1, Error1> {
 	if 3 * (mesh.header.face_count as usize) == mesh.vertices.len() {
 		Ok(mesh)
 	} else {
@@ -79,20 +107,20 @@ pub fn check1(mesh: Mesh1) -> Result<Mesh1, Error1> {
 	}
 }
 
-#[inline]
-pub fn read_100<R: BufRead>(read: R) -> Result<Mesh1, Error1> {
-	let mut mesh = read1(read)?;
+fn read_100<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
+	let mut mesh = read1(revision, read)?;
 	//we'll fix it in post
 	fix1(&mut mesh);
 	fix_100(&mut mesh);
-	check1(mesh)
+	let mesh = check1(mesh)?;
+	Ok(mesh)
 }
 
-#[inline]
-pub fn read_101<R: BufRead>(read: R) -> Result<Mesh1, Error1> {
-	let mut mesh = read1(read)?;
+fn read_101<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
+	let mut mesh = read1(revision, read)?;
 	fix1(&mut mesh);
-	check1(mesh)
+	let mesh = check1(mesh)?;
+	Ok(mesh)
 }
 
 fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
@@ -108,18 +136,18 @@ macro_rules! lazy_regex {
 	}};
 }
 
-pub fn read1<R: BufRead>(read: R) -> Result<Mesh1, Error1> {
+fn read1<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
 	let mut lines = LineMachine::new(read);
-	let revision = match lines.read_line()?.trim() {
-		"version 1.00" => Revision1::Version100,
-		"version 1.01" => Revision1::Version101,
-		_ => return Err(Error1::Header),
-	};
+
+	// the first line contains the revision, but we already parsed it.
+	lines.read_line()?;
+
 	let face_count = lines
 		.read_line()?
 		.trim()
 		.parse()
 		.map_err(Error1::ParseIntError)?;
+
 	//final header
 	let header = Header1 {
 		revision,
@@ -144,4 +172,19 @@ pub fn read1<R: BufRead>(read: R) -> Result<Mesh1, Error1> {
 		.map_err(Error1::ParseFloatError)?;
 
 	Ok(Mesh1 { header, vertices })
+}
+
+impl binrw::BinRead for Mesh1 {
+	type Args<'a> = ();
+	fn read_options<R: BinReaderExt>(
+		reader: &mut R,
+		endian: binrw::Endian,
+		args: Self::Args<'_>,
+	) -> binrw::BinResult<Self> {
+		let revision = Revision1::read_options(reader, endian, args)?;
+		Ok(match revision {
+			Revision1::Version100 => read_100(revision, binrw::io::BufReader::new(reader))?,
+			Revision1::Version101 => read_101(revision, binrw::io::BufReader::new(reader))?,
+		})
+	}
 }

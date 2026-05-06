@@ -1,7 +1,5 @@
 use binrw::BinReaderExt;
 
-use std::io::{Read, Seek};
-
 use super::v2::{Face2, Vertex2};
 use super::v3::Lod3;
 use super::v4::{Bone4, Envelope4, LodType4, Subset4};
@@ -11,7 +9,7 @@ use super::DEFAULT_VERTEX_TANGENT;
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision5 {
-	#[brw(magic = b"5.00")]
+	#[brw(magic = b"version 5.00")]
 	Version500,
 }
 
@@ -26,7 +24,6 @@ pub enum FacsFormat5 {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Header5 {
-	#[brw(magic = b"version ")]
 	pub revision: Revision5,
 	#[brw(magic = b"\n\x20\0")] //newline,sizeof_header
 	//sizeof_header:u16,//32=0x0020
@@ -148,7 +145,7 @@ pub fn fix5(mesh: &mut Mesh5) {
 }
 
 #[inline]
-pub fn read_500<R: Read + Seek>(read: R) -> Result<Mesh5, binrw::Error> {
+pub fn read_500<R: BinReaderExt>(read: R) -> Result<Mesh5, binrw::Error> {
 	let mut mesh = read5(read)?;
 	fix5(&mut mesh);
 	Ok(mesh)
