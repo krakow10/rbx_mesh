@@ -98,44 +98,6 @@ macro_rules! lazy_regex {
 	}};
 }
 
-fn read1<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
-	let mut lines = LineMachine::new(read);
-
-	// the first line contains the revision, but we already parsed it.
-	lines.read_line()?;
-
-	let face_count = lines
-		.read_line()?
-		.trim()
-		.parse()
-		.map_err(Error1::ParseIntError)?;
-
-	//final header
-	let header = Header1 {
-		revision,
-		face_count,
-	};
-
-	let vertices_line = lines.read_line()?;
-	//match three at a time, otherwise fail
-	let vertex_pattern =
-		lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
-	let vertices = vertex_pattern
-		.captures_iter(vertices_line.as_str())
-		.map(|c| {
-			let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
-			Ok(Vertex1 {
-				pos: parse_triple_float(px, py, pz)?,
-				norm: parse_triple_float(nx, ny, nz)?,
-				tex: parse_triple_float(tx, ty, tz)?,
-			})
-		})
-		.collect::<Result<Vec<Vertex1>, _>>()
-		.map_err(Error1::ParseFloatError)?;
-
-	Ok(Mesh1 { header, vertices })
-}
-
 impl binrw::BinRead for Mesh1 {
 	type Args<'a> = ();
 	fn read_options<R: BinReaderExt>(
@@ -145,7 +107,43 @@ impl binrw::BinRead for Mesh1 {
 	) -> binrw::BinResult<Self> {
 		let revision = Revision1::read_options(reader, endian, args)?;
 
-		let mut mesh = read1(revision, binrw::io::BufReader::new(reader))?;
+		let mut lines = LineMachine::new(binrw::io::BufReader::new(reader));
+
+		// the first line contains the revision, but we already parsed it.
+		lines.read_line()?;
+
+		let face_count = lines
+			.read_line()?
+			.trim()
+			.parse()
+			.map_err(|e| InnerError::Other(Error1::ParseIntError(e)))?;
+
+		//final header
+		let header = Header1 {
+			revision,
+			face_count,
+		};
+
+		let vertices_line = lines.read_line()?;
+
+		//match three at a time, otherwise fail
+		let vertex_pattern =
+			lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
+
+		let vertices = vertex_pattern
+			.captures_iter(vertices_line.as_str())
+			.map(|c| {
+				let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
+				Ok(Vertex1 {
+					pos: parse_triple_float(px, py, pz)?,
+					norm: parse_triple_float(nx, ny, nz)?,
+					tex: parse_triple_float(tx, ty, tz)?,
+				})
+			})
+			.collect::<Result<Vec<Vertex1>, _>>()
+			.map_err(|e| InnerError::Other(Error1::ParseFloatError(e)))?;
+
+		let mut mesh = Mesh1 { header, vertices };
 
 		// fix texture coordinates
 		for vertex in &mut mesh.vertices {
