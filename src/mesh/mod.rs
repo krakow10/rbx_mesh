@@ -44,6 +44,7 @@ pub fn fix_vertex2_tangents(vertices: &mut [Vertex2]) {
 pub fn read_versioned<R: BinReaderExt>(mut read: R) -> Result<Mesh, Error> {
 	let mut mesh = read.read_le()?;
 	match &mut mesh {
+		#[cfg(feature = "mesh-v1")]
 		Mesh::V1(_) => (),
 		Mesh::V2(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
 		Mesh::V3(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
