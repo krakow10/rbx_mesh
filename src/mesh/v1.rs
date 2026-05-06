@@ -133,10 +133,11 @@ pub fn read1<R: BufRead>(read: R) -> Result<Mesh1, Error1> {
 	let vertices = vertex_pattern
 		.captures_iter(vertices_line.as_str())
 		.map(|c| {
+			let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
 			Ok(Vertex1 {
-				pos: parse_triple_float(&c[1], &c[2], &c[3])?,
-				norm: parse_triple_float(&c[4], &c[5], &c[6])?,
-				tex: parse_triple_float(&c[7], &c[8], &c[9])?,
+				pos: parse_triple_float(px, py, pz)?,
+				norm: parse_triple_float(nx, ny, nz)?,
+				tex: parse_triple_float(tx, ty, tz)?,
 			})
 		})
 		.collect::<Result<Vec<Vertex1>, _>>()
