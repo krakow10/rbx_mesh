@@ -1,4 +1,4 @@
-use binrw::BinWrite;
+use binrw::{BinReaderExt, BinWrite};
 use std::io::Read;
 
 use crate::mesh::*;
@@ -35,9 +35,8 @@ fn round_trip2(name: &str) {
 	let mut wbuf = Vec::new();
 	file.read_to_end(&mut rbuf).unwrap();
 	//read and then write mesh
-	read2(binrw::io::Cursor::new(&rbuf))
-		.unwrap()
-		.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
+	let mesh: Mesh2 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
+	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
 		.unwrap();
 	assert_eq!(rbuf, wbuf);
 }
@@ -46,9 +45,8 @@ fn round_trip3(name: &str) {
 	let mut rbuf = Vec::new();
 	let mut wbuf = Vec::new();
 	file.read_to_end(&mut rbuf).unwrap();
-	read3(binrw::io::Cursor::new(&rbuf))
-		.unwrap()
-		.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
+	let mesh: Mesh3 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
+	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
 		.unwrap();
 	assert_eq!(rbuf, wbuf);
 }
@@ -57,9 +55,8 @@ fn round_trip4(name: &str) {
 	let mut rbuf = Vec::new();
 	let mut wbuf = Vec::new();
 	file.read_to_end(&mut rbuf).unwrap();
-	read4(binrw::io::Cursor::new(&rbuf))
-		.unwrap()
-		.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
+	let mesh: Mesh4 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
+	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
 		.unwrap();
 	assert_eq!(rbuf, wbuf);
 }
@@ -68,9 +65,8 @@ fn round_trip5(name: &str) {
 	let mut rbuf = Vec::new();
 	let mut wbuf = Vec::new();
 	file.read_to_end(&mut rbuf).unwrap();
-	read5(binrw::io::Cursor::new(&rbuf))
-		.unwrap()
-		.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
+	let mesh: Mesh5 = binrw::io::Cursor::new(&rbuf).read_le().unwrap();
+	mesh.write_le(&mut binrw::io::Cursor::new(&mut wbuf))
 		.unwrap();
 	assert_eq!(rbuf, wbuf);
 }
