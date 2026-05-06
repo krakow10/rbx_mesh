@@ -1,6 +1,3 @@
-use binrw::BinReaderExt;
-
-use super::v2::DEFAULT_VERTEX_TANGENT;
 use super::v2::{Face2, Vertex2};
 use super::v3::Lod3;
 
@@ -132,25 +129,4 @@ pub struct Mesh4 {
 	pub bone_names: Vec<u8>,
 	#[br(count=header.subset_count)]
 	pub subsets: Vec<Subset4>,
-}
-
-#[inline]
-pub fn fix4(mesh: &mut Mesh4) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_400<R: BinReaderExt>(read: R) -> Result<Mesh4, binrw::Error> {
-	let mut mesh = read4(read)?;
-	fix4(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read4<R: BinReaderExt>(mut read: R) -> Result<Mesh4, binrw::Error> {
-	read.read_le()
 }

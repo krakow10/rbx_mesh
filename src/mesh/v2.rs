@@ -1,7 +1,3 @@
-use binrw::BinReaderExt;
-
-pub const DEFAULT_VERTEX_TANGENT: [i8; 4] = [0, 0, -128, 127];
-
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -77,25 +73,4 @@ pub struct Mesh2 {
 	pub vertices_truncated: Vec<Vertex2Truncated>,
 	#[br(count=header.face_count)]
 	pub faces: Vec<Face2>,
-}
-
-#[inline]
-pub fn fix2(mesh: &mut Mesh2) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_200<R: BinReaderExt>(read: R) -> Result<Mesh2, binrw::Error> {
-	let mut mesh = read2(read)?;
-	fix2(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read2<R: BinReaderExt>(mut read: R) -> Result<Mesh2, binrw::Error> {
-	read.read_le()
 }

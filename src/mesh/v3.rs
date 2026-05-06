@@ -1,6 +1,3 @@
-use binrw::BinReaderExt;
-
-use super::v2::DEFAULT_VERTEX_TANGENT;
 use super::v2::{Face2, SizeOfVertex2, Vertex2, Vertex2Truncated};
 
 #[binrw::binrw]
@@ -51,25 +48,4 @@ pub struct Mesh3 {
 	pub faces: Vec<Face2>,
 	#[br(count=header.lod_count)]
 	pub lods: Vec<Lod3>,
-}
-
-#[inline]
-pub fn fix3(mesh: &mut Mesh3) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_300<R: BinReaderExt>(read: R) -> Result<Mesh3, binrw::Error> {
-	let mut mesh = read3(read)?;
-	fix3(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read3<R: BinReaderExt>(mut read: R) -> Result<Mesh3, binrw::Error> {
-	read.read_le()
 }
