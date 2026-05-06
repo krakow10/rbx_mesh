@@ -85,44 +85,6 @@ pub struct Mesh1 {
 	pub vertices: Vec<Vertex1>,
 }
 
-fn fix_100(mesh: &mut Mesh1) {
-	for vertex in &mut mesh.vertices {
-		for p in &mut vertex.pos {
-			*p = *p * 0.5;
-		}
-	}
-}
-
-fn fix1(mesh: &mut Mesh1) {
-	for vertex in &mut mesh.vertices {
-		vertex.tex[1] = 1.0 - vertex.tex[1];
-	}
-}
-
-fn check1(mesh: Mesh1) -> Result<Mesh1, Error1> {
-	if 3 * (mesh.header.face_count as usize) == mesh.vertices.len() {
-		Ok(mesh)
-	} else {
-		Err(Error1::VertexCount)
-	}
-}
-
-fn read_100<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
-	let mut mesh = read1(revision, read)?;
-	//we'll fix it in post
-	fix1(&mut mesh);
-	fix_100(&mut mesh);
-	let mesh = check1(mesh)?;
-	Ok(mesh)
-}
-
-fn read_101<R: BufRead>(revision: Revision1, read: R) -> Result<Mesh1, InnerError> {
-	let mut mesh = read1(revision, read)?;
-	fix1(&mut mesh);
-	let mesh = check1(mesh)?;
-	Ok(mesh)
-}
-
 fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
 	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
 }
@@ -182,9 +144,28 @@ impl binrw::BinRead for Mesh1 {
 		args: Self::Args<'_>,
 	) -> binrw::BinResult<Self> {
 		let revision = Revision1::read_options(reader, endian, args)?;
-		Ok(match revision {
-			Revision1::Version100 => read_100(revision, binrw::io::BufReader::new(reader))?,
-			Revision1::Version101 => read_101(revision, binrw::io::BufReader::new(reader))?,
-		})
+
+		let mut mesh = read1(revision, binrw::io::BufReader::new(reader))?;
+
+		// fix texture coordinates
+		for vertex in &mut mesh.vertices {
+			vertex.tex[1] = 1.0 - vertex.tex[1];
+		}
+
+		// mesh v1.00 is double size for some reason
+		if let Revision1::Version100 = &mesh.header.revision {
+			for vertex in &mut mesh.vertices {
+				for p in &mut vertex.pos {
+					*p = *p * 0.5;
+				}
+			}
+		}
+
+		// assert vertex count matches header
+		if 3 * (mesh.header.face_count as usize) != mesh.vertices.len() {
+			return Err(InnerError::Other(Error1::VertexCount).into());
+		}
+
+		Ok(mesh)
 	}
 }
