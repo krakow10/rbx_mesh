@@ -5,7 +5,7 @@ mod edgebreaker;
 mod raw_hulls;
 
 pub use edgebreaker::{decode_edgebreaker_hulls, EdgebreakerError, Hull};
-pub use raw_hulls::{decode_raw_hulls, encode_raw_hulls};
+pub use raw_hulls::decode_raw_hulls;
 
 const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 
