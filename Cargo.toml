@@ -16,12 +16,12 @@ default = [
 	"union-physics",
 	"mesh-v1",
 ]
-mesh = ["dep:regex"]
+mesh = []
 union-graphics = []
 union-physics = []
 
 # mesh v1 is rare and depends on regex
-mesh-v1 = ["mesh"]
+mesh-v1 = ["mesh", "dep:regex"]
 
 [dependencies]
 binrw = "0.15.0"
