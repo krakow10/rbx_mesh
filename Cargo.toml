@@ -18,7 +18,8 @@ default = [
 ]
 mesh = ["dep:regex"]
 union-graphics = []
-union-physics = []
+# only requires zstd if parsing v8
+union-physics = ["dep:ruzstd"]
 
 # mesh v1 is rare and depends on regex
 mesh-v1 = ["mesh"]
@@ -26,3 +27,4 @@ mesh-v1 = ["mesh"]
 [dependencies]
 binrw = "0.15.0"
 regex = { version = "1.11.3", default-features = false, optional = true }
+ruzstd = { version = "0.8.2", optional = true }

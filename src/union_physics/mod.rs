@@ -6,6 +6,8 @@ mod v6;
 pub use v6::*;
 mod v7;
 pub use v7::*;
+mod v8;
+pub use v8::*;
 
 pub type Error = binrw::Error;
 
@@ -40,6 +42,8 @@ pub enum CSGPHS {
 	V6(CSGPHS6),
 	#[brw(magic = 7u32)]
 	V7(CSGPHS7),
+	#[brw(magic = 8u32)]
+	V8(CSGPHS8),
 }
 
 #[binrw::binrw]

@@ -17,6 +17,15 @@ fn csgphs_7() {
 	read_union_physics(include_bytes!("../../meshes/CSGPHS_7.data"));
 }
 #[test]
+fn csgphs_8() {
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_00.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_01.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_02.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_03.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_04.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_05.data"));
+}
+#[test]
 fn csgk() {
 	read_union_physics(include_bytes!("../../meshes/CSGK.data"));
 }
