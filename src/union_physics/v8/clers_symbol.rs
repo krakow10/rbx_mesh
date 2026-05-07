@@ -26,7 +26,7 @@ impl<'a> Iterator for SymbolReader<'a> {
 		if self.bit_reader.read(1)? == 0 {
 			return Some(Symbol::Continue);
 		}
-		let bits = self.bit_reader.read(2)?;
+		let bits = self.bit_reader.read(2).expect("Unexpected EOF");
 		Some(match (bits & 0b10 != 0, bits & 0b01 != 0) {
 			(false, false) => Symbol::Split,
 			(false, true) => Symbol::Left,
