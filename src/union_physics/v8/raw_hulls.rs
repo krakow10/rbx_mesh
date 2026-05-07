@@ -71,10 +71,13 @@ pub fn decode_raw_hulls(data: &[u8]) -> Result<Vec<Hull>, binrw::Error> {
 
 	let index_section = IndexSection::read_options(&mut cursor, endian, ())?;
 
-	let component_section = if cursor.position() < data.len() as u64 {
-		Some(ComponentSection::read_options(&mut cursor, endian, ())?)
+	let ComponentSection {
+		vertex_ranges,
+		component_data,
+	} = if cursor.position() < data.len() as u64 {
+		ComponentSection::read_options(&mut cursor, endian, ())?
 	} else {
-		None
+		return Ok(Vec::new());
 	};
 
 	let IndexSection {
@@ -82,30 +85,35 @@ pub fn decode_raw_hulls(data: &[u8]) -> Result<Vec<Hull>, binrw::Error> {
 		index_base,
 		..
 	} = index_section;
-	let (vertex_ranges, component_data) = match component_section {
-		Some(cs) => (cs.vertex_ranges, cs.component_data),
-		None => (Vec::new(), Vec::new()),
-	};
 
-	let mut hulls = Vec::with_capacity(hull_ranges.len().min(vertex_ranges.len()));
 	let mut idx_start: u32 = 0;
 	let mut comp_start: u32 = 0;
 
-	for (&idx_end, &comp_end) in hull_ranges.iter().zip(vertex_ranges.iter()) {
-		let comps = &component_data[comp_start as usize..comp_end as usize];
-		let idxs = &index_base[idx_start as usize..idx_end as usize];
+	let hulls = hull_ranges
+		.into_iter()
+		.zip(vertex_ranges)
+		.map(|(idx_end, comp_end)| {
+			let comps = &component_data[comp_start as usize..comp_end as usize];
+			let idxs = &index_base[idx_start as usize..idx_end as usize];
 
-		let vertices = comps.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
-		let triangles = idxs.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
+			let vertices = comps
+				.chunks_exact(3)
+				.map(|c| c.try_into().unwrap())
+				.collect();
+			let triangles = idxs
+				.chunks_exact(3)
+				.map(|c| c.try_into().unwrap())
+				.collect();
 
-		hulls.push(Hull {
-			vertices,
-			triangles,
-		});
+			idx_start = idx_end;
+			comp_start = comp_end;
 
-		idx_start = idx_end;
-		comp_start = comp_end;
-	}
+			Hull {
+				vertices,
+				triangles,
+			}
+		})
+		.collect();
 
 	Ok(hulls)
 }
