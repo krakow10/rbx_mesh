@@ -20,7 +20,7 @@ impl<'a> BitReader<'a> {
 
 		// popluate cache with enough bits to fill value
 		while self.cache_bits + value_bits < bits {
-			value += self.cache << value_bits;
+			value += self.cache.unbounded_shl(value_bits as u32);
 			value_bits += self.cache_bits;
 
 			let (before, after) = self.bytes.split_at_checked(size_of::<Cache>())?;
@@ -32,8 +32,9 @@ impl<'a> BitReader<'a> {
 
 		// populate value with cached bits
 		let draw_bits = bits - value_bits;
-		value += self.cache & ((1 << value_bits) - 1) << value_bits;
-		self.cache >>= draw_bits;
+		let mask = 1u8.unbounded_shl(draw_bits as u32) - 1;
+		value += (self.cache & mask).unbounded_shl(value_bits as u32);
+		self.cache = self.cache.unbounded_shr(draw_bits as u32);
 		self.cache_bits -= draw_bits;
 		Some(value)
 	}
