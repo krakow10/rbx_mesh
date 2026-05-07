@@ -20,6 +20,16 @@ fn csgphs_7() {
 	let mesh = roundtrip::<CSGPHS7>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 }
+#[cfg(feature = "csgphs-v8")]
+#[test]
+fn csgphs_8() {
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_00.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_01.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_02.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_03.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_04.data"));
+	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_05.data"));
+}
 #[test]
 fn csgk() {
 	let bytes = read("meshes/CSGK.data").unwrap();

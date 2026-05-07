@@ -8,6 +8,8 @@ mod v6;
 pub use v6::*;
 mod v7;
 pub use v7::*;
+mod v8;
+pub use v8::*;
 
 pub use super::csgk::CSGK;
 
@@ -18,6 +20,21 @@ pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysic
 	read.read_le()
 }
 
+#[cfg(feature = "csgphs-v8")]
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub enum UnionPhysics {
+	CSGK(CSGK),
+	Block(Block),
+	V3(CSGPHS3),
+	V5(CSGPHS5),
+	V6(CSGPHS6),
+	V7(CSGPHS7),
+	V8(CSGPHS8),
+}
+
+#[cfg(not(feature = "csgphs-v8"))]
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
