@@ -1,17 +1,12 @@
-use binrw::BinReaderExt;
-
-use std::io::{Read, Seek};
-
 use super::v2::{Face2, SizeOfVertex2, Vertex2, Vertex2Truncated};
-use super::DEFAULT_VERTEX_TANGENT;
 
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision3 {
-	#[brw(magic = b"3.00")]
+	#[brw(magic = b"version 3.00")]
 	Version300,
-	#[brw(magic = b"3.01")]
+	#[brw(magic = b"version 3.01")]
 	Version301,
 }
 
@@ -19,7 +14,6 @@ pub enum Revision3 {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Header3 {
-	#[brw(magic = b"version ")]
 	pub revision: Revision3,
 	#[brw(magic = b"\n\x10\0")] //newline,sizeof_header
 	//sizeof_header:u16,//16=0x0010
@@ -54,25 +48,4 @@ pub struct Mesh3 {
 	pub faces: Vec<Face2>,
 	#[br(count=header.lod_count)]
 	pub lods: Vec<Lod3>,
-}
-
-#[inline]
-pub fn fix3(mesh: &mut Mesh3) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_300<R: Read + Seek>(read: R) -> Result<Mesh3, binrw::Error> {
-	let mut mesh = read3(read)?;
-	fix3(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read3<R: BinReaderExt>(mut read: R) -> Result<Mesh3, binrw::Error> {
-	read.read_le()
 }

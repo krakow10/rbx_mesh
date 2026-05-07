@@ -1,18 +1,13 @@
-use binrw::BinReaderExt;
-
-use std::io::{Read, Seek};
-
 use super::v2::{Face2, Vertex2};
 use super::v3::Lod3;
-use super::DEFAULT_VERTEX_TANGENT;
 
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision4 {
-	#[brw(magic = b"4.00")]
+	#[brw(magic = b"version 4.00")]
 	Version400,
-	#[brw(magic = b"4.01")]
+	#[brw(magic = b"version 4.01")]
 	Version401,
 }
 
@@ -31,7 +26,6 @@ pub enum LodType4 {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Header4 {
-	#[brw(magic = b"version ")]
 	pub revision: Revision4,
 	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
 	//sizeof_header:u16,//24
@@ -135,25 +129,4 @@ pub struct Mesh4 {
 	pub bone_names: Vec<u8>,
 	#[br(count=header.subset_count)]
 	pub subsets: Vec<Subset4>,
-}
-
-#[inline]
-pub fn fix4(mesh: &mut Mesh4) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_400<R: Read + Seek>(read: R) -> Result<Mesh4, binrw::Error> {
-	let mut mesh = read4(read)?;
-	fix4(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read4<R: BinReaderExt>(mut read: R) -> Result<Mesh4, binrw::Error> {
-	read.read_le()
 }
