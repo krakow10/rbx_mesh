@@ -214,30 +214,29 @@ fn decode_recursive(
 			let no = next_offset(cursor_edge);
 			state.adjacency[(cursor_edge + no) as usize] = SENTINEL_BOUNDARY;
 		} else {
-			let b2 = bits.read_bit()?;
-			let b3 = bits.read_bit()?;
-			let op = 4 + (if b2 == 1 { 2 } else { 0 }) + (if b3 == 1 { 1 } else { 0 });
-			match op {
-				4 => {
+			let b2 = bits.read_bit()? != 0;
+			let b3 = bits.read_bit()? != 0;
+			match (b2, b3) {
+				(false, false) => {
 					// S: split
 					if !decode_recursive(state, bits, cursor_edge)? {
 						return Ok(false);
 					}
 					cursor_edge += next_offset(cursor_edge);
 				}
-				5 => {
+				(false, true) => {
 					// L: turn left
 					state.adjacency[cursor_edge as usize] = SENTINEL_PROCESSING;
 					cursor_edge += next_offset(cursor_edge);
 				}
-				6 => {
+				(true, false) => {
 					// R: turn right
 					let no = next_offset(cursor_edge);
 					let next_edge = cursor_edge + no;
 					state.adjacency[next_edge as usize] = SENTINEL_PROCESSING;
 					zip_boundary(state, next_edge);
 				}
-				7 => {
+				(true, true) => {
 					// E: end
 					state.adjacency[cursor_edge as usize] = SENTINEL_PROCESSING;
 					let no = next_offset(cursor_edge);
@@ -246,7 +245,6 @@ fn decode_recursive(
 					zip_boundary(state, next_edge);
 					return Ok(true);
 				}
-				_ => return Ok(false),
 			}
 		}
 	}
