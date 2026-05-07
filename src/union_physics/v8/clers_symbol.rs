@@ -26,12 +26,12 @@ impl<'a> Iterator for SymbolReader<'a> {
 		if self.bit_reader.read(1)? == 0 {
 			return Some(Symbol::Continue);
 		}
-		Some(match self.bit_reader.read(2)? {
-			0b00 => Symbol::Split,
-			0b01 => Symbol::Left,
-			0b10 => Symbol::Right,
-			0b11 => Symbol::End,
-			_ => unreachable!(),
+		let bits = self.bit_reader.read(2)?;
+		Some(match (bits & 0b10 != 0, bits & 0b01 != 0) {
+			(false, false) => Symbol::Split,
+			(false, true) => Symbol::Left,
+			(true, false) => Symbol::Right,
+			(true, true) => Symbol::End,
 		})
 	}
 }
