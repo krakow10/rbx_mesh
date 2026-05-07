@@ -15,8 +15,9 @@ const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 pub struct CSGPHS8 {
 	pub geom_type: u8,
 	#[br(temp)]
-	#[bw(calc = 0u8)]
-	_pad: u8,
+	#[bw(ignore)]
+	#[brw(magic = 0u8)]
+	_padding: (),
 	#[br(parse_with = parse_body)]
 	pub body: CSGPHS8Body,
 }
