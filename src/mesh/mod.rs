@@ -47,25 +47,6 @@ pub enum Mesh {
 	//Version7(Mesh7),
 }
 
-pub fn fix_vertex2_tangents(vertices: &mut [Vertex2]) {
-	const DEFAULT_VERTEX_TANGENT: [i8; 4] = [0, 0, -128, 127];
-	for vertex in vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
 pub fn read_versioned<R: BinReaderExt>(mut read: R) -> Result<Mesh, Error> {
-	let mut mesh = read.read_le()?;
-	match &mut mesh {
-		#[cfg(feature = "mesh-v1")]
-		Mesh::V1(_) => (),
-		Mesh::V2(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
-		Mesh::V3(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
-		Mesh::V4(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
-		Mesh::V5(mesh) => fix_vertex2_tangents(&mut mesh.vertices),
-	}
-	Ok(mesh)
+	read.read_le()
 }
