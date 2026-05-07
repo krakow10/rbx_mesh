@@ -1,4 +1,4 @@
-use binrw::BinRead;
+use binrw::BinReaderExt;
 use std::io::Cursor;
 
 use super::Hull;
@@ -63,28 +63,17 @@ pub fn encode_raw_hulls(hulls: &[Hull]) -> Vec<u8> {
 }
 
 pub fn decode_raw_hulls(data: &[u8]) -> Result<Vec<Hull>, binrw::Error> {
-	if data.is_empty() {
-		return Ok(Vec::new());
-	}
 	let mut cursor = Cursor::new(data);
-	let endian = binrw::Endian::Little;
-
-	let index_section = IndexSection::read_options(&mut cursor, endian, ())?;
-
-	let ComponentSection {
-		vertex_ranges,
-		component_data,
-	} = if cursor.position() < data.len() as u64 {
-		ComponentSection::read_options(&mut cursor, endian, ())?
-	} else {
-		return Ok(Vec::new());
-	};
 
 	let IndexSection {
 		hull_ranges,
 		index_base,
-		..
-	} = index_section;
+	} = cursor.read_le()?;
+
+	let ComponentSection {
+		vertex_ranges,
+		component_data,
+	} = cursor.read_le()?;
 
 	let mut idx_start: u32 = 0;
 	let mut comp_start: u32 = 0;
