@@ -32,7 +32,10 @@ pub struct Header5 {
 	pub bone_names_len: u32,
 	pub subset_count: u16,
 	pub lod_hq_count: u8,
-	pub _padding: u8,
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 0u8)]
+	_padding: (),
 	pub facs_format: FacsFormat5,
 	pub sizeof_facs: u32,
 }
