@@ -44,11 +44,7 @@ pub struct CSGPHS8Body {
 	pub vertices: Vec<[f32; 3]>,
 }
 
-fn parse_body<R: Read + Seek>(
-	reader: &mut R,
-	endian: Endian,
-	_: (),
-) -> BinResult<CSGPHS8Body> {
+fn parse_body<R: Read + Seek>(reader: &mut R, endian: Endian, _: ()) -> BinResult<CSGPHS8Body> {
 	// peek the next 4 bytes to detect a Zstd frame, then rewind
 	let body_start = reader.stream_position()?;
 	let maybe_magic = u32::read_options(reader, endian, ())?;

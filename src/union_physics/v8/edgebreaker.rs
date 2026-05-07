@@ -145,7 +145,8 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 
 		// rewrite the merged corner with the surviving (donor) vertex id
 		let prev_of_current = prev_offset(current_edge);
-		state.indices[(current_edge - prev_of_current) as usize] = state.indices[prev_cand_edge as usize];
+		state.indices[(current_edge - prev_of_current) as usize] =
+			state.indices[prev_cand_edge as usize];
 
 		// propagate that vertex id around the rest of the merged fan
 		let mut connected_edge = state.adjacency[current_edge as usize];
@@ -155,7 +156,8 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 			prev_edge = connected_edge - prev_of_connected;
 
 			let prev_of_prev = prev_offset(prev_edge);
-			state.indices[(prev_edge - prev_of_prev) as usize] = state.indices[prev_cand_edge as usize];
+			state.indices[(prev_edge - prev_of_prev) as usize] =
+				state.indices[prev_cand_edge as usize];
 
 			connected_edge = state.adjacency[prev_edge as usize];
 		}
@@ -172,7 +174,6 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 	current_edge
 }
 
-
 fn decode_recursive(
 	state: &mut HullState,
 	bits: &mut BitReader,
@@ -180,7 +181,8 @@ fn decode_recursive(
 ) -> Result<bool, EdgebreakerError> {
 	let mut cursor_edge = cursor_in;
 
-	loop { // inf loop / stack overflow if bad format
+	loop {
+		// inf loop / stack overflow if bad format
 		// emit a new triangle and glue its edge 0 to cursor_edge as twins;
 		// edges 1 and 2 inherit the corner vertices from the gate edge
 		state.current_triangle += 1;
@@ -196,8 +198,10 @@ fn decode_recursive(
 
 		let prev_off = prev_offset(cursor_edge);
 		let next_off = next_offset(cursor_edge);
-		state.indices[(tri_base_edge + 1) as usize] = state.indices[(cursor_edge - prev_off) as usize];
-		state.indices[(tri_base_edge + 2) as usize] = state.indices[(cursor_edge + next_off) as usize];
+		state.indices[(tri_base_edge + 1) as usize] =
+			state.indices[(cursor_edge - prev_off) as usize];
+		state.indices[(tri_base_edge + 2) as usize] =
+			state.indices[(cursor_edge + next_off) as usize];
 
 		cursor_edge = tri_base_edge + 1;
 

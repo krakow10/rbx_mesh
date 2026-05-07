@@ -95,10 +95,7 @@ pub fn decode_raw_hulls(data: &[u8]) -> Result<Vec<Hull>, binrw::Error> {
 		let comps = &component_data[comp_start as usize..comp_end as usize];
 		let idxs = &index_base[idx_start as usize..idx_end as usize];
 
-		let vertices = comps
-			.chunks_exact(3)
-			.map(|c| [c[0], c[1], c[2]])
-			.collect();
+		let vertices = comps.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
 		let triangles = idxs.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
 
 		hulls.push(Hull {
