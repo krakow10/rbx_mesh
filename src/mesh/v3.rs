@@ -32,8 +32,14 @@ pub struct Mesh3 {
 	#[brw(magic = b"\x0C\x04\0")] //sizeof_face,sizeof_lod
 	//sizeof_face:u8,//12=0x0C
 	//sizeof_lod:u16,//4=0x0004
+	#[br(temp)]
+	#[bw(try_calc=lods.len().try_into())]
 	pub lod_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=vertices.len().try_into())]
 	pub vertex_count: u32,
+	#[br(temp)]
+	#[bw(try_calc=faces.len().try_into())]
 	pub face_count: u32,
 	#[br(args(&sizeof_vertex, vertex_count))]
 	pub vertices: Vertices2,

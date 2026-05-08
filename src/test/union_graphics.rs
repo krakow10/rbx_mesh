@@ -33,7 +33,7 @@ fn dbg_union_graphics(union_graphics: UnionGraphics, expected_version: &str) {
 		UnionGraphics::CSGMDL(CSGMDL::V2(_)) => (),
 		UnionGraphics::CSGMDL(CSGMDL::V4(csgmdl4)) => {
 			println!("==V4");
-			println!("_unknown1={:?}", csgmdl4._unknown1_count);
+			println!("_unknown1={:?}", csgmdl4._unknown1_list.len());
 			for (i, thing) in csgmdl4._unknown1_list.into_iter().enumerate() {
 				println!("u6 row={i} list={thing:?}");
 			}
@@ -41,7 +41,7 @@ fn dbg_union_graphics(union_graphics: UnionGraphics, expected_version: &str) {
 		UnionGraphics::CSGMDL(CSGMDL::V5(csgmdl5)) => {
 			println!("===V5===");
 			println!("{:?}", csgmdl5);
-			println!("pos_count={}", csgmdl5.pos_count);
+			println!("pos_count={}", csgmdl5.positions.len());
 			println!("faces={:?}", csgmdl5.faces.indices);
 			println!("extra={:?}", csgmdl5.faces._unknown);
 		}

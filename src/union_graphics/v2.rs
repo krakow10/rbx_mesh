@@ -65,6 +65,8 @@ pub struct VertexId(pub u32);
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Mesh2 {
+	#[br(temp)]
+	#[bw(try_calc=vertices.len().try_into())]
 	pub vertex_count: u32,
 	// vertex data length
 	#[brw(magic = 84u32)]

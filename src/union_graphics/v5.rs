@@ -233,6 +233,8 @@ fn parse_quantized_f32x3_array<R: binrw::io::Read + binrw::io::Seek>(
 #[br(magic = b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
 #[derive(Debug, Clone)]
 pub struct CSGMDL5 {
+	#[br(temp)]
+	#[bw(try_calc=positions.len().try_into())]
 	pub pos_count: u16,
 	#[br(count=pos_count)]
 	pub positions: Vec<[f32; 3]>,
@@ -242,6 +244,8 @@ pub struct CSGMDL5 {
 	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:normals_count as usize,inner:()})]
 	pub normals: Vec<[f32; 3]>,
 
+	#[br(temp)]
+	#[bw(try_calc=colors.len().try_into())]
 	pub color_count: u16,
 	#[br(count=color_count)]
 	pub colors: Vec<[u8; 4]>,
