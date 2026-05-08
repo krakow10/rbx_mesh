@@ -9,6 +9,7 @@
 
 - `Mesh1` is implemented via binrw::BinRead trait to provide a consistent interface
 - `Mesh2` & `Mesh3` vertices are changed to use an enum `Vertices2`
+- `Mesh2` through `Mesh5` faces `Face2` use an array of `VertexId2` instead of a tuple
 - `read_versioned` is renamed to `read_mesh_versioned`
 - `read_mesh_data_versioned` is renamed to `read_union_graphics_versioned`
 - `read_physics_data_versioned` is renamed to `read_union_physics_versioned`

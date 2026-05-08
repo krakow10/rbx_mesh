@@ -64,7 +64,7 @@ pub struct VertexId2(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Face2(pub VertexId2, pub VertexId2, pub VertexId2);
+pub struct Face2(pub [VertexId2; 3]);
 
 #[binrw::binrw]
 #[brw(little)]
