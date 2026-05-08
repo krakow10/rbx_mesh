@@ -10,7 +10,7 @@ pub use super::union::*;
 use binrw::BinReaderExt;
 use std::io::{Read, Seek, Write};
 
-pub const OBFUSCATION_NOISE_CYCLE_XOR: [u8; 31] = [
+const OBFUSCATION_NOISE_CYCLE_XOR: [u8; 31] = [
 	86, 46, 110, 88, 49, 32, 48, 4, 52, 105, 12, 119, 12, 1, 94, 0, 26, 96, 55, 105, 29, 82, 43, 7,
 	79, 36, 89, 101, 83, 4, 122,
 ];
