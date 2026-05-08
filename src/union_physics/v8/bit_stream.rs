@@ -27,7 +27,7 @@ impl<'a> BitReader<'a> {
 			self.bytes = after;
 			let array: &[u8; size_of::<Cache>()] = before.try_into().unwrap();
 			self.cache = Cache::from_le_bytes(*array);
-			self.cache_bits = size_of::<Cache>() * 8;
+			self.cache_bits = Cache::BITS as usize;
 		}
 
 		// populate value with cached bits
