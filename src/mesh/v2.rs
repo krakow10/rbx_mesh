@@ -48,13 +48,13 @@ pub enum Vertices2 {
 	Truncated(#[br(count=vertex_count)] Vec<Vertex2Truncated>),
 }
 impl Vertices2 {
-	pub fn size(&self) -> SizeOfVertex2 {
+	pub(crate) fn size(&self) -> SizeOfVertex2 {
 		match self {
 			Vertices2::Full(_) => SizeOfVertex2::Full,
 			Vertices2::Truncated(_) => SizeOfVertex2::Truncated,
 		}
 	}
-	pub fn len(&self) -> usize {
+	pub(crate) fn len(&self) -> usize {
 		match self {
 			Vertices2::Full(vertices) => vertices.len(),
 			Vertices2::Truncated(vertices_truncated) => vertices_truncated.len(),
