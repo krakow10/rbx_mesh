@@ -47,28 +47,12 @@ use rbx_mesh::union_graphics::{UnionGraphics,CSGMDL};
 let mesh_file=std::fs::read("meshes/4500696697_4.meshdata")?;
 let mesh=read_union_graphics_versioned(std::io::Cursor::new(mesh_file))?;
 
-// print mesh vertices
+// print mesh vertices or vertex positions
 match mesh{
 	UnionGraphics::CSGK(_)=>(),
 	UnionGraphics::CSGMDL(CSGMDL::V2(mesh2))=>println!("{:?}",mesh2.mesh.vertices),
 	UnionGraphics::CSGMDL(CSGMDL::V4(mesh4))=>println!("{:?}",mesh4.mesh.vertices),
-	UnionGraphics::CSGMDL(CSGMDL::V5(mesh5))=>{
-		// CSGMDL::V5
-		let vertices:Vec<_>=mesh5
-			.faces
-			.indices
-			.chunks_exact(3)
-			.map(|face_vertex_indices|{
-				// construct face triangle from indices
-				[
-					mesh5.positions[face_vertex_indices[0] as usize],
-					mesh5.positions[face_vertex_indices[1] as usize],
-					mesh5.positions[face_vertex_indices[2] as usize],
-				]
-			})
-			.collect();
-		println!("{:?}",vertices);
-	},
+	UnionGraphics::CSGMDL(CSGMDL::V5(mesh5))=>println!("{:?}",mesh5.positions),
 }
 # binrw::BinResult::Ok(())
 ```
