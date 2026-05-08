@@ -2,6 +2,14 @@
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [0.7.0] - May 8th 2026
+
+### Added
+
 - Disabling mesh-v1 feature allows regex dependency to be dropped
 - mesh, union-graphics, union-physics features to disable parts of the library you don't need
 
