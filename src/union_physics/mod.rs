@@ -7,21 +7,13 @@ pub use v6::*;
 mod v7;
 pub use v7::*;
 
+pub use super::union::*;
+
 pub type Error = binrw::Error;
 
 #[inline]
 pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysics, Error> {
 	read.read_le()
-}
-
-/// CSGK contains no actual mesh data.  rbx_mesh does not have a method
-/// to extract any meaningful information from it.
-#[binrw::binrw]
-#[brw(little)]
-#[brw(magic = b"CSGK")]
-#[derive(Debug, Clone)]
-pub struct CSGK {
-	pub uuid_ascii_hex: [u8; 32],
 }
 
 /// This mesh is a rectangular prism, also known as a block.

@@ -3,6 +3,10 @@ pub mod mesh;
 #[cfg(feature = "mesh")]
 pub use mesh::read_versioned as read_mesh_versioned;
 
+// shared code between union formats
+#[cfg(any(feature = "union-graphics", feature = "union-physics"))]
+mod union;
+
 #[cfg(feature = "union-graphics")]
 pub mod union_graphics;
 #[cfg(feature = "union-graphics")]

@@ -5,6 +5,8 @@ pub use v4::*;
 mod v5;
 pub use v5::*;
 
+pub use super::union::*;
+
 use binrw::BinReaderExt;
 use std::io::{Read, Seek, Write};
 
@@ -79,16 +81,6 @@ pub enum HeaderVersion {
 	// #[brw(magic=5u32)]
 	#[brw(magic = b"\x35\x04\x34\x69")]
 	CSGMDL5,
-}
-
-/// CSGK contains no actual mesh data.  rbx_mesh does not have a method
-/// to extract any meaningful information from it.
-#[binrw::binrw]
-#[brw(little)]
-#[brw(magic = b"CSGK")]
-#[derive(Debug, Clone)]
-pub struct CSGK {
-	pub uuid_ascii_hex: [u8; 32],
 }
 
 #[binrw::binrw]
