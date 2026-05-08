@@ -33,6 +33,7 @@ pub struct Mesh {
 
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic = b"CSGPHS\x03\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS3 {
 	#[br(parse_with=binrw::helpers::until_eof)]

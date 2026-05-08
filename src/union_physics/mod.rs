@@ -24,21 +24,22 @@ pub struct CSGK {
 	pub uuid_ascii_hex: [u8; 32],
 }
 
+/// This mesh is a rectangular prism, also known as a block.
 #[binrw::binrw]
 #[brw(little)]
-#[brw(magic = b"CSGPHS")]
+// concat_bytes!(b"CSGPHS",0u32,b"BLOCK")
+#[brw(magic = b"CSGPHS\0\0\0\0BLOCK")]
+#[derive(Debug, Clone)]
+pub struct Block;
+
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub enum CSGPHS {
-	// concat_bytes!(0u32,b"BLOCK")
-	#[brw(magic = b"\0\0\0\0BLOCK")]
-	Block,
-	#[brw(magic = 3u32)]
+	Block(Block),
 	V3(CSGPHS3),
-	#[brw(magic = 5u32)]
 	V5(CSGPHS5),
-	#[brw(magic = 6u32)]
 	V6(CSGPHS6),
-	#[brw(magic = 7u32)]
 	V7(CSGPHS7),
 }
 
