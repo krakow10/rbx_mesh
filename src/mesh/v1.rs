@@ -83,7 +83,7 @@ impl binrw::BinRead for Mesh1 {
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
 	) -> binrw::BinResult<Self> {
-		Ok(read(&mut binrw::io::BufReader::new(reader))?)
+		Ok(read(binrw::io::BufReader::new(reader))?)
 	}
 }
 
@@ -100,7 +100,7 @@ macro_rules! lazy_regex {
 	}};
 }
 
-fn read<R: BufRead>(reader: &mut R) -> Result<Mesh1, InnerError> {
+fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 	let mut lines = LineMachine::new(reader);
 
 	// the first line contains the revision, but we already parsed it.
