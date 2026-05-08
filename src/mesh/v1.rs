@@ -5,7 +5,6 @@ use binrw::BinReaderExt;
 #[derive(Debug)]
 pub enum Error1 {
 	Header,
-	UnexpectedEof,
 	ParseIntError(std::num::ParseIntError),
 	ParseFloatError(std::num::ParseFloatError),
 	VertexCount,
@@ -20,6 +19,11 @@ impl std::error::Error for Error1 {}
 enum InnerError {
 	Io(std::io::Error),
 	Other(Error1),
+}
+impl From<std::io::Error> for InnerError {
+	fn from(value: std::io::Error) -> Self {
+		Self::Io(value)
+	}
 }
 impl From<Error1> for InnerError {
 	fn from(value: Error1) -> Self {
@@ -47,11 +51,8 @@ impl<R: BufRead> LineMachine<R> {
 			lines: read.lines(),
 		}
 	}
-	fn read_line(&mut self) -> Result<String, InnerError> {
-		self.lines
-			.next()
-			.ok_or(Error1::UnexpectedEof)?
-			.map_err(InnerError::Io)
+	fn read_line(&mut self) -> Result<String, std::io::Error> {
+		self.lines.next().ok_or(std::io::ErrorKind::UnexpectedEof)?
 	}
 }
 
