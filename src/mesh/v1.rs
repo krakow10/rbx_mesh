@@ -55,13 +55,9 @@ impl<R: BufRead> LineMachine<R> {
 	}
 }
 
-#[binrw::binrw]
-#[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision1 {
-	#[brw(magic = b"version 1.00")]
 	Version100,
-	#[brw(magic = b"version 1.01")]
 	Version101,
 }
 
@@ -96,15 +92,18 @@ impl binrw::BinRead for Mesh1 {
 	type Args<'a> = ();
 	fn read_options<R: BinReaderExt>(
 		reader: &mut R,
-		endian: binrw::Endian,
-		args: Self::Args<'_>,
+		_endian: binrw::Endian,
+		_args: Self::Args<'_>,
 	) -> binrw::BinResult<Self> {
-		let revision = Revision1::read_options(reader, endian, args)?;
-
 		let mut lines = LineMachine::new(binrw::io::BufReader::new(reader));
 
 		// the first line contains the revision, but we already parsed it.
-		lines.read_line()?;
+		let version = lines.read_line()?;
+		let revision = match version.trim() {
+			"version 1.00" => Revision1::Version100,
+			"version 1.01" => Revision1::Version101,
+			_ => Err(InnerError::Other(Error1::Header))?,
+		};
 
 		let face_count = lines
 			.read_line()?
