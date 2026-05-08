@@ -36,9 +36,8 @@ match versioned_mesh{
 # binrw::BinResult::Ok(())
 ```
 
-## Union Example
+## Union Graphics Example
 ```rust
-// PART 1: union graphics
 use rbx_mesh::read_union_graphics_versioned;
 use rbx_mesh::union_graphics::{UnionGraphics,CSGMDL};
 
@@ -71,9 +70,11 @@ match mesh{
 		println!("{:?}",vertices);
 	},
 }
+# binrw::BinResult::Ok(())
+```
 
-
-// PART 2: union physics
+## Union Physics Example
+```rust
 use rbx_mesh::read_union_physics_versioned;
 use rbx_mesh::union_physics::{UnionPhysics,CSGPHS};
 
