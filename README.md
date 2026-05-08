@@ -11,7 +11,8 @@ Roblox Mesh Parser
 Print the mesh vertices for any mesh version / vertex size
 
 ```rust
-use rbx_mesh::{read_mesh_versioned,mesh::{Mesh,Vertices2}};
+use rbx_mesh::read_mesh_versioned;
+use rbx_mesh::mesh::{Mesh,Vertices2};
 
 let file=std::fs::read("torso.mesh")?;
 let versioned_mesh=read_mesh_versioned(std::io::Cursor::new(file))?;
@@ -36,33 +37,33 @@ match versioned_mesh{
 
 ## Union Example
 ```rust
-// PART 1: MeshData
+// PART 1: union graphics
 use rbx_mesh::read_union_graphics_versioned;
-use rbx_mesh::mesh_data::{MeshData,CSGMDL};
+use rbx_mesh::union_graphics::{UnionGraphics,CSGMDL};
 
 // this data is extracted from the "MeshData" property of UnionOperation
 // the data is not usually contained in the roblox file itself
 // but is sourced from the associated "AssetId" of the UnionOperation
 let mesh_file=std::fs::read("4500696697_4.meshdata")?;
-let mesh_data=read_union_graphics_versioned(std::io::Cursor::new(mesh_file))?;
+let mesh=read_union_graphics_versioned(std::io::Cursor::new(mesh_file))?;
 
 // print mesh vertices
-match mesh_data{
-	MeshData::CSGK(_)=>(),
-	MeshData::CSGMDL(CSGMDL::V2(mesh_data2))=>println!("{:?}",mesh_data2.mesh.vertices),
-	MeshData::CSGMDL(CSGMDL::V4(mesh_data4))=>println!("{:?}",mesh_data4.mesh.vertices),
-	MeshData::CSGMDL(CSGMDL::V5(mesh_data5))=>{
+match mesh{
+	UnionGraphics::CSGK(_)=>(),
+	UnionGraphics::CSGMDL(CSGMDL::V2(mesh2))=>println!("{:?}",mesh2.mesh.vertices),
+	UnionGraphics::CSGMDL(CSGMDL::V4(mesh4))=>println!("{:?}",mesh4.mesh.vertices),
+	UnionGraphics::CSGMDL(CSGMDL::V5(mesh5))=>{
 		// CSGMDL::V5
-		let vertices:Vec<_>=mesh_data5
+		let vertices:Vec<_>=mesh5
 			.faces
 			.indices
 			.chunks_exact(3)
 			.map(|face_vertex_indices|{
 				// construct face triangle from indices
 				[
-					mesh_data5.positions[face_vertex_indices[0] as usize],
-					mesh_data5.positions[face_vertex_indices[1] as usize],
-					mesh_data5.positions[face_vertex_indices[2] as usize],
+					mesh5.positions[face_vertex_indices[0] as usize],
+					mesh5.positions[face_vertex_indices[1] as usize],
+					mesh5.positions[face_vertex_indices[2] as usize],
 				]
 			})
 			.collect();
@@ -71,28 +72,29 @@ match mesh_data{
 }
 
 
-// PART 2: PhysicsData
+// PART 2: union physics
 use rbx_mesh::read_union_physics_versioned;
-use rbx_mesh::physics_data::{PhysicsData,CSGPHS};
+use rbx_mesh::union_physics::{UnionPhysics,CSGPHS};
 
 // this data is extracted from the "PhysicsData" property of UnionOperation
 let phys_file=std::fs::read("CSGPHS_3.data")?;
-let physics_data=read_union_physics_versioned(std::io::Cursor::new(phys_file))?;
+let mesh=read_union_physics_versioned(std::io::Cursor::new(phys_file))?;
 
-match physics_data{
-	// the most common format (99% of the 100000 unions in my testing)
-	PhysicsData::CSGPHS(CSGPHS::V3(meshes)),
-	|PhysicsData::CSGPHS(CSGPHS::V5(meshes))=>println!("CSGPHS V3 or V5"),
+match mesh{
+	// v3 and v5 are the same format, and the most common format
+	// (99% of the 100000 unions in my testing)
+	UnionPhysics::CSGPHS(CSGPHS::V3(_mesh))=>println!("CSGPHS V3"),
+	UnionPhysics::CSGPHS(CSGPHS::V5(_mesh))=>println!("CSGPHS V5"),
 	// new mesh format (2025)
-	PhysicsData::CSGPHS(CSGPHS::V7(meshes))=>println!("CSGPHS V7"),
+	UnionPhysics::CSGPHS(CSGPHS::V7(_mesh))=>println!("CSGPHS V7"),
 	// Only one occurence in my data set.
 	// Who writes a uuid as ascii hex in a binary format!?
-	PhysicsData::CSGK(csgk)=>println!("CSGK"),
+	UnionPhysics::CSGK(_csgk)=>println!("CSGK"),
 	// These formats have zero occurences in my dataset
 	// But they are documented at
 	// https://devforum.roblox.com/t/some-info-on-sharedstrings-for-custom-collision-data-meshparts-unions-etc/294588
-	PhysicsData::CSGPHS(CSGPHS::Block(_))=>println!("CSGPHS Block"),
-	PhysicsData::CSGPHS(CSGPHS::V6(csgphs))=>println!("CSGPHS V6"),
+	UnionPhysics::CSGPHS(CSGPHS::Block(_block))=>println!("CSGPHS Block"),
+	UnionPhysics::CSGPHS(CSGPHS::V6(_mesh))=>println!("CSGPHS V6"),
 }
 ```
 
