@@ -19,3 +19,8 @@ pub use union_physics::read_versioned as read_union_physics_versioned;
 
 #[cfg(test)]
 mod test;
+
+// test readme
+#[doc = include_str!("../README.md")]
+#[cfg(doctest)]
+struct ReadmeDoctests;
