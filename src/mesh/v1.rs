@@ -50,7 +50,7 @@ impl<R: BufRead> LineMachine<R> {
 	fn read_line(&mut self) -> Result<String, InnerError> {
 		self.lines
 			.next()
-			.ok_or(InnerError::Other(Error1::UnexpectedEof))?
+			.ok_or(Error1::UnexpectedEof)?
 			.map_err(InnerError::Io)
 	}
 }
@@ -88,6 +88,70 @@ macro_rules! lazy_regex {
 	}};
 }
 
+fn read<R: BufRead>(reader: &mut R) -> Result<Mesh1, InnerError> {
+	let mut lines = LineMachine::new(reader);
+
+	// the first line contains the revision, but we already parsed it.
+	let version = lines.read_line()?;
+	let revision = match version.trim() {
+		"version 1.00" => Revision1::Version100,
+		"version 1.01" => Revision1::Version101,
+		_ => return Err(Error1::Header.into()),
+	};
+
+	let face_count = lines
+		.read_line()?
+		.trim()
+		.parse()
+		.map_err(Error1::ParseIntError)?;
+
+	let vertices_line = lines.read_line()?;
+
+	//match three at a time, otherwise fail
+	let vertex_pattern =
+		lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
+
+	let vertices = vertex_pattern
+		.captures_iter(vertices_line.as_str())
+		.map(|c| {
+			let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
+			Ok(Vertex1 {
+				pos: parse_triple_float(px, py, pz)?,
+				norm: parse_triple_float(nx, ny, nz)?,
+				tex: parse_triple_float(tx, ty, tz)?,
+			})
+		})
+		.collect::<Result<Vec<Vertex1>, _>>()
+		.map_err(Error1::ParseFloatError)?;
+
+	let mut mesh = Mesh1 {
+		revision,
+		face_count,
+		vertices,
+	};
+
+	// fix texture coordinates
+	for vertex in &mut mesh.vertices {
+		vertex.tex[1] = 1.0 - vertex.tex[1];
+	}
+
+	// mesh v1.00 is double size for some reason
+	if let Revision1::Version100 = &mesh.revision {
+		for vertex in &mut mesh.vertices {
+			for p in &mut vertex.pos {
+				*p *= 0.5;
+			}
+		}
+	}
+
+	// assert vertex count matches header
+	if 3 * (mesh.face_count as usize) != mesh.vertices.len() {
+		return Err(Error1::VertexCount.into());
+	}
+
+	Ok(mesh)
+}
+
 impl binrw::BinRead for Mesh1 {
 	type Args<'a> = ();
 	fn read_options<R: BinReaderExt>(
@@ -95,66 +159,6 @@ impl binrw::BinRead for Mesh1 {
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
 	) -> binrw::BinResult<Self> {
-		let mut lines = LineMachine::new(binrw::io::BufReader::new(reader));
-
-		// the first line contains the revision, but we already parsed it.
-		let version = lines.read_line()?;
-		let revision = match version.trim() {
-			"version 1.00" => Revision1::Version100,
-			"version 1.01" => Revision1::Version101,
-			_ => Err(InnerError::Other(Error1::Header))?,
-		};
-
-		let face_count = lines
-			.read_line()?
-			.trim()
-			.parse()
-			.map_err(|e| InnerError::Other(Error1::ParseIntError(e)))?;
-
-		let vertices_line = lines.read_line()?;
-
-		//match three at a time, otherwise fail
-		let vertex_pattern =
-			lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
-
-		let vertices = vertex_pattern
-			.captures_iter(vertices_line.as_str())
-			.map(|c| {
-				let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
-				Ok(Vertex1 {
-					pos: parse_triple_float(px, py, pz)?,
-					norm: parse_triple_float(nx, ny, nz)?,
-					tex: parse_triple_float(tx, ty, tz)?,
-				})
-			})
-			.collect::<Result<Vec<Vertex1>, _>>()
-			.map_err(|e| InnerError::Other(Error1::ParseFloatError(e)))?;
-
-		let mut mesh = Mesh1 {
-			revision,
-			face_count,
-			vertices,
-		};
-
-		// fix texture coordinates
-		for vertex in &mut mesh.vertices {
-			vertex.tex[1] = 1.0 - vertex.tex[1];
-		}
-
-		// mesh v1.00 is double size for some reason
-		if let Revision1::Version100 = &mesh.revision {
-			for vertex in &mut mesh.vertices {
-				for p in &mut vertex.pos {
-					*p *= 0.5;
-				}
-			}
-		}
-
-		// assert vertex count matches header
-		if 3 * (mesh.face_count as usize) != mesh.vertices.len() {
-			return Err(InnerError::Other(Error1::VertexCount).into());
-		}
-
-		Ok(mesh)
+		Ok(read(&mut binrw::io::BufReader::new(reader))?)
 	}
 }
