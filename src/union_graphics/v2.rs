@@ -1,4 +1,4 @@
-use super::{NormalIDError, NormalId};
+use super::{NormalIDError, NormalId, Obfuscator};
 
 #[binrw::binrw]
 #[brw(little)]
@@ -77,10 +77,13 @@ pub struct Mesh2 {
 
 #[binrw::binrw]
 #[brw(little)]
-#[brw(magic = b"CSGMDL")]
+// CSGMDL4 is obfuscated
+#[brw(map_stream = Obfuscator::new)]
+// Magic does not have obfuscator applied
+// reversible_obfuscate(0, concat_bytes!(b"CSGMDL", 2u32))
+#[brw(magic = b"\x15\x7d\x29\x15\x75\x6c\x32\x04\x34\x69")]
 #[derive(Debug, Clone)]
 pub struct CSGMDL2 {
-	#[brw(magic = 2u32)]
 	pub hash: Hash,
 	pub mesh: Mesh2,
 }

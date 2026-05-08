@@ -61,35 +61,6 @@ pub type Error = binrw::Error;
 pub fn read_versioned<R: BinReaderExt>(mut read: R) -> Result<UnionGraphics, Error> {
 	read.read_le()
 }
-#[inline]
-pub fn read_header<R: BinReaderExt>(mut read: R) -> Result<Header, Error> {
-	read.read_le()
-}
-
-#[binrw::binrw]
-#[brw(little)]
-// #[brw(magic=b"CSGMDL")]
-#[brw(magic = b"\x15\x7d\x29\x15\x75\x6c")]
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum HeaderVersion {
-	// #[brw(magic=2u32)]
-	#[brw(magic = b"\x32\x04\x34\x69")]
-	CSGMDL2,
-	// #[brw(magic=4u32)]
-	#[brw(magic = b"\x34\x04\x34\x69")]
-	CSGMDL4,
-	// #[brw(magic=5u32)]
-	#[brw(magic = b"\x35\x04\x34\x69")]
-	CSGMDL5,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub enum Header {
-	CSGK(CSGK),
-	CSGMDL(HeaderVersion),
-}
 
 #[derive(Debug)]
 pub struct NormalIDError;
@@ -120,75 +91,10 @@ pub enum CSGMDL {
 	V5(CSGMDL5),
 }
 
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug, Clone)]
 pub enum UnionGraphics {
 	CSGK(CSGK),
 	CSGMDL(CSGMDL),
-}
-impl binrw::BinRead for UnionGraphics {
-	type Args<'a> = ();
-	fn read_options<R: Read + Seek>(
-		reader: &mut R,
-		endian: binrw::Endian,
-		args: Self::Args<'_>,
-	) -> binrw::BinResult<Self> {
-		let header = Header::read_options(reader, endian, args)?;
-		Ok(match header {
-			Header::CSGK(csgk) => UnionGraphics::CSGK(csgk),
-			Header::CSGMDL(header_version) => {
-				reader.seek(std::io::SeekFrom::Start(0))?;
-				match header_version {
-					HeaderVersion::CSGMDL2 => UnionGraphics::CSGMDL(CSGMDL::V2(
-						CSGMDL2::read_options(&mut Obfuscator::new(reader), endian, args)?,
-					)),
-					HeaderVersion::CSGMDL4 => UnionGraphics::CSGMDL(CSGMDL::V4(
-						CSGMDL4::read_options(&mut Obfuscator::new(reader), endian, args)?,
-					)),
-					// in version 5 only the header is obfuscated.
-					HeaderVersion::CSGMDL5 => UnionGraphics::CSGMDL(CSGMDL::V5(
-						CSGMDL5::read_options(reader, endian, args)?,
-					)),
-				}
-			}
-		})
-	}
-}
-
-#[derive(Debug)]
-pub enum WriteMeshDataError {
-	CSGMDL5,
-}
-impl std::fmt::Display for WriteMeshDataError {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			Self::CSGMDL5 => write!(f, "Writing CSGMDL5 is not supported"),
-		}
-	}
-}
-impl core::error::Error for WriteMeshDataError {}
-impl binrw::BinWrite for UnionGraphics {
-	type Args<'a> = ();
-	fn write_options<W: Write + Seek>(
-		&self,
-		writer: &mut W,
-		endian: binrw::Endian,
-		args: Self::Args<'_>,
-	) -> binrw::BinResult<()> {
-		match self {
-			UnionGraphics::CSGK(csgk) => csgk.write_options(writer, endian, args),
-			UnionGraphics::CSGMDL(CSGMDL::V2(mesh_data2)) => {
-				mesh_data2.write_options(&mut Obfuscator::new(writer), endian, args)
-			}
-			UnionGraphics::CSGMDL(CSGMDL::V4(mesh_data4)) => {
-				mesh_data4.write_options(&mut Obfuscator::new(writer), endian, args)
-			}
-			UnionGraphics::CSGMDL(CSGMDL::V5(_mesh_data5)) => {
-				//mesh_data5.write_options(writer,endian,args),
-				Err(Error::Custom {
-					pos: 0,
-					err: Box::new(WriteMeshDataError::CSGMDL5),
-				})
-			}
-		}
-	}
 }
