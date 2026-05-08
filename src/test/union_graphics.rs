@@ -1,3 +1,5 @@
+use binrw::BinWriterExt;
+
 use crate::union_graphics::{Error, UnionGraphics};
 
 fn get_version(union_graphics: &UnionGraphics) -> &str {
@@ -8,11 +10,26 @@ fn get_version(union_graphics: &UnionGraphics) -> &str {
 		UnionGraphics::V5(_) => "CSGMDL5",
 	}
 }
-
 fn read_union_graphics(data: &[u8]) -> Result<UnionGraphics, Error> {
 	let mut cursor = std::io::Cursor::new(data);
 	let union_graphics = crate::read_union_graphics_versioned(&mut cursor)?;
 	assert_eq!(cursor.position(), data.len() as u64);
+	Ok(union_graphics)
+}
+fn round_trip(data: &[u8]) -> Result<UnionGraphics, Error> {
+	let data_len = data.len();
+	let mut rbuf = binrw::io::Cursor::new(data.to_owned());
+	let mut wbuf = binrw::io::Cursor::new(Vec::new());
+	//read and then write mesh
+	let union_graphics = crate::read_union_graphics_versioned(&mut rbuf)?;
+	assert_eq!(rbuf.position(), data_len as u64);
+	match &union_graphics {
+		UnionGraphics::CSGK(mesh) => wbuf.write_le(&mesh).unwrap(),
+		UnionGraphics::V2(mesh) => wbuf.write_le(&mesh).unwrap(),
+		UnionGraphics::V4(mesh) => wbuf.write_le(&mesh).unwrap(),
+		UnionGraphics::V5(_) => panic!("Cannot write v5"),
+	}
+	assert_eq!(rbuf, wbuf);
 	Ok(union_graphics)
 }
 fn dbg_union_graphics(union_graphics: UnionGraphics, expected_version: &str) {
@@ -49,28 +66,24 @@ fn dbg_union_graphics(union_graphics: UnionGraphics, expected_version: &str) {
 }
 #[test]
 fn meshdata_385416572_2() {
-	let union_graphics =
-		read_union_graphics(include_bytes!("../../meshes/385416572.meshdata")).unwrap();
+	let union_graphics = round_trip(include_bytes!("../../meshes/385416572.meshdata")).unwrap();
 	dbg_union_graphics(union_graphics, "CSGMDL2");
 	// unknown = [179, 166, 219, 60, 135, 12, 62, 153, 36, 94, 13, 28, 6, 183, 71, 222]
 }
 #[test]
 fn meshdata_394453730_2() {
-	let union_graphics =
-		read_union_graphics(include_bytes!("../../meshes/394453730.meshdata")).unwrap();
+	let union_graphics = round_trip(include_bytes!("../../meshes/394453730.meshdata")).unwrap();
 	dbg_union_graphics(union_graphics, "CSGMDL2");
 	// unknown = [44, 128, 126, 197, 153, 213, 233, 128, 178, 234, 201, 204, 83, 191, 103, 214]
 }
 #[test]
 fn meshdata_5692112940_2() {
-	let union_graphics =
-		read_union_graphics(include_bytes!("../../meshes/5692112940_2.meshdata")).unwrap();
+	let union_graphics = round_trip(include_bytes!("../../meshes/5692112940_2.meshdata")).unwrap();
 	dbg_union_graphics(union_graphics, "CSGMDL2");
 }
 #[test]
 fn meshdata_4500696697_4() {
-	let union_graphics =
-		read_union_graphics(include_bytes!("../../meshes/4500696697_4.meshdata")).unwrap();
+	let union_graphics = round_trip(include_bytes!("../../meshes/4500696697_4.meshdata")).unwrap();
 	dbg_union_graphics(union_graphics, "CSGMDL4");
 }
 #[test]
