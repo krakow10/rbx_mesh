@@ -21,11 +21,11 @@ pub struct Mesh {
 	#[brw(
 		magic = b"\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x10\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x80\x3F"
 	)]
-	pub vertex_count: u32,
+	pub pos_count: u32,
 	// vertex_width
 	#[brw(magic = 4u32)]
-	#[br(count=vertex_count/3)]
-	pub vertices: Vec<[f32; 3]>,
+	#[br(count=pos_count/3)]
+	pub positions: Vec<[f32; 3]>,
 	pub face_count: u32,
 	#[br(count=face_count/3)]
 	pub faces: Vec<[VertexId; 3]>,

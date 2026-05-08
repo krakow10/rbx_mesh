@@ -15,6 +15,7 @@
 - `read_physics_data_versioned` is renamed to `read_union_physics_versioned`
 - `MeshData` is renamed to `UnionGraphics`
 - `PhysicsData` is renamed to `UnionPhysics`
+- `CSGPHS3` mesh field `Mesh.vertices` is renamed to `Mesh.positions` for consitency with other mesh definitions
 - Magic numbers are moved onto the individual mesh structs, meaning each one acts as its own encoder/decoder and can be used independently of the unified enum.  For example, if you know ahead of time that a mesh is using the version 2.00 format, you can write `let mesh: Mesh2 = data.read_le()?;`
 
 ### Removed
