@@ -18,6 +18,7 @@ use binrw::BinReaderExt;
 pub type Error = binrw::Error;
 
 #[cfg(feature = "mesh-v1")]
+#[expect(clippy::large_enum_variant)]
 #[binrw::binread]
 #[br(little)]
 #[derive(Debug, Clone)]
@@ -35,6 +36,7 @@ pub enum Mesh {
 }
 
 #[cfg(not(feature = "mesh-v1"))]
+#[expect(clippy::large_enum_variant)]
 #[binrw::binread]
 #[br(little)]
 #[derive(Debug, Clone)]
