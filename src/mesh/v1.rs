@@ -48,11 +48,10 @@ impl<R: BufRead> LineMachine<R> {
 		}
 	}
 	fn read_line(&mut self) -> Result<String, InnerError> {
-		Ok(self
-			.lines
+		self.lines
 			.next()
 			.ok_or(InnerError::Other(Error1::UnexpectedEof))?
-			.map_err(InnerError::Io)?)
+			.map_err(InnerError::Io)
 	}
 }
 
@@ -154,7 +153,7 @@ impl binrw::BinRead for Mesh1 {
 		if let Revision1::Version100 = &mesh.header.revision {
 			for vertex in &mut mesh.vertices {
 				for p in &mut vertex.pos {
-					*p = *p * 0.5;
+					*p *= 0.5;
 				}
 			}
 		}

@@ -54,11 +54,7 @@ pub struct Envelope4 {
 pub struct BoneId4(u16);
 impl BoneId4 {
 	pub fn new(value: Option<u16>) -> Self {
-		Self(match value {
-			None => 0xFFFF,
-			//|Some(0xFFFF)//whatever
-			Some(other) => other,
-		})
+		Self(value.unwrap_or(0xFFFF))
 	}
 	pub fn get(&self) -> Option<u16> {
 		match self.0 {
