@@ -14,7 +14,7 @@ Print the mesh vertices for any mesh version / vertex size
 use rbx_mesh::read_mesh_versioned;
 use rbx_mesh::mesh::{Mesh,Vertices2};
 
-let file=std::fs::read("torso.mesh")?;
+let file=std::fs::read("meshes/torso.mesh")?;
 let versioned_mesh=read_mesh_versioned(std::io::Cursor::new(file))?;
 match versioned_mesh{
 	Mesh::V1(mesh)=>println!("{:?}",mesh.vertices),
@@ -33,6 +33,7 @@ match versioned_mesh{
 	Mesh::V4(mesh)=>println!("{:?}",mesh.vertices),
 	Mesh::V5(mesh)=>println!("{:?}",mesh.vertices),
 }
+# binrw::BinResult::Ok(())
 ```
 
 ## Union Example
@@ -44,7 +45,7 @@ use rbx_mesh::union_graphics::{UnionGraphics,CSGMDL};
 // this data is extracted from the "MeshData" property of UnionOperation
 // the data is not usually contained in the roblox file itself
 // but is sourced from the associated "AssetId" of the UnionOperation
-let mesh_file=std::fs::read("4500696697_4.meshdata")?;
+let mesh_file=std::fs::read("meshes/4500696697_4.meshdata")?;
 let mesh=read_union_graphics_versioned(std::io::Cursor::new(mesh_file))?;
 
 // print mesh vertices
@@ -77,7 +78,7 @@ use rbx_mesh::read_union_physics_versioned;
 use rbx_mesh::union_physics::{UnionPhysics,CSGPHS};
 
 // this data is extracted from the "PhysicsData" property of UnionOperation
-let phys_file=std::fs::read("CSGPHS_3.data")?;
+let phys_file=std::fs::read("meshes/CSGPHS_3.data")?;
 let mesh=read_union_physics_versioned(std::io::Cursor::new(phys_file))?;
 
 match mesh{
@@ -96,6 +97,7 @@ match mesh{
 	UnionPhysics::CSGPHS(CSGPHS::Block(_block))=>println!("CSGPHS Block"),
 	UnionPhysics::CSGPHS(CSGPHS::V6(_mesh))=>println!("CSGPHS V6"),
 }
+# binrw::BinResult::Ok(())
 ```
 
 #### License
