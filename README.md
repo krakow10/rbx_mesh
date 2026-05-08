@@ -39,7 +39,7 @@ match versioned_mesh{
 ## Union Graphics Example
 ```rust
 use rbx_mesh::read_union_graphics_versioned;
-use rbx_mesh::union_graphics::{UnionGraphics,CSGMDL};
+use rbx_mesh::union_graphics::UnionGraphics;
 
 // this data is extracted from the "MeshData" property of UnionOperation
 // the data is not usually contained in the roblox file itself
@@ -50,9 +50,9 @@ let mesh=read_union_graphics_versioned(std::io::Cursor::new(mesh_file))?;
 // print mesh vertices or vertex positions
 match mesh{
 	UnionGraphics::CSGK(_)=>(),
-	UnionGraphics::CSGMDL(CSGMDL::V2(mesh2))=>println!("{:?}",mesh2.mesh.vertices),
-	UnionGraphics::CSGMDL(CSGMDL::V4(mesh4))=>println!("{:?}",mesh4.mesh.vertices),
-	UnionGraphics::CSGMDL(CSGMDL::V5(mesh5))=>println!("{:?}",mesh5.positions),
+	UnionGraphics::V2(mesh2)=>println!("{:?}",mesh2.mesh.vertices),
+	UnionGraphics::V4(mesh4)=>println!("{:?}",mesh4.mesh.vertices),
+	UnionGraphics::V5(mesh5)=>println!("{:?}",mesh5.positions),
 }
 # binrw::BinResult::Ok(())
 ```
@@ -60,7 +60,7 @@ match mesh{
 ## Union Physics Example
 ```rust
 use rbx_mesh::read_union_physics_versioned;
-use rbx_mesh::union_physics::{UnionPhysics,CSGPHS};
+use rbx_mesh::union_physics::UnionPhysics;
 
 // this data is extracted from the "PhysicsData" property of UnionOperation
 let phys_file=std::fs::read("meshes/CSGPHS_3.data")?;
@@ -71,18 +71,18 @@ let mesh=read_union_physics_versioned(std::io::Cursor::new(phys_file))?;
 match mesh{
 	// v3 and v5 are the same format, and the most common format
 	// (99% of the 100000 unions in my testing)
-	UnionPhysics::CSGPHS(CSGPHS::V3(mesh3))=>println!("{:?}",mesh3.meshes[0].positions),
-	UnionPhysics::CSGPHS(CSGPHS::V5(mesh5))=>println!("{:?}",mesh5.meshes[0].positions),
+	UnionPhysics::V3(mesh3)=>println!("{:?}",mesh3.meshes[0].positions),
+	UnionPhysics::V5(mesh5)=>println!("{:?}",mesh5.meshes[0].positions),
 	// new mesh format (2025)
-	UnionPhysics::CSGPHS(CSGPHS::V7(mesh7))=>println!("{:?}",mesh7.meshes[0].positions),
+	UnionPhysics::V7(mesh7)=>println!("{:?}",mesh7.meshes[0].positions),
 	// Only one occurence in my data set.
 	// Who writes a uuid as ascii hex in a binary format!?
 	UnionPhysics::CSGK(_csgk)=>println!("CSGK"),
 	// These formats have zero occurences in my dataset
 	// But they are documented at
 	// https://devforum.roblox.com/t/some-info-on-sharedstrings-for-custom-collision-data-meshparts-unions-etc/294588
-	UnionPhysics::CSGPHS(CSGPHS::Block(_block))=>println!("CSGPHS Block"),
-	UnionPhysics::CSGPHS(CSGPHS::V6(mesh6))=>println!("{:?}",mesh6.mesh.positions),
+	UnionPhysics::Block(_block)=>println!("CSGPHS Block"),
+	UnionPhysics::V6(mesh6)=>println!("{:?}",mesh6.mesh.positions),
 }
 # binrw::BinResult::Ok(())
 ```

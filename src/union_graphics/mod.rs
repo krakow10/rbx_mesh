@@ -41,16 +41,9 @@ pub enum NormalId {
 #[binrw::binread]
 #[br(little)]
 #[derive(Debug, Clone)]
-pub enum CSGMDL {
+pub enum UnionGraphics {
+	CSGK(CSGK),
 	V2(CSGMDL2),
 	V4(CSGMDL4),
 	V5(CSGMDL5),
-}
-
-#[binrw::binread]
-#[br(little)]
-#[derive(Debug, Clone)]
-pub enum UnionGraphics {
-	CSGK(CSGK),
-	CSGMDL(CSGMDL),
 }

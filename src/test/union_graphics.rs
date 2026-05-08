@@ -1,11 +1,11 @@
-use crate::union_graphics::{Error, UnionGraphics, CSGMDL};
+use crate::union_graphics::{Error, UnionGraphics};
 
 fn get_version(union_graphics: &UnionGraphics) -> &str {
 	match union_graphics {
 		UnionGraphics::CSGK(_) => "CSGK",
-		UnionGraphics::CSGMDL(CSGMDL::V2(_)) => "CSGMDL2",
-		UnionGraphics::CSGMDL(CSGMDL::V4(_)) => "CSGMDL4",
-		UnionGraphics::CSGMDL(CSGMDL::V5(_)) => "CSGMDL5",
+		UnionGraphics::V2(_) => "CSGMDL2",
+		UnionGraphics::V4(_) => "CSGMDL4",
+		UnionGraphics::V5(_) => "CSGMDL5",
 	}
 }
 
@@ -30,15 +30,15 @@ fn dbg_union_graphics(union_graphics: UnionGraphics, expected_version: &str) {
 	// }
 	match union_graphics {
 		UnionGraphics::CSGK(_) => (),
-		UnionGraphics::CSGMDL(CSGMDL::V2(_)) => (),
-		UnionGraphics::CSGMDL(CSGMDL::V4(csgmdl4)) => {
+		UnionGraphics::V2(_) => (),
+		UnionGraphics::V4(csgmdl4) => {
 			println!("==V4");
 			println!("_unknown1={:?}", csgmdl4._unknown1_list.len());
 			for (i, thing) in csgmdl4._unknown1_list.into_iter().enumerate() {
 				println!("u6 row={i} list={thing:?}");
 			}
 		}
-		UnionGraphics::CSGMDL(CSGMDL::V5(csgmdl5)) => {
+		UnionGraphics::V5(csgmdl5) => {
 			println!("===V5===");
 			println!("{:?}", csgmdl5);
 			println!("pos_count={}", csgmdl5.positions.len());

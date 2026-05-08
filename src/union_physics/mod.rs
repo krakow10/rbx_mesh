@@ -21,18 +21,11 @@ pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysic
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub enum CSGPHS {
+pub enum UnionPhysics {
+	CSGK(CSGK),
 	Block(Block),
 	V3(CSGPHS3),
 	V5(CSGPHS5),
 	V6(CSGPHS6),
 	V7(CSGPHS7),
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub enum UnionPhysics {
-	CSGK(CSGK),
-	CSGPHS(CSGPHS),
 }
