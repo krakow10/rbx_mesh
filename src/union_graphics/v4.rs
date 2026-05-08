@@ -1,5 +1,5 @@
+use super::obfuscate::Obfuscator;
 use super::v2::{Hash, Mesh2};
-use super::Obfuscator;
 
 #[binrw::binrw]
 #[brw(little)]

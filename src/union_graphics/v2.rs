@@ -1,4 +1,5 @@
-use super::{NormalIDError, NormalId, Obfuscator};
+use super::obfuscate::Obfuscator;
+use super::{NormalIDError, NormalId};
 
 #[binrw::binrw]
 #[brw(little)]
