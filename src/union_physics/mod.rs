@@ -9,7 +9,7 @@ pub use v6::*;
 mod v7;
 pub use v7::*;
 
-pub use super::csgk::*;
+pub use super::csgk::CSGK;
 
 pub type Error = binrw::Error;
 
