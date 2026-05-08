@@ -239,7 +239,11 @@ pub struct CSGMDL5 {
 	#[br(count=pos_count)]
 	pub positions: Vec<[f32; 3]>,
 
+	#[br(temp)]
+	#[bw(try_calc=normals.len().try_into())]
 	pub normals_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=(normals.len()*size_of::<[f32; 3]>()).try_into())]
 	pub normals_len: u32,
 	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:normals_count as usize,inner:()})]
 	pub normals: Vec<[f32; 3]>,
@@ -250,15 +254,23 @@ pub struct CSGMDL5 {
 	#[br(count=color_count)]
 	pub colors: Vec<[u8; 4]>,
 
+	#[br(temp)]
+	#[bw(try_calc=normal_ids.len().try_into())]
 	pub normal_id_count: u16,
 	#[br(count=normal_id_count)]
 	pub normal_ids: Vec<NormalId5>,
 
+	#[br(temp)]
+	#[bw(try_calc=tex.len().try_into())]
 	pub tex_count: u16,
 	#[br(count=tex_count)]
 	pub tex: Vec<[f32; 2]>,
 
+	#[br(temp)]
+	#[bw(try_calc=tangents.len().try_into())]
 	pub tangents_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=(tangents.len()*size_of::<[f32; 3]>()).try_into())]
 	pub tangents_len: u32,
 	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:tangents_count as usize,inner:()})]
 	pub tangents: Vec<[f32; 3]>,
