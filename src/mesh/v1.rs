@@ -2,6 +2,10 @@ use std::io::BufRead;
 
 use binrw::BinReaderExt;
 
+pub fn read<R: BinReaderExt>(mut read: R) -> Result<Mesh1, super::Error> {
+	read.read_le()
+}
+
 #[derive(Debug)]
 pub enum Error1 {
 	Header,
