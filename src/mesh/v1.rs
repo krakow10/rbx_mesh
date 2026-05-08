@@ -75,6 +75,17 @@ pub struct Mesh1 {
 	pub vertices: Vec<Vertex1>,
 }
 
+impl binrw::BinRead for Mesh1 {
+	type Args<'a> = ();
+	fn read_options<R: BinReaderExt>(
+		reader: &mut R,
+		_endian: binrw::Endian,
+		_args: Self::Args<'_>,
+	) -> binrw::BinResult<Self> {
+		Ok(read(&mut binrw::io::BufReader::new(reader))?)
+	}
+}
+
 fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
 	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
 }
@@ -150,15 +161,4 @@ fn read<R: BufRead>(reader: &mut R) -> Result<Mesh1, InnerError> {
 	}
 
 	Ok(mesh)
-}
-
-impl binrw::BinRead for Mesh1 {
-	type Args<'a> = ();
-	fn read_options<R: BinReaderExt>(
-		reader: &mut R,
-		_endian: binrw::Endian,
-		_args: Self::Args<'_>,
-	) -> binrw::BinResult<Self> {
-		Ok(read(&mut binrw::io::BufReader::new(reader))?)
-	}
 }
