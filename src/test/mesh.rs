@@ -34,6 +34,7 @@ fn round_trip(name: &str) {
 	//read and then write mesh
 	let mesh: Mesh = read_versioned(&mut rbuf).unwrap();
 	match mesh {
+		#[cfg(feature = "mesh-v1")]
 		Mesh::V1(_mesh) => panic!("Cannot round trip Mesh v1"),
 		Mesh::V2(mesh) => wbuf.write_le(&mesh).unwrap(),
 		Mesh::V3(mesh) => wbuf.write_le(&mesh).unwrap(),
