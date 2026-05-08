@@ -7,22 +7,22 @@ fn load_mesh(name: &str) -> Result<Mesh, Error> {
 fn get_mesh_id(mesh: Mesh) -> u16 {
 	match mesh {
 		#[cfg(feature = "mesh-v1")]
-		Mesh::V1(mesh) => match mesh.header.revision {
+		Mesh::V1(mesh) => match mesh.revision {
 			Revision1::Version100 => 100,
 			Revision1::Version101 => 101,
 		},
-		Mesh::V2(mesh) => match mesh.header.revision {
+		Mesh::V2(mesh) => match mesh.revision {
 			Revision2::Version200 => 200,
 		},
-		Mesh::V3(mesh) => match mesh.header.revision {
+		Mesh::V3(mesh) => match mesh.revision {
 			Revision3::Version300 => 300,
 			Revision3::Version301 => 301,
 		},
-		Mesh::V4(mesh) => match mesh.header.revision {
+		Mesh::V4(mesh) => match mesh.revision {
 			Revision4::Version400 => 400,
 			Revision4::Version401 => 401,
 		},
-		Mesh::V5(mesh) => match mesh.header.revision {
+		Mesh::V5(mesh) => match mesh.revision {
 			Revision5::Version500 => 500,
 		},
 	}

@@ -11,22 +11,22 @@ Roblox Mesh Parser
 Print the mesh vertices for any mesh version / vertex size
 
 ```rust
-use rbx_mesh::{read_mesh_versioned,mesh::{Mesh,SizeOfVertex2}};
+use rbx_mesh::{read_mesh_versioned,mesh::{Mesh,Vertices2}};
 
 let file=std::fs::read("torso.mesh")?;
 let versioned_mesh=read_mesh_versioned(std::io::Cursor::new(file))?;
 match versioned_mesh{
 	Mesh::V1(mesh)=>println!("{:?}",mesh.vertices),
 	Mesh::V2(mesh)=>{
-		match mesh.header.sizeof_vertex{
-			SizeOfVertex2::Full=>println!("{:?}",mesh.vertices),
-			SizeOfVertex2::Truncated=>println!("{:?}",mesh.vertices_truncated),
+		match mesh.vertices{
+			Vertices2::Full(vertices)=>println!("{:?}",vertices),
+			Vertices2::Truncated(vertices_truncated)=>println!("{:?}",vertices_truncated),
 		}
 	},
 	Mesh::V3(mesh)=>{
-		match mesh.header.sizeof_vertex{
-			SizeOfVertex2::Full=>println!("{:?}",mesh.vertices),
-			SizeOfVertex2::Truncated=>println!("{:?}",mesh.vertices_truncated),
+		match mesh.vertices{
+			Vertices2::Full(vertices)=>println!("{:?}",vertices),
+			Vertices2::Truncated(vertices_truncated)=>println!("{:?}",vertices_truncated),
 		}
 	},
 	Mesh::V4(mesh)=>println!("{:?}",mesh.vertices),
@@ -91,7 +91,7 @@ match physics_data{
 	// These formats have zero occurences in my dataset
 	// But they are documented at
 	// https://devforum.roblox.com/t/some-info-on-sharedstrings-for-custom-collision-data-meshparts-unions-etc/294588
-	PhysicsData::CSGPHS(CSGPHS::Block)=>println!("CSGPHS Block"),
+	PhysicsData::CSGPHS(CSGPHS::Block(_))=>println!("CSGPHS Block"),
 	PhysicsData::CSGPHS(CSGPHS::V6(csgphs))=>println!("CSGPHS V6"),
 }
 ```

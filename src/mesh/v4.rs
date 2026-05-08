@@ -25,24 +25,6 @@ pub enum LodType4 {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Header4 {
-	pub revision: Revision4,
-	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
-	//sizeof_header:u16,//24
-	pub lod_type: LodType4,
-	pub vertex_count: u32,
-	pub face_count: u32,
-	pub lod_count: u16,
-	pub bone_count: u16,
-	pub bone_names_len: u32,
-	pub subset_count: u16,
-	pub lod_hq_count: u8,
-	pub _padding: u8,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
 pub struct Envelope4 {
 	pub bones: [u8; 4],
 	pub weights: [u8; 4],
@@ -110,19 +92,30 @@ pub struct Subset4 {
 #[derive(Debug, Clone)]
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4 {
-	pub header: Header4,
-	#[br(count=header.vertex_count)]
+	pub revision: Revision4,
+	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
+	//sizeof_header:u16,//24
+	pub lod_type: LodType4,
+	pub vertex_count: u32,
+	pub face_count: u32,
+	pub lod_count: u16,
+	pub bone_count: u16,
+	pub bone_names_len: u32,
+	pub subset_count: u16,
+	pub lod_hq_count: u8,
+	pub _padding: u8,
+	#[br(count=vertex_count)]
 	pub vertices: Vec<Vertex2>,
-	#[br(count=if header.bone_count==0{0}else{header.vertex_count})]
+	#[br(count=if bone_count==0{0}else{vertex_count})]
 	pub envelopes: Vec<Envelope4>,
-	#[br(count=header.face_count)]
+	#[br(count=face_count)]
 	pub faces: Vec<Face2>,
-	#[br(count=header.lod_count)]
+	#[br(count=lod_count)]
 	pub lods: Vec<Lod3>,
-	#[br(count=header.bone_count)]
+	#[br(count=bone_count)]
 	pub bones: Vec<Bone4>,
-	#[br(count=header.bone_names_len)]
+	#[br(count=bone_names_len)]
 	pub bone_names: Vec<u8>,
-	#[br(count=header.subset_count)]
+	#[br(count=subset_count)]
 	pub subsets: Vec<Subset4>,
 }

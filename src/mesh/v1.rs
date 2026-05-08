@@ -73,14 +73,9 @@ pub struct Vertex1 {
 }
 
 #[derive(Debug, Clone)]
-pub struct Header1 {
+pub struct Mesh1 {
 	pub revision: Revision1,
 	pub face_count: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct Mesh1 {
-	pub header: Header1,
 	pub vertices: Vec<Vertex1>,
 }
 
@@ -117,12 +112,6 @@ impl binrw::BinRead for Mesh1 {
 			.parse()
 			.map_err(|e| InnerError::Other(Error1::ParseIntError(e)))?;
 
-		//final header
-		let header = Header1 {
-			revision,
-			face_count,
-		};
-
 		let vertices_line = lines.read_line()?;
 
 		//match three at a time, otherwise fail
@@ -142,7 +131,11 @@ impl binrw::BinRead for Mesh1 {
 			.collect::<Result<Vec<Vertex1>, _>>()
 			.map_err(|e| InnerError::Other(Error1::ParseFloatError(e)))?;
 
-		let mut mesh = Mesh1 { header, vertices };
+		let mut mesh = Mesh1 {
+			revision,
+			face_count,
+			vertices,
+		};
 
 		// fix texture coordinates
 		for vertex in &mut mesh.vertices {
@@ -150,7 +143,7 @@ impl binrw::BinRead for Mesh1 {
 		}
 
 		// mesh v1.00 is double size for some reason
-		if let Revision1::Version100 = &mesh.header.revision {
+		if let Revision1::Version100 = &mesh.revision {
 			for vertex in &mut mesh.vertices {
 				for p in &mut vertex.pos {
 					*p *= 0.5;
@@ -159,7 +152,7 @@ impl binrw::BinRead for Mesh1 {
 		}
 
 		// assert vertex count matches header
-		if 3 * (mesh.header.face_count as usize) != mesh.vertices.len() {
+		if 3 * (mesh.face_count as usize) != mesh.vertices.len() {
 			return Err(InnerError::Other(Error1::VertexCount).into());
 		}
 

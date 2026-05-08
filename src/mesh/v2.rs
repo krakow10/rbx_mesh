@@ -19,20 +19,6 @@ pub enum SizeOfVertex2 {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Header2 {
-	pub revision: Revision2,
-	#[brw(magic = b"\n\x0C\0")] //newline,sizeof_header
-	//sizeof_header:u16,//12=0x000C
-	pub sizeof_vertex: SizeOfVertex2,
-	#[brw(magic = b"\x0C")] //sizeof_face
-	//sizeof_face:u8,//12=0x0C
-	pub vertex_count: u32,
-	pub face_count: u32,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
 pub struct Vertex2 {
 	pub pos: [f32; 3],
 	pub norm: [f32; 3],
@@ -53,6 +39,25 @@ pub struct Vertex2Truncated {
 
 #[binrw::binrw]
 #[brw(little)]
+#[br(import(sizeof_vertex:&SizeOfVertex2,vertex_count:u32))]
+#[derive(Debug, Clone)]
+pub enum Vertices2 {
+	#[br(pre_assert(matches!(sizeof_vertex,SizeOfVertex2::Full)))]
+	Full(#[br(count=vertex_count)] Vec<Vertex2>),
+	#[br(pre_assert(matches!(sizeof_vertex,SizeOfVertex2::Truncated)))]
+	Truncated(#[br(count=vertex_count)] Vec<Vertex2Truncated>),
+}
+impl Vertices2 {
+	pub fn size(&self) -> SizeOfVertex2 {
+		match self {
+			Vertices2::Full(_) => SizeOfVertex2::Full,
+			Vertices2::Truncated(_) => SizeOfVertex2::Truncated,
+		}
+	}
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct VertexId2(pub u32);
 
@@ -66,11 +71,18 @@ pub struct Face2(pub VertexId2, pub VertexId2, pub VertexId2);
 #[derive(Debug, Clone)]
 /// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh2 {
-	pub header: Header2,
-	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Full=>header.vertex_count,_=>0})]
-	pub vertices: Vec<Vertex2>,
-	#[br(count=match header.sizeof_vertex{SizeOfVertex2::Truncated=>header.vertex_count,_=>0})]
-	pub vertices_truncated: Vec<Vertex2Truncated>,
-	#[br(count=header.face_count)]
+	pub revision: Revision2,
+	#[brw(magic = b"\n\x0C\0")] //newline,sizeof_header
+	//sizeof_header:u16,//12=0x000C
+	#[br(temp)]
+	#[bw(calc = vertices.size())]
+	sizeof_vertex: SizeOfVertex2,
+	#[brw(magic = b"\x0C")] //sizeof_face
+	//sizeof_face:u8,//12=0x0C
+	pub vertex_count: u32,
+	pub face_count: u32,
+	#[br(args(&sizeof_vertex, vertex_count))]
+	pub vertices: Vertices2,
+	#[br(count=face_count)]
 	pub faces: Vec<Face2>,
 }
