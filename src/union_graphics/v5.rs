@@ -1,7 +1,5 @@
 use binrw::BinReaderExt;
 
-use std::io::{Read, Seek};
-
 use super::{Error, NormalIDError, NormalId};
 
 #[binrw::binrw]
@@ -50,7 +48,7 @@ pub struct Faces5 {
 }
 impl binrw::BinRead for Faces5 {
 	type Args<'a> = ();
-	fn read_options<R: Read + Seek>(
+	fn read_options<R: BinReaderExt>(
 		reader: &mut R,
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
