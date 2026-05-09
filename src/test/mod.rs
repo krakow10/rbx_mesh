@@ -21,7 +21,7 @@ where
 
 	Ok((mesh, rbuf))
 }
-fn binwrite<M>(mesh: &M, rbuf: Cursor<Vec<u8>>) -> binrw::BinResult<()>
+fn binwrite<M>(mesh: &M) -> binrw::BinResult<Cursor<Vec<u8>>>
 where
 	M: std::fmt::Debug,
 	M: for<'a> BinRead<Args<'a> = ()>,
@@ -29,9 +29,7 @@ where
 {
 	let mut wbuf = Cursor::new(Vec::new());
 	wbuf.write_le(mesh)?;
-
-	assert_eq!(rbuf, wbuf, "Round trip failed");
-	Ok(())
+	Ok(wbuf)
 }
 
 pub fn readonly<M>(bytes: Vec<u8>) -> binrw::BinResult<M>
@@ -49,6 +47,8 @@ where
 	M: for<'a> BinWrite<Args<'a> = ()>,
 {
 	let (mesh, rbuf) = binread(bytes)?;
-	binwrite(&mesh, rbuf)?;
+	let wbuf = binwrite(&mesh)?;
+
+	assert_eq!(rbuf, wbuf, "Round trip failed");
 	Ok(mesh)
 }
