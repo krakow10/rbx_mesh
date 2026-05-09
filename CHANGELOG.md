@@ -4,6 +4,8 @@
 
 ### Changed
 
+- CSGMDL2 `Mesh2.face_count` is automatically calculated and hidden from the public interface
+
 ### Removed
 
 ## [0.7.0] - May 8th 2026
