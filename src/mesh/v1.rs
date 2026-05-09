@@ -72,7 +72,6 @@ pub struct Vertex1 {
 #[derive(Debug, Clone)]
 pub struct Mesh1 {
 	pub revision: Revision1,
-	pub face_count: u32,
 	pub vertices: Vec<Vertex1>,
 }
 
@@ -110,7 +109,7 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 		_ => return Err(Error1::Header.into()),
 	};
 
-	let face_count = lines
+	let face_count: u32 = lines
 		.read_line()?
 		.trim()
 		.parse()
@@ -135,11 +134,7 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 		.collect::<Result<Vec<Vertex1>, _>>()
 		.map_err(Error1::ParseFloatError)?;
 
-	let mut mesh = Mesh1 {
-		revision,
-		face_count,
-		vertices,
-	};
+	let mut mesh = Mesh1 { revision, vertices };
 
 	// fix texture coordinates
 	for vertex in &mut mesh.vertices {
@@ -156,7 +151,7 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 	}
 
 	// assert vertex count matches header
-	if 3 * (mesh.face_count as usize) != mesh.vertices.len() {
+	if 3 * (face_count as usize) != mesh.vertices.len() {
 		return Err(Error1::VertexCount.into());
 	}
 

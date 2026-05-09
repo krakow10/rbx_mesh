@@ -4,7 +4,6 @@ expression: mesh
 ---
 Mesh1 {
     revision: Version100,
-    face_count: 1388,
     vertices: [
         Vertex1 {
             pos: [
