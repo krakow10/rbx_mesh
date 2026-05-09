@@ -103,9 +103,8 @@ macro_rules! lazy_regex {
 fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 	let mut lines = LineMachine::new(reader);
 
-	// the first line contains the revision, but we already parsed it.
-	let version = lines.read_line()?;
-	let revision = match version.trim() {
+	// the first line contains the version number
+	let revision = match lines.read_line()?.trim() {
 		"version 1.00" => Revision1::Version100,
 		"version 1.01" => Revision1::Version101,
 		_ => return Err(Error1::Header.into()),
