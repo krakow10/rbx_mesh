@@ -19,8 +19,8 @@ pub type Error = binrw::Error;
 
 #[cfg(feature = "mesh-v1")]
 #[expect(clippy::large_enum_variant)]
-#[binrw::binread]
-#[br(little)]
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Mesh {
 	// TODO: use feature-gated enum variant when this issue is fixed
@@ -37,8 +37,8 @@ pub enum Mesh {
 
 #[cfg(not(feature = "mesh-v1"))]
 #[expect(clippy::large_enum_variant)]
-#[binrw::binread]
-#[br(little)]
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Mesh {
 	V2(Mesh2),

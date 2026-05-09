@@ -161,3 +161,28 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 
 	Ok(mesh)
 }
+
+impl binrw::BinWrite for Mesh1 {
+	type Args<'a> = ();
+	fn write_options<W: binrw::BinWriterExt>(
+		&self,
+		writer: &mut W,
+		_endian: binrw::Endian,
+		_args: Self::Args<'_>,
+	) -> binrw::BinResult<()> {
+		match self.revision {
+			Revision1::Version100 => writeln!(writer, "version 1.00")?,
+			Revision1::Version101 => writeln!(writer, "version 1.01")?,
+		}
+		writeln!(writer, "{}", self.vertices.len())?;
+		for Vertex1 {
+			pos: [px, py, pz],
+			norm: [nx, ny, nz],
+			tex: [tx, ty, tz],
+		} in &self.vertices
+		{
+			write!(writer, "[{px},{py},{pz}][{nx},{ny},{nz}][{tx},{ty},{tz}]",)?;
+		}
+		Ok(())
+	}
+}
