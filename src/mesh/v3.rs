@@ -21,7 +21,6 @@ pub struct Lod3(pub u32);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-/// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh3 {
 	pub revision: Revision3,
 	#[brw(magic = b"\n\x10\0")] //newline,sizeof_header

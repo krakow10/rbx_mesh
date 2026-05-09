@@ -75,7 +75,6 @@ pub struct Face2(pub [VertexId2; 3]);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-/// Only one of {vertices,vertices_truncated} is populated based on header.sizeof_vertex
 pub struct Mesh2 {
 	pub revision: Revision2,
 	#[brw(magic = b"\n\x0C\0")] //newline,sizeof_header
