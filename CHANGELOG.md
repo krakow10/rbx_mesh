@@ -34,4 +34,73 @@
 
 ## [0.6.0] - March 3rd 2026
 
+### Changed
+
+- Fix CSGMDL5 range markers
+
+## [0.5.1] - Nov 9th 2025
+
+### Changed
+
+- Drop lazy_regex dependency
+
 ## [0.5.0] - July 23rd 2025
+
+### Added
+
+- Add CSGMDL5 support
+
+## [0.4.0] - May 26th 2025
+
+### Added
+
+- Add CSGPHS7 support
+- Add CSGPHS6 support
+
+### Changed
+
+- Rename a bunch of fields and struct names for clarity and conciseness
+
+## [0.3.1] - Jan 31st 2025
+
+### Changed
+
+- Rename a bunch of fields and struct names for clarity and conciseness
+
+## [0.3.0] - Jan 31st 2025
+
+### Added
+
+- Add union graphics support (CSGMDL)
+  - CSGMDL2
+  - CSGMDL4
+
+## [0.2.0] - Jan 24th 2025
+
+### Added
+
+- Add union physics support (CSGPHS)
+  - CSGPHS3
+  - CSGPHS5
+
+## [0.1.1] - March 29th 2024
+
+### Changed
+
+- Simplify mesh v1 regex
+
+## [0.1.0] - March 12th 2024
+
+### Added
+
+- Add mesh support
+  - version 1.00
+  - version 1.01
+  - version 2.00
+  - version 3.00
+  - version 3.01
+  - version 4.00
+  - version 4.01
+  - version 5.00
+
+## [Inital commit] - March 10th 2024
