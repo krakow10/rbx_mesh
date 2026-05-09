@@ -4,8 +4,6 @@ use std::io::{Read, Seek};
 
 use super::{Error, NormalIDError, NormalId};
 
-// TODO use read_options to directly read MeshData
-// instead of reading header and then seeking back
 #[binrw::binrw]
 #[brw(little,repr=u8)]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
