@@ -50,6 +50,10 @@
 
 - Add CSGMDL5 support
 
+### Changed
+
+- Union mesh data NormalId2 now uses an inner type NormalId. This is so that NormalId5 can share the inner type. NormalId2 is serialized as u32, whereas NormalId5 is u8, so the wrapper types are needed. Why Roblox chose to count the NormalId from 1 instead of using their own Enum.NormalId values starting at 0 is beyond me.
+
 ## [0.4.0] - May 26th 2025
 
 ### Added
