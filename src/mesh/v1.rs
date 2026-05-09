@@ -1,7 +1,5 @@
 use std::io::BufRead;
 
-use binrw::BinReaderExt;
-
 #[derive(Debug)]
 pub enum Error1 {
 	Header,
@@ -77,7 +75,7 @@ pub struct Mesh1 {
 
 impl binrw::BinRead for Mesh1 {
 	type Args<'a> = ();
-	fn read_options<R: BinReaderExt>(
+	fn read_options<R: binrw::BinReaderExt>(
 		reader: &mut R,
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
