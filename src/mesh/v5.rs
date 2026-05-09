@@ -95,12 +95,12 @@ pub struct ControlId5(pub u16);
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct TwoPoseCorrective5(pub ControlId5, pub ControlId5);
+pub struct TwoPoseCorrective5(pub [ControlId5; 2]);
 
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct ThreePoseCorrective5(pub ControlId5, pub ControlId5, pub ControlId5);
+pub struct ThreePoseCorrective5(pub [ControlId5; 3]);
 
 #[binrw::binrw]
 #[brw(little)]

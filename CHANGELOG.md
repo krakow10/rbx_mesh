@@ -5,6 +5,7 @@
 ### Changed
 
 - CSGMDL2 `Mesh2.face_count` is automatically calculated and hidden from the public interface
+- CSGMDL5 `TwoPoseCorrective5` and `ThreePoseCorrective5` use an array of `ControlId5` instead of a tuple
 
 ### Removed
 
