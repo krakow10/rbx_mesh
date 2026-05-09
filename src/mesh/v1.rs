@@ -69,6 +69,14 @@ impl std::str::FromStr for Revision1 {
 		})
 	}
 }
+impl std::fmt::Display for Revision1 {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Self::Version100 => write!(f, "version 1.00"),
+			Self::Version101 => write!(f, "version 1.01"),
+		}
+	}
+}
 
 #[derive(Debug, Clone)]
 pub struct Vertex1 {
@@ -76,11 +84,31 @@ pub struct Vertex1 {
 	pub norm: [f32; 3],
 	pub tex: [f32; 3],
 }
+impl std::fmt::Display for Vertex1 {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		let Vertex1 {
+			pos: [px, py, pz],
+			norm: [nx, ny, nz],
+			tex: [tx, ty, tz],
+		} = self;
+		write!(f, "[{px},{py},{pz}][{nx},{ny},{nz}][{tx},{ty},{tz}]")
+	}
+}
 
 #[derive(Debug, Clone)]
 pub struct Mesh1 {
 	pub revision: Revision1,
 	pub vertices: Vec<Vertex1>,
+}
+impl std::fmt::Display for Mesh1 {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		writeln!(f, "{}", self.revision)?;
+		writeln!(f, "{}", self.vertices.len())?;
+		for vertex in &self.vertices {
+			write!(f, "{vertex}")?;
+		}
+		Ok(())
+	}
 }
 
 impl binrw::BinRead for Mesh1 {
@@ -170,19 +198,7 @@ impl binrw::BinWrite for Mesh1 {
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
 	) -> binrw::BinResult<()> {
-		match self.revision {
-			Revision1::Version100 => writeln!(writer, "version 1.00")?,
-			Revision1::Version101 => writeln!(writer, "version 1.01")?,
-		}
-		writeln!(writer, "{}", self.vertices.len())?;
-		for Vertex1 {
-			pos: [px, py, pz],
-			norm: [nx, ny, nz],
-			tex: [tx, ty, tz],
-		} in &self.vertices
-		{
-			write!(writer, "[{px},{py},{pz}][{nx},{ny},{nz}][{tx},{ty},{tz}]",)?;
-		}
+		write!(writer, "{self}")?;
 		Ok(())
 	}
 }
