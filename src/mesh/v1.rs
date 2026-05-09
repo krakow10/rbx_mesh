@@ -59,6 +59,16 @@ pub enum Revision1 {
 	Version100,
 	Version101,
 }
+impl std::str::FromStr for Revision1 {
+	type Err = Error1;
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(match s {
+			"version 1.00" => Self::Version100,
+			"version 1.01" => Self::Version101,
+			_ => return Err(Error1::Header.into()),
+		})
+	}
+}
 
 #[derive(Debug, Clone)]
 pub struct Vertex1 {
@@ -101,11 +111,7 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 	let mut lines = LineMachine::new(reader);
 
 	// the first line contains the version number
-	let revision = match lines.read_line()?.trim() {
-		"version 1.00" => Revision1::Version100,
-		"version 1.01" => Revision1::Version101,
-		_ => return Err(Error1::Header.into()),
-	};
+	let revision = lines.read_line()?.trim().parse()?;
 
 	let face_count: u32 = lines
 		.read_line()?
