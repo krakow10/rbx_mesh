@@ -26,3 +26,6 @@ mesh-v1 = ["mesh", "dep:regex"]
 [dependencies]
 binrw = "0.15.0"
 regex = { version = "1.11.3", default-features = false, optional = true }
+
+[dev-dependencies]
+insta = "1.47.2"
