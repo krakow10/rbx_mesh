@@ -46,8 +46,7 @@ pub fn decode_clers_buffer(
 				triangles.push([t[0] + offset, t[1] + offset, t[2] + offset]);
 			}
 
-			let verts_consumed = hull_state.vertex_counter;
-			offset += verts_consumed;
+			offset += hull_state.vertex_counter;
 
 			Ok(Hull { faces: triangles })
 		})
