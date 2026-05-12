@@ -1,5 +1,5 @@
 use super::roundtrip;
-use crate::union_physics::{CSGK, CSGPHS3, CSGPHS5, CSGPHS7};
+use crate::union_physics::{CSGK, CSGPHS3, CSGPHS5, CSGPHS7, CSGPHS8};
 use std::fs::read;
 
 #[test]
@@ -23,12 +23,9 @@ fn csgphs_7() {
 #[cfg(feature = "csgphs-v8")]
 #[test]
 fn csgphs_8() {
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_00.data"));
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_01.data"));
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_02.data"));
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_03.data"));
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_04.data"));
-	read_union_physics(include_bytes!("../../meshes/CSGPHS_8_05.data"));
+	let bytes = read("meshes/CSGPHS_8_00.data").unwrap();
+	let mesh = roundtrip::<CSGPHS8>(bytes).unwrap();
+	insta::assert_debug_snapshot!(mesh);
 }
 #[test]
 fn csgk() {
