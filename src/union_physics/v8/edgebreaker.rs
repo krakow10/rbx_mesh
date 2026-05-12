@@ -11,9 +11,8 @@ impl From<BitReaderError> for EdgebreakerError {
 	}
 }
 
-pub struct PosId(pub u32);
 pub struct Hull {
-	pub triangles: Vec<[PosId; 3]>,
+	pub faces: Vec<[u32; 3]>,
 }
 
 pub fn decode_clers_buffer(
@@ -28,12 +27,27 @@ pub fn decode_clers_buffer(
 	let cap = (face_count + position_count - 2).max(3);
 	let mut hull_state = HullState::new(symbol_reader, cap);
 
+	let mut offset = 0;
+
 	let hulls = (0..hull_count)
 		.map(|h| {
 			hull_state.clear(cap);
 			hull_state.decode(EdgeId(1))?;
-			let triangles = Vec::new();
-			Ok(Hull { triangles })
+
+			let mut triangles = Vec::with_capacity(hull_state.current_triangle as usize + 1);
+
+			for t in hull_state
+				.indices
+				.chunks_exact(3)
+				.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
+			{
+				triangles.push([t[0] + offset, t[1] + offset, t[2] + offset]);
+			}
+
+			let verts_consumed = hull_state.vertex_counter;
+			offset += verts_consumed;
+
+			Ok(Hull { faces: triangles })
 		})
 		.collect::<Result<_, EdgebreakerError>>()?;
 
