@@ -1,6 +1,7 @@
 use super::bit_stream::BitReaderError;
 use super::clers_symbol::{Symbol, SymbolReader};
 
+#[derive(Debug)]
 pub enum EdgebreakerError {
 	BitReader(BitReaderError),
 	NotEnoughBits,
@@ -11,6 +12,7 @@ impl From<BitReaderError> for EdgebreakerError {
 	}
 }
 
+#[derive(Debug, Clone)]
 pub struct Hull {
 	pub faces: Vec<[u32; 3]>,
 }
