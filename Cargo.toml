@@ -15,14 +15,16 @@ default = [
 	"union-graphics",
 	"union-physics",
 	"mesh-v1",
+	"csgphs-v8",
 ]
 mesh = []
 union-graphics = []
-# only requires zstd if parsing v8
-union-physics = ["dep:ruzstd"]
+union-physics = []
 
 # mesh v1 is rare and depends on regex
 mesh-v1 = ["mesh", "dep:regex"]
+# union physics v8 depends on zstd
+csgphs-v8 = ["union-physics", "dep:ruzstd"]
 
 [dependencies]
 binrw = "0.15.0"
