@@ -145,7 +145,8 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 
 		// rewrite the merged corner with the surviving (donor) vertex id
 		let prev_of_current = prev_offset(current_edge);
-		state.indices[(current_edge - prev_of_current) as usize] = state.indices[prev_cand_edge as usize];
+		state.indices[(current_edge - prev_of_current) as usize] =
+			state.indices[prev_cand_edge as usize];
 
 		// propagate that vertex id around the rest of the merged fan
 		let mut connected_edge = state.adjacency[current_edge as usize];
@@ -155,7 +156,8 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 			prev_edge = connected_edge - prev_of_connected;
 
 			let prev_of_prev = prev_offset(prev_edge);
-			state.indices[(prev_edge - prev_of_prev) as usize] = state.indices[prev_cand_edge as usize];
+			state.indices[(prev_edge - prev_of_prev) as usize] =
+				state.indices[prev_cand_edge as usize];
 
 			connected_edge = state.adjacency[prev_edge as usize];
 		}
@@ -172,7 +174,6 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 	current_edge
 }
 
-
 fn decode_recursive(
 	state: &mut HullState,
 	bits: &mut BitReader,
@@ -180,7 +181,8 @@ fn decode_recursive(
 ) -> Result<bool, EdgebreakerError> {
 	let mut cursor_edge = cursor_in;
 
-	loop { // inf loop / stack overflow if bad format
+	loop {
+		// inf loop / stack overflow if bad format
 		// emit a new triangle and glue its edge 0 to cursor_edge as twins;
 		// edges 1 and 2 inherit the corner vertices from the gate edge
 		state.current_triangle += 1;
@@ -196,8 +198,10 @@ fn decode_recursive(
 
 		let prev_off = prev_offset(cursor_edge);
 		let next_off = next_offset(cursor_edge);
-		state.indices[(tri_base_edge + 1) as usize] = state.indices[(cursor_edge - prev_off) as usize];
-		state.indices[(tri_base_edge + 2) as usize] = state.indices[(cursor_edge + next_off) as usize];
+		state.indices[(tri_base_edge + 1) as usize] =
+			state.indices[(cursor_edge - prev_off) as usize];
+		state.indices[(tri_base_edge + 2) as usize] =
+			state.indices[(cursor_edge + next_off) as usize];
 
 		cursor_edge = tri_base_edge + 1;
 
@@ -210,30 +214,29 @@ fn decode_recursive(
 			let no = next_offset(cursor_edge);
 			state.adjacency[(cursor_edge + no) as usize] = SENTINEL_BOUNDARY;
 		} else {
-			let b2 = bits.read_bit()?;
-			let b3 = bits.read_bit()?;
-			let op = 4 + (if b2 == 1 { 2 } else { 0 }) + (if b3 == 1 { 1 } else { 0 });
-			match op {
-				4 => {
+			let b2 = bits.read_bit()? != 0;
+			let b3 = bits.read_bit()? != 0;
+			match (b2, b3) {
+				(false, false) => {
 					// S: split
 					if !decode_recursive(state, bits, cursor_edge)? {
 						return Ok(false);
 					}
 					cursor_edge += next_offset(cursor_edge);
 				}
-				5 => {
+				(false, true) => {
 					// L: turn left
 					state.adjacency[cursor_edge as usize] = SENTINEL_PROCESSING;
 					cursor_edge += next_offset(cursor_edge);
 				}
-				6 => {
+				(true, false) => {
 					// R: turn right
 					let no = next_offset(cursor_edge);
 					let next_edge = cursor_edge + no;
 					state.adjacency[next_edge as usize] = SENTINEL_PROCESSING;
 					zip_boundary(state, next_edge);
 				}
-				7 => {
+				(true, true) => {
 					// E: end
 					state.adjacency[cursor_edge as usize] = SENTINEL_PROCESSING;
 					let no = next_offset(cursor_edge);
@@ -242,7 +245,6 @@ fn decode_recursive(
 					zip_boundary(state, next_edge);
 					return Ok(true);
 				}
-				_ => return Ok(false),
 			}
 		}
 	}

@@ -5,7 +5,7 @@ mod edgebreaker;
 mod raw_hulls;
 
 pub use edgebreaker::{decode_edgebreaker_hulls, EdgebreakerError, Hull};
-pub use raw_hulls::{decode_raw_hulls, encode_raw_hulls};
+pub use raw_hulls::decode_raw_hulls;
 
 const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 
@@ -15,8 +15,9 @@ const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 pub struct CSGPHS8 {
 	pub geom_type: u8,
 	#[br(temp)]
-	#[bw(calc = 0u8)]
-	_pad: u8,
+	#[bw(ignore)]
+	#[brw(magic = 0u8)]
+	_padding: (),
 	#[br(parse_with = parse_body)]
 	pub body: CSGPHS8Body,
 }
@@ -44,11 +45,7 @@ pub struct CSGPHS8Body {
 	pub vertices: Vec<[f32; 3]>,
 }
 
-fn parse_body<R: Read + Seek>(
-	reader: &mut R,
-	endian: Endian,
-	_: (),
-) -> BinResult<CSGPHS8Body> {
+fn parse_body<R: Read + Seek>(reader: &mut R, endian: Endian, _: ()) -> BinResult<CSGPHS8Body> {
 	// peek the next 4 bytes to detect a Zstd frame, then rewind
 	let body_start = reader.stream_position()?;
 	let maybe_magic = u32::read_options(reader, endian, ())?;
