@@ -18,19 +18,19 @@ pub struct Hull {
 pub fn decode_clers_buffer(
 	bytes: &[u8],
 	bits: usize,
-	hull_count: usize,
-	face_count: usize,
-	position_count: usize,
+	hull_count: u32,
+	face_count: u32,
+	position_count: u32,
 ) -> Result<Vec<Hull>, EdgebreakerError> {
 	let symbol_reader = SymbolReader::new(bytes, bits)?;
 	// F + V = E + 2
-	let cap = (face_count + position_count - 2).max(3);
+	let cap = (face_count + position_count - 2).max(3) as usize;
 	let mut hull_state = HullState::new(symbol_reader, cap);
 
 	let mut offset = 0;
 
 	let hulls = (0..hull_count)
-		.map(|h| {
+		.map(|_| {
 			hull_state.clear(cap);
 			hull_state.decode(EdgeId(1))?;
 
@@ -92,9 +92,9 @@ impl Edge {
 	const PROCESSING: Self = Edge(-2);
 	fn meaning(&self) -> EdgeMeaning {
 		match self {
-			UNINIT => EdgeMeaning::Sentinel(EdgeSentinel::Uninit),
-			BOUNDARY => EdgeMeaning::Sentinel(EdgeSentinel::Boundary),
-			PROCESSING => EdgeMeaning::Sentinel(EdgeSentinel::Processing),
+			Edge(-3) => EdgeMeaning::Sentinel(EdgeSentinel::Uninit),
+			Edge(-1) => EdgeMeaning::Sentinel(EdgeSentinel::Boundary),
+			Edge(-2) => EdgeMeaning::Sentinel(EdgeSentinel::Processing),
 			&Edge(id) if id.is_positive() => EdgeMeaning::Adjacency(EdgeId(id as u32)),
 			_ => EdgeMeaning::Invalid,
 		}

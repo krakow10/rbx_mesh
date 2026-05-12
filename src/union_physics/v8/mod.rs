@@ -18,36 +18,6 @@ pub struct CSGPHS8 {
 	pub mesh: Mesh8,
 }
 
-#[binrw::binread]
-#[br(little)]
-#[derive(Debug, Clone)]
-pub struct Aabb {
-	pub min: [f32; 3],
-	pub max: [f32; 3],
-}
-
-#[binrw::binread]
-#[br(little)]
-#[derive(Debug, Clone)]
-pub struct Mesh8 {
-	pub hull_count: u32,
-	pub positions_count: u32,
-	pub faces_count: u32,
-	pub first_hull_vert_count: u32,
-	pub first_hull_face_count: u32,
-	pub raw_hulls_len: u32,
-	pub clers_bit_count: u32,
-	pub clers_buffer_len: u32,
-	pub positions_len: u32,
-	pub aabb: Aabb,
-	#[br(count = raw_hulls_len)]
-	pub raw_hulls: Vec<u8>,
-	#[br(count = clers_buffer_len)]
-	pub clers_buffer: Vec<u8>,
-	#[br(count = positions_count)]
-	pub positions: Vec<[f32; 3]>,
-}
-
 fn read_mesh<R: BinReaderExt>(
 	reader: &mut R,
 	_endian: binrw::Endian,
@@ -63,4 +33,48 @@ fn read_mesh<R: BinReaderExt>(
 		})?;
 	decoder.read_to_end(&mut decoded)?;
 	std::io::Cursor::new(decoded).read_le()
+}
+
+#[binrw::binread]
+#[br(little)]
+#[derive(Debug, Clone)]
+pub struct Aabb {
+	pub min: [f32; 3],
+	pub max: [f32; 3],
+}
+
+#[binrw::binread]
+#[br(little)]
+#[derive(Debug, Clone)]
+pub struct Mesh8 {
+	pub hull_count: u32,
+	pub position_count: u32,
+	pub face_count: u32,
+	pub first_hull_vert_count: u32,
+	pub first_hull_face_count: u32,
+	pub raw_hulls_len: u32,
+	pub clers_bit_count: u32,
+	pub clers_buffer_len: u32,
+	pub positions_len: u32,
+	pub aabb: Aabb,
+	#[br(count = raw_hulls_len)]
+	pub raw_hulls: Vec<u8>,
+	#[br(count = clers_buffer_len)]
+	pub clers_buffer: Vec<u8>,
+	#[br(count = position_count)]
+	pub positions: Vec<[f32; 3]>,
+}
+
+use crate::union_physics::v8::edgebreaker::{EdgebreakerError, Hull};
+
+impl Mesh8 {
+	pub fn hulls(&self) -> Result<Vec<Hull>, EdgebreakerError> {
+		edgebreaker::decode_clers_buffer(
+			&self.clers_buffer,
+			self.clers_bit_count as usize,
+			self.hull_count,
+			self.face_count,
+			self.position_count,
+		)
+	}
 }
