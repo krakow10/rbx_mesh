@@ -1,4 +1,4 @@
-use super::bit_stream::BitReader;
+use super::bit_stream::{BitReader, BitReaderError};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Symbol {
@@ -15,9 +15,9 @@ pub struct SymbolReader<'a> {
 	bit_reader: BitReader<'a>,
 }
 impl<'a> SymbolReader<'a> {
-	pub fn new(bytes: &'a [u8], bits: usize) -> Self {
-		let bit_reader = BitReader::new(bytes, bits);
-		Self { bit_reader }
+	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitReaderError> {
+		let bit_reader = BitReader::new(bytes, bits)?;
+		Ok(Self { bit_reader })
 	}
 }
 impl<'a> Iterator for SymbolReader<'a> {
@@ -40,7 +40,7 @@ impl<'a> Iterator for SymbolReader<'a> {
 fn read_symbols() {
 	// R_C_S_L_E_C
 	const BYTES: &[u8] = &0b101_0_001_011_111_0u16.to_le_bytes();
-	let mut r = SymbolReader::new(BYTES, BYTES.len() * 8);
+	let mut r = SymbolReader::new(BYTES, BYTES.len() * 8).unwrap();
 	// reverse order
 	assert_eq!(r.next(), Some(Symbol::Continue));
 	assert_eq!(r.next(), Some(Symbol::End));

@@ -1,5 +1,9 @@
 type Cache = u64;
 
+#[derive(Debug)]
+pub enum BitReaderError {
+	NotEnoughBytes,
+}
 pub struct BitReader<'a> {
 	chunks: core::slice::ChunksExact<'a, u8>,
 	bits: usize,
@@ -7,13 +11,16 @@ pub struct BitReader<'a> {
 	cache_bits: usize,
 }
 impl<'a> BitReader<'a> {
-	pub fn new(bytes: &'a [u8], bits: usize) -> Self {
-		Self {
+	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitReaderError> {
+		if (bytes.len() * u8::BITS as usize) < bits {
+			return Err(BitReaderError::NotEnoughBytes);
+		}
+		Ok(Self {
 			chunks: bytes.chunks_exact(size_of::<Cache>()),
 			bits,
 			cache: 0,
 			cache_bits: 0,
-		}
+		})
 	}
 
 	pub fn read(&mut self, bits: usize) -> Option<Cache> {
@@ -55,7 +62,7 @@ impl<'a> BitReader<'a> {
 
 #[test]
 fn test_read_bytes() {
-	let mut r = BitReader::new(b"asdf", 32);
+	let mut r = BitReader::new(b"asdf", 32).unwrap();
 	assert_eq!(r.read(8), Some('a' as Cache));
 	assert_eq!(r.read(8), Some('s' as Cache));
 	assert_eq!(r.read(8), Some('d' as Cache));
@@ -69,7 +76,7 @@ fn test_read_bytes() {
 fn test_read_bits() {
 	fn assert_s(shift: usize) {
 		assert_eq!(
-			BitReader::new(b"s", 32).read(shift),
+			BitReader::new(b"s", 8).unwrap().read(shift),
 			Some('s' as Cache & ((1 as Cache).unbounded_shl(shift as u32) - 1))
 		);
 	}
@@ -86,7 +93,7 @@ fn test_read_bits() {
 
 #[test]
 fn test_read_sequence() {
-	let mut r = BitReader::new(b"asd", 24);
+	let mut r = BitReader::new(b"asd", 24).unwrap();
 	// dsa 011_00100 011_1001_1 011_00_001
 	assert_eq!(r.read(3), Some(0b001));
 	assert_eq!(r.read(2), Some(0b00));
