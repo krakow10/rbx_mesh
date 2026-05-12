@@ -45,7 +45,7 @@ impl<'a> BitReader<'a> {
 
 		// populate value with cached bits
 		let draw_bits = bits - value_bits;
-		let mask = (1 as Cache).unbounded_shl(draw_bits as u32) - 1;
+		let mask = (1 as Cache).unbounded_shl(draw_bits as u32).wrapping_sub(1);
 		value += (self.cache & mask).unbounded_shl(value_bits as u32);
 		self.cache = self.cache.unbounded_shr(draw_bits as u32);
 		self.cache_bits -= draw_bits;
