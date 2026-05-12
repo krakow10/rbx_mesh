@@ -1,20 +1,24 @@
 type Cache = u8;
 
 pub struct BitReader<'a> {
-	bytes: &'a [u8],
+	chunks: core::slice::ChunksExact<'a, u8>,
+	bits: usize,
 	cache: Cache,
 	cache_bits: usize,
 }
 impl<'a> BitReader<'a> {
-	pub fn new(bytes: &'a [u8]) -> Self {
+	pub fn new(bytes: &'a [u8], bits: usize) -> Self {
 		Self {
-			bytes,
+			chunks: bytes.chunks_exact(size_of::<Cache>()),
+			bits,
 			cache: 0,
 			cache_bits: 0,
 		}
 	}
 
 	pub fn read(&mut self, bits: usize) -> Option<Cache> {
+		self.bits = self.bits.checked_sub(bits)?;
+
 		let mut value = 0;
 		let mut value_bits = 0;
 
@@ -23,10 +27,16 @@ impl<'a> BitReader<'a> {
 			value += self.cache.unbounded_shl(value_bits as u32);
 			value_bits += self.cache_bits;
 
-			let (before, after) = self.bytes.split_at_checked(size_of::<Cache>())?;
-			self.bytes = after;
-			let array: &[u8; size_of::<Cache>()] = before.try_into().unwrap();
-			self.cache = Cache::from_le_bytes(*array);
+			self.cache = match self.chunks.next() {
+				Some(chunk) => Cache::from_le_bytes(chunk.try_into().unwrap()),
+				None => {
+					let mut cache = Cache::MIN;
+					for (i, &byte) in self.chunks.remainder().iter().enumerate() {
+						cache |= (byte as Cache) << (i * Cache::BITS as usize);
+					}
+					cache
+				}
+			};
 			self.cache_bits = Cache::BITS as usize;
 		}
 
@@ -42,7 +52,7 @@ impl<'a> BitReader<'a> {
 
 #[test]
 fn test_read_bytes() {
-	let mut r = BitReader::new(b"asdf");
+	let mut r = BitReader::new(b"asdf", 32);
 	assert_eq!(r.read(8), Some('a' as u8));
 	assert_eq!(r.read(8), Some('s' as u8));
 	assert_eq!(r.read(8), Some('d' as u8));
@@ -56,7 +66,7 @@ fn test_read_bytes() {
 fn test_read_bits() {
 	fn assert_s(shift: usize) {
 		assert_eq!(
-			BitReader::new(b"s").read(shift),
+			BitReader::new(b"s", 32).read(shift),
 			Some('s' as u8 & (1u8.unbounded_shl(shift as u32) - 1))
 		);
 	}
@@ -73,7 +83,7 @@ fn test_read_bits() {
 
 #[test]
 fn test_read_sequence() {
-	let mut r = BitReader::new(b"asd");
+	let mut r = BitReader::new(b"asd", 24);
 	// dsa 011_00100 011_1001_1 011_00_001
 	assert_eq!(r.read(3), Some(0b001));
 	assert_eq!(r.read(2), Some(0b00));
