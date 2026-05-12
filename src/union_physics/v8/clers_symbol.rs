@@ -1,6 +1,11 @@
 use super::bit_stream::{BitReader, BitReaderError};
 
 #[derive(Debug, Eq, PartialEq)]
+pub enum SymbolError {
+	NotEnoughBits,
+}
+
+#[derive(Debug, Eq, PartialEq)]
 pub enum Symbol {
 	// 1 bit
 	Continue, // 0b_0
@@ -19,15 +24,12 @@ impl<'a> SymbolReader<'a> {
 		let bit_reader = BitReader::new(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
-}
-impl<'a> Iterator for SymbolReader<'a> {
-	type Item = Symbol;
-	fn next(&mut self) -> Option<Self::Item> {
-		if self.bit_reader.read(1)? == 0 {
-			return Some(Symbol::Continue);
+	pub fn read(&mut self) -> Result<Symbol, SymbolError> {
+		if self.bit_reader.read(1).ok_or(SymbolError::NotEnoughBits)? == 0 {
+			return Ok(Symbol::Continue);
 		}
-		let bits = self.bit_reader.read(2).expect("Unexpected EOF");
-		Some(match (bits & 0b10 != 0, bits & 0b01 != 0) {
+		let bits = self.bit_reader.read(2).ok_or(SymbolError::NotEnoughBits)?;
+		Ok(match (bits & 0b10 != 0, bits & 0b01 != 0) {
 			(false, false) => Symbol::Split,
 			(false, true) => Symbol::Left,
 			(true, false) => Symbol::Right,
@@ -42,10 +44,11 @@ fn read_symbols() {
 	const BYTES: &[u8] = &0b101_0_001_011_111_0u16.to_le_bytes();
 	let mut r = SymbolReader::new(BYTES, BYTES.len() * 8).unwrap();
 	// reverse order
-	assert_eq!(r.next(), Some(Symbol::Continue));
-	assert_eq!(r.next(), Some(Symbol::End));
-	assert_eq!(r.next(), Some(Symbol::Left));
-	assert_eq!(r.next(), Some(Symbol::Split));
-	assert_eq!(r.next(), Some(Symbol::Continue));
-	assert_eq!(r.next(), Some(Symbol::Right));
+	assert_eq!(r.read(), Ok(Symbol::Continue));
+	assert_eq!(r.read(), Ok(Symbol::End));
+	assert_eq!(r.read(), Ok(Symbol::Left));
+	assert_eq!(r.read(), Ok(Symbol::Split));
+	assert_eq!(r.read(), Ok(Symbol::Continue));
+	assert_eq!(r.read(), Ok(Symbol::Right));
+	assert_eq!(r.read(), Err(SymbolError::NotEnoughBits));
 }

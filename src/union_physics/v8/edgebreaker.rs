@@ -1,10 +1,10 @@
 use super::bit_stream::BitReaderError;
-use super::clers_symbol::{Symbol, SymbolReader};
+use super::clers_symbol::{Symbol, SymbolError, SymbolReader};
 
 #[derive(Debug)]
 pub enum EdgebreakerError {
 	BitReader(BitReaderError),
-	NotEnoughBits,
+	Symbol(SymbolError),
 }
 impl From<BitReaderError> for EdgebreakerError {
 	fn from(value: BitReaderError) -> Self {
@@ -219,8 +219,8 @@ impl<'a> HullState<'a> {
 
 			let symbol = self
 				.symbol_reader
-				.next()
-				.ok_or(EdgebreakerError::NotEnoughBits)?;
+				.read()
+				.map_err(EdgebreakerError::Symbol)?;
 
 			match symbol {
 				Symbol::Continue => {
