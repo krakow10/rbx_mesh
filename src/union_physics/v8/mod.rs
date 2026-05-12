@@ -28,8 +28,8 @@ pub struct CSGPHS8 {
 #[derive(Debug, Clone)]
 pub struct CSGPHS8Body {
 	pub hull_count: u32,
-	pub total_verts: u32,
-	pub total_faces: u32,
+	pub positions_count: u32,
+	pub faces_count: u32,
 	pub first_hull_vert_count: u32,
 	pub first_hull_face_count: u32,
 	pub raw_hulls_size: u32,
@@ -42,7 +42,7 @@ pub struct CSGPHS8Body {
 	pub raw_hulls: Vec<u8>,
 	#[br(count = clers_buffer_size / 4)]
 	pub clers_buffer: Vec<u32>,
-	#[br(count = total_verts)]
+	#[br(count = positions_count)]
 	pub positions: Vec<[f32; 3]>,
 }
 

@@ -6,8 +6,8 @@ CSGPHS8 {
     geom_type: 0,
     body: CSGPHS8Body {
         hull_count: 42,
-        total_verts: 956,
-        total_faces: 1744,
+        positions_count: 956,
+        faces_count: 1744,
         first_hull_vert_count: 39,
         first_hull_face_count: 74,
         raw_hulls_size: 0,
