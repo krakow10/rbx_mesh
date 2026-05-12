@@ -35,10 +35,10 @@ impl<'a> BitReader<'a> {
 				None => {
 					let mut cache = Cache::MIN;
 					for (i, &byte) in self.chunks.remainder().iter().enumerate() {
-						cache |= (byte as Cache) << (i * Cache::BITS as usize);
+						cache |= (byte as Cache) << (i * u8::BITS as usize);
 					}
 					self.cache = cache;
-					self.cache_bits = self.chunks.remainder().len() * Cache::BITS as usize;
+					self.cache_bits = self.chunks.remainder().len() * u8::BITS as usize;
 				}
 			};
 		}
