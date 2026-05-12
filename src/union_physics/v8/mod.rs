@@ -35,7 +35,7 @@ pub struct CSGPHS8Body {
 	pub raw_hulls_size: u32,
 	pub clers_bit_count: u32,
 	pub clers_buffer_size: u32,
-	pub vertices_size: u32,
+	pub positions_size: u32,
 	pub bbox_min: [f32; 3],
 	pub bbox_max: [f32; 3],
 	#[br(count = raw_hulls_size)]
@@ -43,7 +43,7 @@ pub struct CSGPHS8Body {
 	#[br(count = clers_buffer_size / 4)]
 	pub clers_buffer: Vec<u32>,
 	#[br(count = total_verts)]
-	pub vertices: Vec<[f32; 3]>,
+	pub positions: Vec<[f32; 3]>,
 }
 
 fn parse_body<R: Read + Seek>(reader: &mut R, endian: Endian, _: ()) -> BinResult<CSGPHS8Body> {
