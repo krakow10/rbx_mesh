@@ -1,5 +1,6 @@
 mod bit_stream;
 mod clers_symbol;
+mod edgebreaker;
 
 #[binrw::binrw]
 #[brw(little)]
