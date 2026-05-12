@@ -27,17 +27,20 @@ impl<'a> BitReader<'a> {
 			value += self.cache.unbounded_shl(value_bits as u32);
 			value_bits += self.cache_bits;
 
-			self.cache = match self.chunks.next() {
-				Some(chunk) => Cache::from_le_bytes(chunk.try_into().unwrap()),
+			match self.chunks.next() {
+				Some(chunk) => {
+					self.cache = Cache::from_le_bytes(chunk.try_into().unwrap());
+					self.cache_bits = Cache::BITS as usize;
+				}
 				None => {
 					let mut cache = Cache::MIN;
 					for (i, &byte) in self.chunks.remainder().iter().enumerate() {
 						cache |= (byte as Cache) << (i * Cache::BITS as usize);
 					}
-					cache
+					self.cache = cache;
+					self.cache_bits = self.chunks.remainder().len() * Cache::BITS as usize;
 				}
 			};
-			self.cache_bits = Cache::BITS as usize;
 		}
 
 		// populate value with cached bits
