@@ -1,0 +1,1509 @@
+---
+source: src/test/mesh.rs
+expression: mesh
+---
+Mesh2 {
+    revision: Version200,
+    vertices: Truncated(
+        [
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    0.93499994,
+                    0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    1.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.503906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -0.935,
+                    0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    1.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.503906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -0.935,
+                    0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    1.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.746094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    0.93499994,
+                    0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    1.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.746094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.503906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -1.0,
+                    0.93499994,
+                    0.435,
+                ],
+                norm: [
+                    -1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.496094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -1.0,
+                    -0.935,
+                    0.435,
+                ],
+                norm: [
+                    -1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.496094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.503906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.746094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    -0.935,
+                    0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.753906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    0.93499994,
+                    0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.753906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.746094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.496094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.378906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -1.0,
+                    0.93499994,
+                    -0.435,
+                ],
+                norm: [
+                    -1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.378906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -1.0,
+                    -0.935,
+                    -0.435,
+                ],
+                norm: [
+                    -1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.378906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.378906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.496094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.450195,
+                    0.759766,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.450195,
+                    0.642578,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.329102,
+                    0.642578,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.329102,
+                    0.759766,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.003906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.121094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    -0.935,
+                    -0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.121094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    -0.935,
+                    0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.003906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    0.93499994,
+                    -0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.121094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    1.0,
+                    0.93499994,
+                    0.435,
+                ],
+                norm: [
+                    1.0,
+                    0.0,
+                    0.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.003906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.121094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.003906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.197266,
+                    0.642578,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.197266,
+                    0.759766,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.318359,
+                    0.759766,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.318359,
+                    0.642578,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.371094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    0.93499994,
+                    -0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    -1.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.371094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -0.935,
+                    -0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    -1.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.371094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    -0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.371094,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -0.935,
+                    -0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    -1.0,
+                ],
+                tex: [
+                    0.033203,
+                    0.128906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    -1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    -1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.029297,
+                    0.128906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    0.93499994,
+                    -0.5,
+                ],
+                norm: [
+                    0.0,
+                    0.0,
+                    -1.0,
+                ],
+                tex: [
+                    0.154297,
+                    0.128906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+            Vertex2Truncated {
+                pos: [
+                    0.935,
+                    1.0,
+                    -0.435,
+                ],
+                norm: [
+                    0.0,
+                    1.0,
+                    0.0,
+                ],
+                tex: [
+                    0.158203,
+                    0.128906,
+                ],
+                tangent: [
+                    0,
+                    0,
+                    0,
+                    0,
+                ],
+            },
+        ],
+    ),
+    faces: [
+        Face2(
+            [
+                VertexId2(
+                    0,
+                ),
+                VertexId2(
+                    1,
+                ),
+                VertexId2(
+                    2,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    0,
+                ),
+                VertexId2(
+                    2,
+                ),
+                VertexId2(
+                    3,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    0,
+                ),
+                VertexId2(
+                    4,
+                ),
+                VertexId2(
+                    5,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    0,
+                ),
+                VertexId2(
+                    5,
+                ),
+                VertexId2(
+                    6,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    0,
+                ),
+                VertexId2(
+                    6,
+                ),
+                VertexId2(
+                    1,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    1,
+                ),
+                VertexId2(
+                    6,
+                ),
+                VertexId2(
+                    7,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    1,
+                ),
+                VertexId2(
+                    7,
+                ),
+                VertexId2(
+                    8,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    1,
+                ),
+                VertexId2(
+                    8,
+                ),
+                VertexId2(
+                    2,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    2,
+                ),
+                VertexId2(
+                    8,
+                ),
+                VertexId2(
+                    9,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    2,
+                ),
+                VertexId2(
+                    9,
+                ),
+                VertexId2(
+                    10,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    2,
+                ),
+                VertexId2(
+                    10,
+                ),
+                VertexId2(
+                    3,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    3,
+                ),
+                VertexId2(
+                    10,
+                ),
+                VertexId2(
+                    11,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    3,
+                ),
+                VertexId2(
+                    11,
+                ),
+                VertexId2(
+                    4,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    3,
+                ),
+                VertexId2(
+                    4,
+                ),
+                VertexId2(
+                    0,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    12,
+                ),
+                VertexId2(
+                    13,
+                ),
+                VertexId2(
+                    14,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    12,
+                ),
+                VertexId2(
+                    14,
+                ),
+                VertexId2(
+                    5,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    5,
+                ),
+                VertexId2(
+                    14,
+                ),
+                VertexId2(
+                    15,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    5,
+                ),
+                VertexId2(
+                    15,
+                ),
+                VertexId2(
+                    6,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    6,
+                ),
+                VertexId2(
+                    15,
+                ),
+                VertexId2(
+                    16,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    6,
+                ),
+                VertexId2(
+                    16,
+                ),
+                VertexId2(
+                    17,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    18,
+                ),
+                VertexId2(
+                    19,
+                ),
+                VertexId2(
+                    20,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    18,
+                ),
+                VertexId2(
+                    20,
+                ),
+                VertexId2(
+                    21,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    22,
+                ),
+                VertexId2(
+                    23,
+                ),
+                VertexId2(
+                    24,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    22,
+                ),
+                VertexId2(
+                    24,
+                ),
+                VertexId2(
+                    25,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    25,
+                ),
+                VertexId2(
+                    24,
+                ),
+                VertexId2(
+                    26,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    25,
+                ),
+                VertexId2(
+                    26,
+                ),
+                VertexId2(
+                    27,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    27,
+                ),
+                VertexId2(
+                    26,
+                ),
+                VertexId2(
+                    28,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    27,
+                ),
+                VertexId2(
+                    28,
+                ),
+                VertexId2(
+                    29,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    30,
+                ),
+                VertexId2(
+                    31,
+                ),
+                VertexId2(
+                    32,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    30,
+                ),
+                VertexId2(
+                    32,
+                ),
+                VertexId2(
+                    33,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    34,
+                ),
+                VertexId2(
+                    35,
+                ),
+                VertexId2(
+                    14,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    14,
+                ),
+                VertexId2(
+                    35,
+                ),
+                VertexId2(
+                    36,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    14,
+                ),
+                VertexId2(
+                    36,
+                ),
+                VertexId2(
+                    15,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    15,
+                ),
+                VertexId2(
+                    36,
+                ),
+                VertexId2(
+                    37,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    37,
+                ),
+                VertexId2(
+                    36,
+                ),
+                VertexId2(
+                    38,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    37,
+                ),
+                VertexId2(
+                    38,
+                ),
+                VertexId2(
+                    39,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    39,
+                ),
+                VertexId2(
+                    38,
+                ),
+                VertexId2(
+                    24,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    24,
+                ),
+                VertexId2(
+                    38,
+                ),
+                VertexId2(
+                    40,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    24,
+                ),
+                VertexId2(
+                    40,
+                ),
+                VertexId2(
+                    26,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    26,
+                ),
+                VertexId2(
+                    40,
+                ),
+                VertexId2(
+                    41,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    41,
+                ),
+                VertexId2(
+                    40,
+                ),
+                VertexId2(
+                    35,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    41,
+                ),
+                VertexId2(
+                    35,
+                ),
+                VertexId2(
+                    34,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    40,
+                ),
+                VertexId2(
+                    38,
+                ),
+                VertexId2(
+                    36,
+                ),
+            ],
+        ),
+        Face2(
+            [
+                VertexId2(
+                    40,
+                ),
+                VertexId2(
+                    36,
+                ),
+                VertexId2(
+                    35,
+                ),
+            ],
+        ),
+    ],
+}

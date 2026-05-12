@@ -1,11 +1,7 @@
 use binrw::BinReaderExt;
 
-use std::io::{Read, Seek};
-
 use super::{Error, NormalIDError, NormalId};
 
-// TODO use read_options to directly read MeshData
-// instead of reading header and then seeking back
 #[binrw::binrw]
 #[brw(little,repr=u8)]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
@@ -52,7 +48,7 @@ pub struct Faces5 {
 }
 impl binrw::BinRead for Faces5 {
 	type Args<'a> = ();
-	fn read_options<R: Read + Seek>(
+	fn read_options<R: BinReaderExt>(
 		reader: &mut R,
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
@@ -200,8 +196,8 @@ impl binrw::BinRead for Faces5 {
 #[binrw::binread]
 #[br(little)]
 #[br(map=Self::read)]
-#[repr(transparent)]
-struct QuantizedF32x3([f32; 3]);
+#[derive(Debug, Clone)]
+pub struct QuantizedF32x3(pub [f32; 3]);
 impl QuantizedF32x3 {
 	fn read([x, y, z]: [i16; 3]) -> Self {
 		const SCALE: f32 = 1.0 / 32_767.0; // ? ok
@@ -212,54 +208,54 @@ impl QuantizedF32x3 {
 		])
 	}
 }
-fn parse_quantized_f32x3_array<R: binrw::io::Read + binrw::io::Seek>(
-	reader: &mut R,
-	_endian: binrw::Endian,
-	args: binrw::VecArgs<()>,
-) -> binrw::BinResult<Vec<[f32; 3]>> {
-	// read quantized i16 values directly into Vec, converting to f32 on the fly
-	let quantized: Vec<QuantizedF32x3> = reader.read_le_args(args)?;
-	// transmute into expected type
-	// SAFETY: QuantizedF32x3 is #[repr(transparent)]
-	let transmuted: Vec<[f32; 3]> = unsafe { core::mem::transmute(quantized) };
-	// Equivalent safe code
-	// let transmuted=quantized.into_iter().map(|QuantizedF32x3(value)|value).collect();
-	Ok(transmuted)
-}
 
 #[binrw::binread]
 #[br(little)]
-// #[brw(magic=b"CSGMDL")] but obfuscated
-#[brw(magic = b"\x15\x7d\x29\x15\x75\x6c")]
+// reversible_obfuscate(0, concat_bytes!(b"CSGMDL", 5u32))
+#[br(magic = b"\x15\x7d\x29\x15\x75\x6c\x35\x04\x34\x69")]
 #[derive(Debug, Clone)]
 pub struct CSGMDL5 {
-	// #[brw(magic=5u32)] but obfuscated
-	#[brw(magic = b"\x35\x04\x34\x69")]
+	#[br(temp)]
+	#[bw(try_calc=positions.len().try_into())]
 	pub pos_count: u16,
 	#[br(count=pos_count)]
 	pub positions: Vec<[f32; 3]>,
 
+	#[br(temp)]
+	#[bw(try_calc=normals.len().try_into())]
 	pub normals_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=(normals.len()*size_of::<QuantizedF32x3>()).try_into())]
 	pub normals_len: u32,
-	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:normals_count as usize,inner:()})]
-	pub normals: Vec<[f32; 3]>,
+	#[br(count=normals_count)]
+	pub normals: Vec<QuantizedF32x3>,
 
+	#[br(temp)]
+	#[bw(try_calc=colors.len().try_into())]
 	pub color_count: u16,
 	#[br(count=color_count)]
 	pub colors: Vec<[u8; 4]>,
 
+	#[br(temp)]
+	#[bw(try_calc=normal_ids.len().try_into())]
 	pub normal_id_count: u16,
 	#[br(count=normal_id_count)]
 	pub normal_ids: Vec<NormalId5>,
 
+	#[br(temp)]
+	#[bw(try_calc=tex.len().try_into())]
 	pub tex_count: u16,
 	#[br(count=tex_count)]
 	pub tex: Vec<[f32; 2]>,
 
+	#[br(temp)]
+	#[bw(try_calc=tangents.len().try_into())]
 	pub tangents_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=(tangents.len()*size_of::<QuantizedF32x3>()).try_into())]
 	pub tangents_len: u32,
-	#[br(parse_with=parse_quantized_f32x3_array,args_raw=binrw::VecArgs{count:tangents_count as usize,inner:()})]
-	pub tangents: Vec<[f32; 3]>,
+	#[br(count=tangents_count)]
+	pub tangents: Vec<QuantizedF32x3>,
 
 	// delta encoded vertex indices
 	pub faces: Faces5,

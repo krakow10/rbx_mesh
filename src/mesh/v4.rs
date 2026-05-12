@@ -1,18 +1,13 @@
-use binrw::BinReaderExt;
-
-use std::io::{Read, Seek};
-
 use super::v2::{Face2, Vertex2};
 use super::v3::Lod3;
-use super::DEFAULT_VERTEX_TANGENT;
 
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision4 {
-	#[brw(magic = b"4.00")]
+	#[brw(magic = b"version 4.00")]
 	Version400,
-	#[brw(magic = b"4.01")]
+	#[brw(magic = b"version 4.01")]
 	Version401,
 }
 
@@ -30,25 +25,6 @@ pub enum LodType4 {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Header4 {
-	#[brw(magic = b"version ")]
-	pub revision: Revision4,
-	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
-	//sizeof_header:u16,//24
-	pub lod_type: LodType4,
-	pub vertex_count: u32,
-	pub face_count: u32,
-	pub lod_count: u16,
-	pub bone_count: u16,
-	pub bone_names_len: u32,
-	pub subset_count: u16,
-	pub lod_hq_count: u8,
-	pub _padding: u8,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
 pub struct Envelope4 {
 	pub bones: [u8; 4],
 	pub weights: [u8; 4],
@@ -60,11 +36,7 @@ pub struct Envelope4 {
 pub struct BoneId4(u16);
 impl BoneId4 {
 	pub fn new(value: Option<u16>) -> Self {
-		Self(match value {
-			None => 0xFFFF,
-			//|Some(0xFFFF)//whatever
-			Some(other) => other,
-		})
+		Self(value.unwrap_or(0xFFFF))
 	}
 	pub fn get(&self) -> Option<u16> {
 		match self.0 {
@@ -120,40 +92,42 @@ pub struct Subset4 {
 #[derive(Debug, Clone)]
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4 {
-	pub header: Header4,
-	#[br(count=header.vertex_count)]
+	pub revision: Revision4,
+	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
+	//sizeof_header:u16,//24
+	pub lod_type: LodType4,
+	#[br(temp)]
+	#[bw(try_calc=vertices.len().try_into())]
+	pub vertex_count: u32,
+	#[br(temp)]
+	#[bw(try_calc=faces.len().try_into())]
+	pub face_count: u32,
+	#[br(temp)]
+	#[bw(try_calc=lods.len().try_into())]
+	pub lod_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=bones.len().try_into())]
+	pub bone_count: u16,
+	#[br(temp)]
+	#[bw(try_calc=bone_names.len().try_into())]
+	pub bone_names_len: u32,
+	#[br(temp)]
+	#[bw(try_calc=subsets.len().try_into())]
+	pub subset_count: u16,
+	pub lod_hq_count: u8,
+	pub _padding: u8,
+	#[br(count=vertex_count)]
 	pub vertices: Vec<Vertex2>,
-	#[br(count=if header.bone_count==0{0}else{header.vertex_count})]
+	#[br(count=if bone_count==0{0}else{vertex_count})]
 	pub envelopes: Vec<Envelope4>,
-	#[br(count=header.face_count)]
+	#[br(count=face_count)]
 	pub faces: Vec<Face2>,
-	#[br(count=header.lod_count)]
+	#[br(count=lod_count)]
 	pub lods: Vec<Lod3>,
-	#[br(count=header.bone_count)]
+	#[br(count=bone_count)]
 	pub bones: Vec<Bone4>,
-	#[br(count=header.bone_names_len)]
+	#[br(count=bone_names_len)]
 	pub bone_names: Vec<u8>,
-	#[br(count=header.subset_count)]
+	#[br(count=subset_count)]
 	pub subsets: Vec<Subset4>,
-}
-
-#[inline]
-pub fn fix4(mesh: &mut Mesh4) {
-	for vertex in &mut mesh.vertices {
-		match vertex.tangent {
-			[-128, -128, -128, -128] => vertex.tangent = DEFAULT_VERTEX_TANGENT,
-			_ => (),
-		}
-	}
-}
-
-#[inline]
-pub fn read_400<R: Read + Seek>(read: R) -> Result<Mesh4, binrw::Error> {
-	let mut mesh = read4(read)?;
-	fix4(&mut mesh);
-	Ok(mesh)
-}
-
-pub fn read4<R: BinReaderExt>(mut read: R) -> Result<Mesh4, binrw::Error> {
-	read.read_le()
 }

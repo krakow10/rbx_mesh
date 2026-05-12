@@ -11,6 +11,7 @@ const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic = b"CSGPHS\x08\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8 {
 	pub geom_type: u8,
