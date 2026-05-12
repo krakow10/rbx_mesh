@@ -20,8 +20,8 @@ pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysic
 	read.read_le()
 }
 
-#[binrw::binrw]
-#[brw(little)]
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug, Clone)]
 pub enum UnionPhysics {
 	CSGK(CSGK),

@@ -9,9 +9,9 @@ pub use raw_hulls::decode_raw_hulls;
 
 const ZSTD_FRAME_MAGIC: u32 = 0xFD2FB528;
 
-#[binrw::binrw]
-#[brw(little)]
-#[brw(magic = b"CSGPHS\x08\0\0\0")]
+#[binrw::binread]
+#[br(little)]
+#[br(magic = b"CSGPHS\x08\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8 {
 	pub geom_type: u8,
@@ -23,8 +23,8 @@ pub struct CSGPHS8 {
 	pub body: CSGPHS8Body,
 }
 
-#[binrw::binrw]
-#[brw(little)]
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8Body {
 	pub hull_count: u32,
