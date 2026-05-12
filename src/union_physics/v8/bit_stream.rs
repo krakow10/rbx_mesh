@@ -1,4 +1,4 @@
-type Cache = u8;
+type Cache = u64;
 
 pub struct BitReader<'a> {
 	chunks: core::slice::ChunksExact<'a, u8>,
@@ -42,7 +42,7 @@ impl<'a> BitReader<'a> {
 
 		// populate value with cached bits
 		let draw_bits = bits - value_bits;
-		let mask = 1u8.unbounded_shl(draw_bits as u32) - 1;
+		let mask = (1 as Cache).unbounded_shl(draw_bits as u32) - 1;
 		value += (self.cache & mask).unbounded_shl(value_bits as u32);
 		self.cache = self.cache.unbounded_shr(draw_bits as u32);
 		self.cache_bits -= draw_bits;
@@ -53,10 +53,10 @@ impl<'a> BitReader<'a> {
 #[test]
 fn test_read_bytes() {
 	let mut r = BitReader::new(b"asdf", 32);
-	assert_eq!(r.read(8), Some('a' as u8));
-	assert_eq!(r.read(8), Some('s' as u8));
-	assert_eq!(r.read(8), Some('d' as u8));
-	assert_eq!(r.read(8), Some('f' as u8));
+	assert_eq!(r.read(8), Some('a' as Cache));
+	assert_eq!(r.read(8), Some('s' as Cache));
+	assert_eq!(r.read(8), Some('d' as Cache));
+	assert_eq!(r.read(8), Some('f' as Cache));
 	// end of bytes
 	assert_eq!(r.read(0), Some(0));
 	assert_eq!(r.read(1), None);
@@ -67,7 +67,7 @@ fn test_read_bits() {
 	fn assert_s(shift: usize) {
 		assert_eq!(
 			BitReader::new(b"s", 32).read(shift),
-			Some('s' as u8 & (1u8.unbounded_shl(shift as u32) - 1))
+			Some('s' as Cache & ((1 as Cache).unbounded_shl(shift as u32) - 1))
 		);
 	}
 	assert_s(0);
