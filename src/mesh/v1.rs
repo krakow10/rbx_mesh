@@ -138,6 +138,11 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 		.collect::<Result<Vec<Vertex1>, _>>()
 		.map_err(Error1::ParseFloatError)?;
 
+	// assert vertex count matches header
+	if 3 * (face_count as usize) != vertices.len() {
+		return Err(Error1::VertexCount.into());
+	}
+
 	let mut mesh = Mesh1 { revision, vertices };
 
 	// fix texture coordinates
@@ -152,11 +157,6 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 				*p *= 0.5;
 			}
 		}
-	}
-
-	// assert vertex count matches header
-	if 3 * (face_count as usize) != mesh.vertices.len() {
-		return Err(Error1::VertexCount.into());
 	}
 
 	Ok(mesh)
