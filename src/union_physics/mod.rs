@@ -21,8 +21,8 @@ pub fn read_versioned<R: binrw::BinReaderExt>(mut read: R) -> Result<UnionPhysic
 }
 
 #[cfg(feature = "csgphs-v8")]
-#[binrw::binrw]
-#[brw(little)]
+#[binrw::binread]
+#[br(little)]
 #[derive(Debug, Clone)]
 pub enum UnionPhysics {
 	CSGK(CSGK),
