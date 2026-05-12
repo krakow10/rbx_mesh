@@ -1,4 +1,4 @@
-use super::roundtrip;
+use super::{readonly, roundtrip};
 use crate::mesh::{Mesh2, Mesh3, Mesh4, Mesh5, Revision2, Revision3, Revision4, Revision5};
 use std::fs::read;
 
@@ -7,7 +7,7 @@ use std::fs::read;
 fn mesh_100() {
 	use crate::mesh::{Mesh1, Revision1};
 	let bytes = read("meshes/158071912").unwrap();
-	let mesh = roundtrip::<Mesh1>(bytes).unwrap();
+	let mesh = readonly::<Mesh1>(bytes).unwrap();
 	assert!(matches!(mesh.revision, Revision1::Version100));
 	insta::assert_debug_snapshot!(mesh);
 }
