@@ -83,6 +83,7 @@ match mesh{
 	// https://devforum.roblox.com/t/some-info-on-sharedstrings-for-custom-collision-data-meshparts-unions-etc/294588
 	UnionPhysics::Block(_block)=>println!("CSGPHS Block"),
 	UnionPhysics::V6(mesh6)=>println!("{:?}",mesh6.mesh.positions),
+	UnionPhysics::V8(mesh8)=>println!("{:?}",mesh8.body.vertices),
 }
 # binrw::BinResult::Ok(())
 ```
