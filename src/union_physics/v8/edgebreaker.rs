@@ -41,18 +41,18 @@ pub fn decode_clers_buffer(
 }
 
 // non-zero edge id
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 struct EdgeId(u32);
 impl EdgeId {
-	fn idx(self) -> usize {
+	const fn idx(self) -> usize {
 		let EdgeId(id) = self;
 		id as usize
 	}
-	fn next(self) -> Self {
+	const fn next(self) -> Self {
 		let EdgeId(id) = self;
 		Self(id / 3 * 3 + id.wrapping_add(1) % 3)
 	}
-	fn prev(self) -> Self {
+	const fn prev(self) -> Self {
 		let EdgeId(id) = self;
 		Self(id / 3 * 3 + id.wrapping_sub(1) % 3)
 	}
@@ -123,7 +123,64 @@ impl<'a> HullState<'a> {
 		self.current_triangle = 0;
 		self.vertex_counter = 2;
 	}
-	fn zip_boundary(&mut self, mut cursor: EdgeId) {}
+	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
+		// loop while a SENTINEL_PROCESSING edge still needs to be paired
+		// inf loop if bad format
+		while let EdgeMeaning::Sentinel(EdgeSentinel::Processing) =
+			self.adjacency[current_edge.idx()].meaning()
+		{
+			let mut candidate_edge = current_edge.next();
+
+			// walk the fan via twin+next until we reach a boundary edge
+			// inf loop if bad format
+			while let EdgeMeaning::Adjacency(opposite_edge) =
+				self.adjacency[candidate_edge.idx()].meaning()
+			{
+				candidate_edge = opposite_edge.next();
+			}
+
+			if !matches!(
+				self.adjacency[candidate_edge.idx()].meaning(),
+				EdgeMeaning::Sentinel(EdgeSentinel::Boundary)
+			) {
+				break;
+			}
+
+			// link the two boundary edges as twins (zip them shut)
+			self.adjacency[current_edge.idx()] = candidate_edge.into();
+			self.adjacency[candidate_edge.idx()] = current_edge.into();
+
+			current_edge = current_edge.prev();
+
+			let mut prev_edge = current_edge;
+			let prev_candidate_edge = candidate_edge.prev();
+
+			// rewrite the merged corner with the surviving (donor) vertex id
+			self.indices[current_edge.prev().idx()] = self.indices[prev_candidate_edge.idx()];
+
+			// propagate that vertex id around the rest of the merged fan
+			let mut connected_edge = self.adjacency[current_edge.idx()];
+			// inf loop if bad format
+			while let EdgeMeaning::Adjacency(connected_edge_id) = connected_edge.meaning()
+				&& candidate_edge != prev_edge
+			{
+				prev_edge = connected_edge_id.prev();
+				self.indices[prev_edge.prev().idx()] = self.indices[prev_candidate_edge.idx()];
+				connected_edge = self.adjacency[prev_edge.idx()];
+			}
+
+			// hop along the connected fan to the next still-unzipped edge
+			// inf loop if bad format
+			while let EdgeMeaning::Adjacency(linked_edge) =
+				self.adjacency[current_edge.idx()].meaning()
+				&& current_edge != candidate_edge
+			{
+				current_edge = linked_edge.prev();
+			}
+		}
+
+		current_edge
+	}
 	// recursive function that matches symbols S and E like parentheses
 	fn decode(&mut self, mut cursor: EdgeId) -> Result<(), EdgebreakerError> {
 		loop {
