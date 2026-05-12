@@ -177,10 +177,8 @@ fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
 fn decode_recursive(
 	state: &mut HullState,
 	bits: &mut BitReader,
-	cursor_in: i32,
+	mut cursor_edge: i32,
 ) -> Result<bool, EdgebreakerError> {
-	let mut cursor_edge = cursor_in;
-
 	loop {
 		// inf loop / stack overflow if bad format
 		// emit a new triangle and glue its edge 0 to cursor_edge as twins;
