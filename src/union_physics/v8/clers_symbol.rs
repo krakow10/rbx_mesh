@@ -1,4 +1,4 @@
-use super::bit_stream::{BitReader, BitReaderError};
+use super::roblox_bit_reader::{BitReader, BitReaderError};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum SymbolError {

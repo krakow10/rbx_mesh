@@ -1,4 +1,4 @@
-mod bit_stream;
+mod roblox_bit_reader;
 mod clers_symbol;
 mod edgebreaker;
 

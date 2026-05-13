@@ -1,4 +1,4 @@
-use super::bit_stream::BitReaderError;
+use super::roblox_bit_reader::BitReaderError;
 use super::clers_symbol::{Symbol, SymbolError, SymbolReader};
 
 #[derive(Debug)]
