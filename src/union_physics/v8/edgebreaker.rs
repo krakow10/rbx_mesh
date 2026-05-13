@@ -55,7 +55,7 @@ pub fn decode_clers_buffer(
 	Ok(hulls)
 }
 
-// non-zero edge id
+// non-negative edge id
 #[derive(Clone, Copy, Eq, PartialEq)]
 struct EdgeId(u32);
 impl EdgeId {
