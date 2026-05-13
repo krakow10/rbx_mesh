@@ -19,25 +19,25 @@ impl<'a> BitReaderRoblox<'a> {
 	pub fn read(&mut self, bits: usize) -> Cache {
 		debug_assert!(bits <= Cache::BITS as usize);
 
-		let mut value = 0;
+		let mut value: Cache = 0;
 		let mut value_bits = 0;
 
 		// popluate cache with enough bits to fill value
 		while self.cache_bits + value_bits < bits {
-			value |= self.cache.unbounded_shl(value_bits as u32);
+			value = value.unbounded_shl(self.cache_bits as u32) | self.cache;
 			value_bits += self.cache_bits;
 
 			match self.chunks.next() {
 				Some(chunk) => {
-					self.cache = Cache::from_be_bytes(chunk.try_into().unwrap());
+					self.cache = Cache::from_le_bytes(chunk.try_into().unwrap());
 					self.cache_bits = Cache::BITS as usize;
 				}
 				None => {
 					let mut chunk = [0; _];
 					let rem = self.chunks.remainder();
-					chunk[..rem.len()].copy_from_slice(rem);
+					chunk[size_of::<Cache>() - rem.len()..].copy_from_slice(rem);
 					self.chunks = [].chunks_exact(size_of::<Cache>());
-					self.cache = Cache::from_be_bytes(chunk);
+					self.cache = Cache::from_le_bytes(chunk);
 					self.cache_bits = rem.len() * u8::BITS as usize;
 				}
 			};
@@ -46,8 +46,8 @@ impl<'a> BitReaderRoblox<'a> {
 		// populate value with cached bits
 		let draw_bits = bits - value_bits;
 		let mask = (1 as Cache).unbounded_shl(draw_bits as u32).wrapping_sub(1);
-		value |= (self.cache & mask).unbounded_shl(value_bits as u32);
-		self.cache = self.cache.unbounded_shr(draw_bits as u32);
+		value = (value << draw_bits) | (self.cache >> (self.cache_bits - draw_bits));
+		self.cache &= !mask.unbounded_shl((self.cache_bits - draw_bits) as u32);
 		self.cache_bits -= draw_bits;
 		value
 	}
