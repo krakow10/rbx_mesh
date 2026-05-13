@@ -1,22 +1,22 @@
-use bit_stream::{BitCounterError, BitRead, CountedBitReaderLe};
+use bit_stream::{BitCounterError, BitRead, CountedBitReaderBe};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Symbol {
 	// 1 bit
-	Continue, // 0b_0
+	Continue, // 0b0
 	// 3 bits
-	Split, // 0b00_1
-	Left,  // 0b01_1
-	Right, // 0b10_1
-	End,   // 0b11_1
+	Split, // 0b1_00
+	Left,  // 0b1_01
+	Right, // 0b1_10
+	End,   // 0b1_11
 }
 
 pub struct SymbolReader<'a> {
-	bit_reader: CountedBitReaderLe<'a>,
+	bit_reader: CountedBitReaderBe<'a>,
 }
 impl<'a> SymbolReader<'a> {
 	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitCounterError> {
-		let bit_reader = CountedBitReaderLe::new_reader(bytes, bits)?;
+		let bit_reader = CountedBitReaderBe::new_reader(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
 	pub fn read(&mut self) -> Result<Symbol, BitCounterError> {
@@ -36,16 +36,15 @@ impl<'a> SymbolReader<'a> {
 #[test]
 fn read_symbols() {
 	// C_C_R_C_S_L_E_C
-	const BYTES: &[u8] = &0b0_0_101_0_001_011_111_0u16.to_le_bytes();
-	let mut r = SymbolReader::new(BYTES, BYTES.len() * u8::BITS as usize).unwrap();
-	// reverse order
+	const BYTES: [u8; 2] = 0b0_0_110_0_100_101_111_0u16.to_be_bytes();
+	let mut r = SymbolReader::new(&BYTES, BYTES.len() * u8::BITS as usize).unwrap();
 	assert_eq!(r.read(), Ok(Symbol::Continue));
-	assert_eq!(r.read(), Ok(Symbol::End));
-	assert_eq!(r.read(), Ok(Symbol::Left));
-	assert_eq!(r.read(), Ok(Symbol::Split));
 	assert_eq!(r.read(), Ok(Symbol::Continue));
 	assert_eq!(r.read(), Ok(Symbol::Right));
 	assert_eq!(r.read(), Ok(Symbol::Continue));
+	assert_eq!(r.read(), Ok(Symbol::Split));
+	assert_eq!(r.read(), Ok(Symbol::Left));
+	assert_eq!(r.read(), Ok(Symbol::End));
 	assert_eq!(r.read(), Ok(Symbol::Continue));
 	assert_eq!(r.read(), Err(BitCounterError::NotEnoughBits));
 }
