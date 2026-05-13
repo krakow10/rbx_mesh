@@ -8,7 +8,9 @@ mod v6;
 pub use v6::*;
 mod v7;
 pub use v7::*;
+#[cfg(feature = "csgphs-v8")]
 mod v8;
+#[cfg(feature = "csgphs-v8")]
 pub use v8::*;
 
 pub use super::csgk::CSGK;
