@@ -168,10 +168,10 @@ impl<'a> HullState<'a> {
 			current_edge = current_edge.prev();
 
 			let mut prev_edge = current_edge;
-			let prev_candidate_edge = candidate_edge.prev();
+			let candidate_prev_edge = candidate_edge.prev();
 
 			// rewrite the merged corner with the surviving (donor) vertex id
-			self.indices[current_edge.prev().idx()] = self.indices[prev_candidate_edge.idx()];
+			self.indices[current_edge.prev().idx()] = self.indices[candidate_prev_edge.idx()];
 
 			// propagate that vertex id around the rest of the merged fan
 			let mut connected_edge = self.adjacency[current_edge.idx()];
@@ -180,7 +180,7 @@ impl<'a> HullState<'a> {
 				&& candidate_edge != prev_edge
 			{
 				prev_edge = connected_edge_id.prev();
-				self.indices[prev_edge.prev().idx()] = self.indices[prev_candidate_edge.idx()];
+				self.indices[prev_edge.prev().idx()] = self.indices[candidate_prev_edge.idx()];
 				connected_edge = self.adjacency[prev_edge.idx()];
 			}
 
