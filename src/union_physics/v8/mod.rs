@@ -46,6 +46,18 @@ pub struct CSGPHS8Body {
 	pub positions: Vec<[f32; 3]>,
 }
 
+impl CSGPHS8Body {
+	pub fn hulls(&self) -> Result<Vec<Hull>, EdgebreakerError> {
+		decode_edgebreaker_hulls(
+			&self.clers_buffer,
+			self.clers_bit_count,
+			self.hull_count,
+			&self.positions,
+			self.faces_count,
+		)
+	}
+}
+
 fn parse_body<R: Read + Seek>(reader: &mut R, endian: Endian, _: ()) -> BinResult<CSGPHS8Body> {
 	// peek the next 4 bytes to detect a Zstd frame, then rewind
 	let body_start = reader.stream_position()?;
