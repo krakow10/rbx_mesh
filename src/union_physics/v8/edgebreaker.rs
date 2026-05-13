@@ -1,5 +1,5 @@
 use super::clers_symbol::{Symbol, SymbolReader};
-use bit_stream::BitCounterError;
+use super::bit_counter::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull {

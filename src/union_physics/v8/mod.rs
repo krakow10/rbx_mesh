@@ -1,3 +1,5 @@
+mod bit_counter;
+mod roblox_bit_reader;
 mod clers_symbol;
 mod edgebreaker;
 
@@ -64,8 +66,8 @@ pub struct Mesh8 {
 	pub positions: Vec<[f32; 3]>,
 }
 
-use crate::union_physics::v8::edgebreaker::Hull;
-use bit_stream::BitCounterError;
+use edgebreaker::Hull;
+use bit_counter::BitCounterError;
 
 impl Mesh8 {
 	pub fn hulls(&self) -> Result<Vec<Hull>, BitCounterError> {

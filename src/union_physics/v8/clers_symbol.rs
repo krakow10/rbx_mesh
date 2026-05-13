@@ -1,4 +1,5 @@
-use bit_stream::{BitCounterError, BitRead, CountedBitReaderRoblox};
+use super::bit_counter::{BitCounterError,BitCounter};
+use super::roblox_bit_reader::BitReaderRoblox;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Symbol {
@@ -12,11 +13,11 @@ pub enum Symbol {
 }
 
 pub struct SymbolReader<'a> {
-	bit_reader: CountedBitReaderRoblox<'a>,
+	bit_reader: BitCounter<BitReaderRoblox<'a>>,
 }
 impl<'a> SymbolReader<'a> {
 	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitCounterError> {
-		let bit_reader = CountedBitReaderRoblox::new_reader(bytes, bits)?;
+		let bit_reader = BitCounter::new_reader(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
 	pub fn read(&mut self) -> Result<Symbol, BitCounterError> {
