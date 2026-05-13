@@ -79,4 +79,15 @@ impl Mesh8 {
 			self.position_count,
 		)
 	}
+	#[cfg(test)]
+	pub(crate) fn decode_symbols(&self) -> Result<Vec<clers_symbol::Symbol>, BitCounterError> {
+		let mut symbols = Vec::new();
+		let mut symbol_reader =
+			clers_symbol::SymbolReader::new(&self.clers_buffer, self.clers_bit_count as usize)?;
+		// CLERS decoding
+		while let Ok(symbol) = symbol_reader.read() {
+			symbols.push(symbol)
+		}
+		Ok(symbols)
+	}
 }

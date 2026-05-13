@@ -34,6 +34,9 @@ fn csgphs_8() {
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 
+	let symbols = mesh.mesh.decode_symbols();
+	insta::assert_debug_snapshot!(symbols);
+
 	let hulls = mesh.mesh.hulls().unwrap();
 	insta::assert_debug_snapshot!(hulls);
 }
