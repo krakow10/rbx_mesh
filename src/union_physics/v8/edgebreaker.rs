@@ -93,10 +93,10 @@ impl Edge {
 	const PROCESSING: Self = Edge(-2);
 	fn meaning(self) -> EdgeMeaning {
 		match self {
+			Edge(id) if 0 <= id => EdgeMeaning::Adjacency(EdgeId(id as u32)),
 			Edge(-3) => EdgeMeaning::Sentinel(EdgeSentinel::Uninit),
 			Edge(-1) => EdgeMeaning::Sentinel(EdgeSentinel::Boundary),
 			Edge(-2) => EdgeMeaning::Sentinel(EdgeSentinel::Processing),
-			Edge(id) if id.is_positive() => EdgeMeaning::Adjacency(EdgeId(id as u32)),
 			_ => EdgeMeaning::Invalid,
 		}
 	}
