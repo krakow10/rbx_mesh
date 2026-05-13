@@ -178,7 +178,7 @@ fn decode_recursive(
 	state: &mut HullState,
 	bits: &mut BitReader,
 	mut cursor_edge: i32,
-) -> Result<bool, EdgebreakerError> {
+) -> Result<(), EdgebreakerError> {
 	loop {
 		// inf loop / stack overflow if bad format
 		// emit a new triangle and glue its edge 0 to cursor_edge as twins;
@@ -217,9 +217,7 @@ fn decode_recursive(
 			match (b2, b3) {
 				(false, false) => {
 					// S: split
-					if !decode_recursive(state, bits, cursor_edge)? {
-						return Ok(false);
-					}
+					decode_recursive(state, bits, cursor_edge)?;
 					cursor_edge += next_offset(cursor_edge);
 				}
 				(false, true) => {
@@ -241,7 +239,7 @@ fn decode_recursive(
 					let next_edge = cursor_edge + no;
 					state.adjacency[next_edge as usize] = SENTINEL_PROCESSING;
 					zip_boundary(state, next_edge);
-					return Ok(true);
+					return Ok(());
 				}
 			}
 		}
@@ -262,10 +260,7 @@ pub fn decode_edgebreaker_hulls(
 
 	for h in 0..hull_count {
 		let mut state = HullState::new(est_capacity);
-		let success = decode_recursive(&mut state, &mut bits, 1)?;
-		if !success {
-			return Err(EdgebreakerError::HullDecodeFailed { hull: h });
-		}
+		decode_recursive(&mut state, &mut bits, 1)?;
 
 		let triangle_capacity = (state.current_triangle as usize) + 1;
 		let mut triangles = Vec::with_capacity(triangle_capacity);
