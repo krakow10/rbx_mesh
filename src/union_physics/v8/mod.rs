@@ -66,8 +66,8 @@ pub struct Mesh8 {
 	pub positions: Vec<[f32; 3]>,
 }
 
-use bit_counter::BitCounterError;
-use edgebreaker::Hull;
+pub use bit_counter::BitCounterError;
+pub use edgebreaker::Hull;
 
 impl Mesh8 {
 	pub fn hulls(&self) -> Result<Vec<Hull>, BitCounterError> {
