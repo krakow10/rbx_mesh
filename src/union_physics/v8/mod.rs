@@ -1,7 +1,7 @@
 mod bit_counter;
-mod roblox_bit_reader;
 mod clers_symbol;
 mod edgebreaker;
+mod roblox_bit_reader;
 
 use binrw::BinReaderExt;
 
@@ -66,8 +66,8 @@ pub struct Mesh8 {
 	pub positions: Vec<[f32; 3]>,
 }
 
-use edgebreaker::Hull;
 use bit_counter::BitCounterError;
+use edgebreaker::Hull;
 
 impl Mesh8 {
 	pub fn hulls(&self) -> Result<Vec<Hull>, BitCounterError> {

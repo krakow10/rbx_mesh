@@ -1,4 +1,4 @@
-use super::bit_counter::{BitCounterError,BitCounter};
+use super::bit_counter::{BitCounter, BitCounterError};
 use super::roblox_bit_reader::BitReaderRoblox;
 
 #[derive(Debug, Eq, PartialEq)]
