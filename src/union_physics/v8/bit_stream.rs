@@ -40,12 +40,11 @@ impl<'a> BitReader<'a> {
 					self.cache_bits = Cache::BITS as usize;
 				}
 				None => {
-					let mut cache = Cache::MIN;
-					for (i, &byte) in self.chunks.remainder().iter().enumerate() {
-						cache |= (byte as Cache) << (i * u8::BITS as usize);
-					}
-					self.cache = cache;
-					self.cache_bits = self.chunks.remainder().len() * u8::BITS as usize;
+					let mut chunk = Cache::MIN.to_le_bytes();
+					let rem = self.chunks.remainder();
+					chunk[..rem.len()].copy_from_slice(rem);
+					self.cache = Cache::from_le_bytes(chunk);
+					self.cache_bits = rem.len() * u8::BITS as usize;
 				}
 			};
 		}
