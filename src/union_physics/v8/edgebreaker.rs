@@ -36,19 +36,19 @@ pub fn decode_clers_buffer(
 			hull_state.clear(cap);
 			hull_state.decode(EdgeId(1))?;
 
-			let mut triangles = Vec::with_capacity(hull_state.current_triangle as usize + 1);
+			let mut faces = Vec::with_capacity(hull_state.current_triangle as usize + 1);
 
 			for t in hull_state
 				.indices
 				.chunks_exact(3)
 				.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
 			{
-				triangles.push([t[0] + offset, t[1] + offset, t[2] + offset]);
+				faces.push([t[0] + offset, t[1] + offset, t[2] + offset]);
 			}
 
 			offset += hull_state.vertex_counter;
 
-			Ok(Hull { faces: triangles })
+			Ok(Hull { faces })
 		})
 		.collect::<Result<_, EdgebreakerError>>()?;
 
