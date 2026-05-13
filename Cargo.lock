@@ -39,6 +39,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit_stream"
+version = "0.1.0"
+
+[[package]]
 name = "bitflags"
 version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -258,6 +262,7 @@ name = "rbx_mesh"
 version = "0.7.0"
 dependencies = [
  "binrw",
+ "bit_stream",
  "insta",
  "regex",
  "ruzstd",

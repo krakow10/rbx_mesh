@@ -1,16 +1,5 @@
-use super::bit_stream::BitReaderError;
-use super::clers_symbol::{Symbol, SymbolError, SymbolReader};
-
-#[derive(Debug)]
-pub enum EdgebreakerError {
-	BitReader(BitReaderError),
-	Symbol(SymbolError),
-}
-impl From<BitReaderError> for EdgebreakerError {
-	fn from(value: BitReaderError) -> Self {
-		EdgebreakerError::BitReader(value)
-	}
-}
+use super::clers_symbol::{Symbol, SymbolReader};
+use bit_stream::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull {
@@ -23,7 +12,7 @@ pub fn decode_clers_buffer(
 	hull_count: u32,
 	face_count: u32,
 	position_count: u32,
-) -> Result<Vec<Hull>, EdgebreakerError> {
+) -> Result<Vec<Hull>, BitCounterError> {
 	let symbol_reader = SymbolReader::new(bytes, bits)?;
 	// F + V = E + 2
 	let cap = (face_count + position_count - 2).max(3) as usize;
@@ -50,7 +39,7 @@ pub fn decode_clers_buffer(
 
 			Ok(Hull { faces })
 		})
-		.collect::<Result<_, EdgebreakerError>>()?;
+		.collect::<Result<_, BitCounterError>>()?;
 
 	Ok(hulls)
 }
@@ -197,7 +186,7 @@ impl<'a> HullState<'a> {
 		current_edge
 	}
 	// recursive function that matches symbols S and E like parentheses
-	fn decode(&mut self, mut cursor: EdgeId) -> Result<(), EdgebreakerError> {
+	fn decode(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
 		loop {
 			self.current_triangle += 1;
 			let current_triangle = self.current_triangle;
@@ -216,10 +205,7 @@ impl<'a> HullState<'a> {
 
 			cursor = current_edge_0.next();
 
-			let symbol = self
-				.symbol_reader
-				.read()
-				.map_err(EdgebreakerError::Symbol)?;
+			let symbol = self.symbol_reader.read()?;
 
 			match symbol {
 				Symbol::Continue => {

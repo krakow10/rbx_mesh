@@ -24,10 +24,11 @@ union-physics = []
 # mesh v1 is rare and depends on regex
 mesh-v1 = ["mesh", "dep:regex"]
 # union physics v8 depends on zstd
-csgphs-v8 = ["union-physics", "dep:ruzstd"]
+csgphs-v8 = ["union-physics", "dep:ruzstd", "dep:bit_stream"]
 
 [dependencies]
 binrw = "0.15.0"
+bit_stream = { version = "0.1.0", path = "../../git/bit_stream", optional = true }
 regex = { version = "1.11.3", default-features = false, optional = true }
 ruzstd = { version = "0.8.2", default-features = false, features = ["std"], optional = true }
 

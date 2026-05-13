@@ -1,9 +1,4 @@
-use super::bit_stream::{BitReader, BitReaderError};
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum SymbolError {
-	NotEnoughBits,
-}
+use bit_stream::{BitCounterError, BitRead, CountedBitReaderLe};
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Symbol {
@@ -17,18 +12,18 @@ pub enum Symbol {
 }
 
 pub struct SymbolReader<'a> {
-	bit_reader: BitReader<'a>,
+	bit_reader: CountedBitReaderLe<'a>,
 }
 impl<'a> SymbolReader<'a> {
-	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitReaderError> {
-		let bit_reader = BitReader::new(bytes, bits)?;
+	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitCounterError> {
+		let bit_reader = CountedBitReaderLe::new_reader(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
-	pub fn read(&mut self) -> Result<Symbol, SymbolError> {
-		if self.bit_reader.read(1).ok_or(SymbolError::NotEnoughBits)? == 0 {
+	pub fn read(&mut self) -> Result<Symbol, BitCounterError> {
+		if self.bit_reader.read(1)? == 0 {
 			return Ok(Symbol::Continue);
 		}
-		let bits = self.bit_reader.read(2).ok_or(SymbolError::NotEnoughBits)?;
+		let bits = self.bit_reader.read(2)?;
 		Ok(match (bits & 0b10 != 0, bits & 0b01 != 0) {
 			(false, false) => Symbol::Split,
 			(false, true) => Symbol::Left,
@@ -52,5 +47,5 @@ fn read_symbols() {
 	assert_eq!(r.read(), Ok(Symbol::Right));
 	assert_eq!(r.read(), Ok(Symbol::Continue));
 	assert_eq!(r.read(), Ok(Symbol::Continue));
-	assert_eq!(r.read(), Err(SymbolError::NotEnoughBits));
+	assert_eq!(r.read(), Err(BitCounterError::NotEnoughBits));
 }

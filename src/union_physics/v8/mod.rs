@@ -1,4 +1,3 @@
-mod bit_stream;
 mod clers_symbol;
 mod edgebreaker;
 
@@ -65,10 +64,11 @@ pub struct Mesh8 {
 	pub positions: Vec<[f32; 3]>,
 }
 
-use crate::union_physics::v8::edgebreaker::{EdgebreakerError, Hull};
+use crate::union_physics::v8::edgebreaker::Hull;
+use bit_stream::BitCounterError;
 
 impl Mesh8 {
-	pub fn hulls(&self) -> Result<Vec<Hull>, EdgebreakerError> {
+	pub fn hulls(&self) -> Result<Vec<Hull>, BitCounterError> {
 		edgebreaker::decode_clers_buffer(
 			&self.clers_buffer,
 			self.clers_bit_count as usize,
