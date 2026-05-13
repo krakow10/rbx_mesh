@@ -31,7 +31,7 @@ impl<'a> BitReader<'a> {
 
 		// popluate cache with enough bits to fill value
 		while self.cache_bits + value_bits < bits {
-			value += self.cache.unbounded_shl(value_bits as u32);
+			value |= self.cache.unbounded_shl(value_bits as u32);
 			value_bits += self.cache_bits;
 
 			match self.chunks.next() {
@@ -53,7 +53,7 @@ impl<'a> BitReader<'a> {
 		// populate value with cached bits
 		let draw_bits = bits - value_bits;
 		let mask = (1 as Cache).unbounded_shl(draw_bits as u32).wrapping_sub(1);
-		value += (self.cache & mask).unbounded_shl(value_bits as u32);
+		value |= (self.cache & mask).unbounded_shl(value_bits as u32);
 		self.cache = self.cache.unbounded_shr(draw_bits as u32);
 		self.cache_bits -= draw_bits;
 		Some(value)
