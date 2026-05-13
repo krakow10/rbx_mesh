@@ -1,7 +1,6 @@
 pub type Cache = u32;
 
-/// Read bits from the slice in order. Bits are read as if
-/// from each byte, starting from the least significant bit.
+/// Read bits in the same inconsistent manner as Roblox.
 #[derive(Debug, Clone)]
 pub struct BitReaderRoblox<'a> {
 	chunks: core::slice::ChunksExact<'a, u8>,
@@ -33,6 +32,8 @@ impl<'a> BitReaderRoblox<'a> {
 					self.cache_bits = Cache::BITS as usize;
 				}
 				None => {
+					// the clers buffer is always a multiple of four bytes so this is effectively dead code,
+					// but it would looks something like this depending on how roblox implements it.
 					let mut chunk = [0; _];
 					let rem = self.chunks.remainder();
 					chunk[size_of::<Cache>() - rem.len()..].copy_from_slice(rem);
