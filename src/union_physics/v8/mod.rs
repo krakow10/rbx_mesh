@@ -46,6 +46,17 @@ pub struct CSGPHS8Body {
 	pub positions: Vec<[f32; 3]>,
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum Symbol {
+	// 1 bit
+	Continue, // 0b_0
+	// 3 bits
+	Split, // 0b00_1
+	Left,  // 0b01_1
+	Right, // 0b10_1
+	End,   // 0b11_1
+}
+
 impl CSGPHS8Body {
 	pub fn hulls(&self) -> Result<Vec<Hull>, EdgebreakerError> {
 		decode_edgebreaker_hulls(
@@ -55,6 +66,27 @@ impl CSGPHS8Body {
 			&self.positions,
 			self.faces_count,
 		)
+	}
+	pub fn decode_symbols(&self) -> Result<Vec<Symbol>, EdgebreakerError> {
+		let mut symbols = Vec::new();
+		let mut bits = edgebreaker::BitReader::new(&self.clers_buffer, self.clers_bit_count)?;
+		// CLERS decoding
+		while let Ok(bit) = bits.read_bit() {
+			let symbol = if bit == 0 {
+				Symbol::Continue
+			} else {
+				let b2 = bits.read_bit()? != 0;
+				let b3 = bits.read_bit()? != 0;
+				match (b2, b3) {
+					(false, false) => Symbol::Split,
+					(false, true) => Symbol::Left,
+					(true, false) => Symbol::Right,
+					(true, true) => Symbol::End,
+				}
+			};
+			symbols.push(symbol);
+		}
+		Ok(symbols)
 	}
 }
 

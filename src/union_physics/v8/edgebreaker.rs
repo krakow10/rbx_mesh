@@ -25,13 +25,13 @@ const SENTINEL_UNINIT: i32 = -3;
 const SENTINEL_BOUNDARY: i32 = -1;
 const SENTINEL_PROCESSING: i32 = -2;
 
-struct BitReader<'a> {
+pub struct BitReader<'a> {
 	words: &'a [u32],
 	bit_pos: u32,
 	total_bits: u32,
 }
 impl<'a> BitReader<'a> {
-	fn new(words: &'a [u32], total_bits: u32) -> Result<Self, EdgebreakerError> {
+	pub fn new(words: &'a [u32], total_bits: u32) -> Result<Self, EdgebreakerError> {
 		if (total_bits.div_ceil(32) as usize) > words.len() {
 			return Err(EdgebreakerError::BitstreamTruncated);
 		}
@@ -43,7 +43,7 @@ impl<'a> BitReader<'a> {
 	}
 
 	#[inline]
-	fn read_bit(&mut self) -> Result<u32, EdgebreakerError> {
+	pub fn read_bit(&mut self) -> Result<u32, EdgebreakerError> {
 		if self.bit_pos >= self.total_bits {
 			return Err(EdgebreakerError::BitstreamUnderflow);
 		}

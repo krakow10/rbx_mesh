@@ -28,6 +28,9 @@ fn csgphs_8() {
 	let mesh = readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 
+	let symbols = mesh.body.decode_symbols();
+	insta::assert_debug_snapshot!(symbols);
+
 	let hulls = mesh.body.hulls();
 	insta::assert_debug_snapshot!(hulls);
 }
