@@ -42,7 +42,7 @@ impl<'a> SymbolReader<'a> {
 fn read_symbols() {
 	// C_C_R_C_S_L_E_C
 	const BYTES: &[u8] = &0b0_0_101_0_001_011_111_0u16.to_le_bytes();
-	let mut r = SymbolReader::new(BYTES, BYTES.len() * 8).unwrap();
+	let mut r = SymbolReader::new(BYTES, BYTES.len() * u8::BITS as usize).unwrap();
 	// reverse order
 	assert_eq!(r.read(), Ok(Symbol::Continue));
 	assert_eq!(r.read(), Ok(Symbol::End));
