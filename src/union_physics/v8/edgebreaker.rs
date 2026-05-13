@@ -111,9 +111,7 @@ impl HullState {
 	}
 }
 
-fn zip_boundary(state: &mut HullState, cursor_in: i32) -> i32 {
-	let mut current_edge = cursor_in;
-
+fn zip_boundary(state: &mut HullState, mut current_edge: i32) -> i32 {
 	// loop while a SENTINEL_PROCESSING edge still needs to be paired
 	// inf loop if bad format
 	while state.adjacency[current_edge as usize] == SENTINEL_PROCESSING {
