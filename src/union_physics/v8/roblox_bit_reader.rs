@@ -45,7 +45,7 @@ impl<'a> BitReaderRoblox<'a> {
 	pub fn read(&mut self, bits: usize) -> Result<Cache, BitCounterError> {
 		debug_assert!(bits <= Cache::BITS as usize);
 
-		// popluate cache with enough bits to fill value
+		// replace cache if we need more bits
 		let mut value = if self.cache.bits() < bits {
 			let draw_bits = self.bit_count.min(BitBuffer::CAPACITY);
 			self.bit_count -= draw_bits;
@@ -61,13 +61,12 @@ impl<'a> BitReaderRoblox<'a> {
 			BitBuffer::empty()
 		};
 
-		// populate value with cached bits
 		let draw_bits = bits - value.bits();
-
 		if self.cache.bits() < draw_bits {
 			return Err(BitCounterError::NotEnoughBits);
 		}
 
+		// populate value with cached bits
 		value.push_lsb(draw_bits, self.cache.pop_msb(draw_bits));
 		Ok(value.value())
 	}
