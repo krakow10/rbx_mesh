@@ -40,6 +40,7 @@ fn read_symbols() {
 	// 4 C_C_R_C_S_L_E_C
 	// 3     R_C_S_L_E_C
 	// BYTES are read in the order 4,3,2,1, 8,7,6,5 msb-first
+	#[rustfmt::skip]
 	const BYTES: [u8; 8] = [
 		0b0_101_111_0,0b0_0_110_0_10,// [4, 3]
 		0b0_101_111_0,0b0_0_110_0_10,// [2, 1]
