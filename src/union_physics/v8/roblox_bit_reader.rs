@@ -44,19 +44,17 @@ impl<'a> BitReaderRoblox<'a> {
 	}
 	pub fn read(&mut self, bits: usize) -> Result<Cache, BitCounterError> {
 		debug_assert!(bits <= Cache::BITS as usize);
-		let remaining = self.bit_count;
-		self.bit_count = remaining
-			.checked_sub(bits)
-			.ok_or(BitCounterError::NotEnoughBits)?;
 
 		// popluate cache with enough bits to fill value
 		let mut value = if self.cache.bits() < bits {
+			let draw_bits = self.bit_count.min(BitBuffer::CAPACITY);
+			self.bit_count -= draw_bits;
 			core::mem::replace(
 				&mut self.cache,
 				BitBuffer::new(
 					self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
 					// bits are lsb-aligned
-					remaining.min(BitBuffer::CAPACITY),
+					draw_bits,
 				),
 			)
 		} else {
