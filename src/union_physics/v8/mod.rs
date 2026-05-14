@@ -66,8 +66,8 @@ pub struct Mesh8 {
 	pub positions: Vec<[f32; 3]>,
 }
 
-pub use roblox_bit_reader::BitCounterError;
 pub use edgebreaker::Hull;
+pub use roblox_bit_reader::BitCounterError;
 
 impl Mesh8 {
 	pub fn hulls(&self) -> Result<Vec<Hull>, BitCounterError> {

@@ -1,5 +1,5 @@
-use super::roblox_bit_reader::BitCounterError;
 use super::clers_symbol::{Symbol, SymbolReader};
+use super::roblox_bit_reader::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull {
