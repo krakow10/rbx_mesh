@@ -125,9 +125,12 @@ impl binrw::BinRead for Faces5 {
 				}
 				for (i, marker) in it {
 					if marker < last_marker {
-						return Err(Error::Custom{
+						return Err(Error::Custom {
 							pos,
-							err:Box::new(format!("Marker {i} (value {marker}) is less than marker {} (value {last_marker})",i-1)),
+							err: Box::new(format!(
+								"Marker {i} (value {marker}) is less than marker {} (value {last_marker})",
+								i - 1
+							)),
 						});
 					}
 					if indices.len() < (marker as usize) {
