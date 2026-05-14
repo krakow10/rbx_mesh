@@ -37,6 +37,6 @@ fn csgphs_8() {
 	let symbols = mesh.body.decode_symbols();
 	insta::assert_debug_snapshot!(symbols);
 
-	let hulls = mesh.body.hulls();
+	let hulls = mesh.body.hulls().unwrap();
 	insta::assert_debug_snapshot!(hulls);
 }
