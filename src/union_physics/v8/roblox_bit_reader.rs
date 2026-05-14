@@ -63,6 +63,11 @@ impl<'a> BitReaderRoblox<'a> {
 
 		// populate value with cached bits
 		let draw_bits = bits - value.bits();
+
+		if self.cache.bits() < draw_bits {
+			return Err(BitCounterError::NotEnoughBits);
+		}
+
 		value.push_lsb(draw_bits, self.cache.pop_msb(draw_bits));
 		Ok(value.value())
 	}
