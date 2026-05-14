@@ -260,6 +260,7 @@ dependencies = [
  "binrw",
  "insta",
  "regex",
+ "ruzstd",
 ]
 
 [[package]]
@@ -299,6 +300,12 @@ dependencies = [
  "linux-raw-sys",
  "windows-sys",
 ]
+
+[[package]]
+name = "ruzstd"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5ff0cc5e135c8870a775d3320910cd9b564ec036b4dc0b8741629020be63f01"
 
 [[package]]
 name = "semver"

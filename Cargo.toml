@@ -15,6 +15,7 @@ default = [
 	"union-graphics",
 	"union-physics",
 	"mesh-v1",
+	"csgphs-v8",
 ]
 mesh = []
 union-graphics = []
@@ -22,10 +23,13 @@ union-physics = []
 
 # mesh v1 is rare and depends on regex
 mesh-v1 = ["mesh", "dep:regex"]
+# union physics v8 depends on zstd
+csgphs-v8 = ["union-physics", "dep:ruzstd"]
 
 [dependencies]
 binrw = "0.15.0"
 regex = { version = "1.11.3", default-features = false, optional = true }
+ruzstd = { version = "0.8.2", default-features = false, features = ["std"], optional = true }
 
 [dev-dependencies]
 insta = "1.47.2"
