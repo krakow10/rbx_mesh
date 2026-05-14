@@ -65,7 +65,7 @@ impl std::str::FromStr for Revision1 {
 		Ok(match s {
 			"version 1.00" => Self::Version100,
 			"version 1.01" => Self::Version101,
-			_ => return Err(Error1::Header.into()),
+			_ => return Err(Error1::Header),
 		})
 	}
 }
