@@ -18,12 +18,10 @@ pub fn decode_clers_buffer(
 	let cap = (face_count + position_count - 2).max(3) as usize;
 	let mut hull_state = HullState::new(symbol_reader, cap);
 
-	let mut offset = 0;
-
 	let hulls = (0..hull_count)
 		.map(|_| {
-			hull_state.clear(cap);
-			hull_state.decode(EdgeId(1))?;
+			let start_edge = hull_state.init();
+			hull_state.decode(start_edge)?;
 
 			let mut faces = Vec::with_capacity(hull_state.current_triangle as usize + 1);
 
@@ -32,10 +30,8 @@ pub fn decode_clers_buffer(
 				.chunks_exact(3)
 				.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
 			{
-				faces.push([t[0] + offset, t[1] + offset, t[2] + offset]);
+				faces.push([t[0], t[1], t[2]]);
 			}
-
-			offset += hull_state.vertex_counter;
 
 			Ok(Hull { faces })
 		})
@@ -110,22 +106,21 @@ impl<'a> HullState<'a> {
 	fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
 		Self {
 			symbol_reader,
-			adjacency: Vec::with_capacity(cap),
-			indices: Vec::with_capacity(cap),
+			adjacency: vec![Edge::UNINIT; cap],
+			indices: vec![0; cap],
 			current_triangle: 0,
 			vertex_counter: 2,
 		}
 	}
-	fn clear(&mut self, cap: usize) {
-		self.adjacency.clear();
-		self.adjacency
-			.extend_from_slice(&[Edge::BOUNDARY, Edge::UNINIT, Edge::BOUNDARY]);
-		self.adjacency.resize(cap, Edge::UNINIT);
-		self.indices.clear();
-		self.indices.extend_from_slice(&[0, 1, 2]);
-		self.indices.resize(cap, 0);
-		self.current_triangle = 0;
-		self.vertex_counter = 2;
+	fn init(&mut self) -> EdgeId {
+		let edge = 3 * self.current_triangle as usize;
+		self.adjacency[edge..edge + 3].copy_from_slice(&[
+			Edge::BOUNDARY,
+			Edge::UNINIT,
+			Edge::BOUNDARY,
+		]);
+		self.indices[edge..edge + 3].copy_from_slice(&[0, 1, 2]);
+		EdgeId(edge as u32 + 1)
 	}
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
 		// loop while a SENTINEL_PROCESSING edge still needs to be paired
