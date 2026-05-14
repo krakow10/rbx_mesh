@@ -1,60 +1,71 @@
-pub type Cache = u32;
+use super::bit_buffer::{BitBuffer, Cache};
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum BitCounterError {
+	NotEnoughBytes,
+	InvalidBytesLen,
+	NotEnoughBits,
+}
+impl core::fmt::Display for BitCounterError {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		write!(f, "{self:?}")
+	}
+}
+impl core::error::Error for BitCounterError {}
+
+const CHUNK_SIZE: usize = size_of::<Cache>();
 
 /// Read bits in the same inconsistent manner as Roblox.
 #[derive(Debug, Clone)]
 pub struct BitReaderRoblox<'a> {
-	chunks: core::slice::ChunksExact<'a, u8>,
-	cache: Cache,
-	cache_bits: usize,
+	chunks: core::slice::Iter<'a, [u8; CHUNK_SIZE]>,
+	cache: BitBuffer,
+	bit_count: usize,
 }
 impl<'a> BitReaderRoblox<'a> {
-	pub fn new(bytes: &'a [u8]) -> Self {
-		Self {
-			chunks: bytes.chunks_exact(size_of::<Cache>()),
-			cache: 0,
-			cache_bits: 0,
+	pub fn new(bytes: &'a [u8], bit_count_limit: usize) -> Result<Self, BitCounterError> {
+		if (bytes.len() * u8::BITS as usize) < bit_count_limit {
+			return Err(BitCounterError::NotEnoughBytes);
 		}
-	}
-	pub fn read(&mut self, bits: usize) -> Cache {
-		debug_assert!(bits <= Cache::BITS as usize);
+		let (chunks, rem) = (bytes.len() / CHUNK_SIZE, bytes.len() % CHUNK_SIZE);
+		if rem != 0 {
+			return Err(BitCounterError::InvalidBytesLen);
+		}
 
-		let mut value: Cache = 0;
-		let mut value_bits = 0;
+		let chunks_ptr = bytes.as_ptr().cast();
+		// SAFETY: we checked that chunks * CHUNK_SIZE == bytes.len() above
+		let chunks = unsafe { core::slice::from_raw_parts(chunks_ptr, chunks) };
+
+		Ok(Self {
+			chunks: chunks.iter(),
+			cache: BitBuffer::empty(),
+			bit_count: bit_count_limit,
+		})
+	}
+	pub fn read(&mut self, bits: usize) -> Result<Cache, BitCounterError> {
+		debug_assert!(bits <= Cache::BITS as usize);
+		let remaining = self.bit_count;
+		self.bit_count = remaining
+			.checked_sub(bits)
+			.ok_or(BitCounterError::NotEnoughBits)?;
 
 		// popluate cache with enough bits to fill value
-		while self.cache_bits + value_bits < bits {
-			value = value.unbounded_shl(self.cache_bits as u32) | self.cache;
-			value_bits += self.cache_bits;
-
-			match self.chunks.next() {
-				Some(chunk) => {
-					self.cache = Cache::from_le_bytes(chunk.try_into().unwrap());
-					self.cache_bits = Cache::BITS as usize;
-				}
-				None => {
-					// the clers buffer is always a multiple of four bytes so this is effectively dead code,
-					// but it would looks something like this depending on how roblox implements it.
-					let mut chunk = [0; _];
-					let rem = self.chunks.remainder();
-					chunk[size_of::<Cache>() - rem.len()..].copy_from_slice(rem);
-					self.chunks = [].chunks_exact(size_of::<Cache>());
-					self.cache = Cache::from_le_bytes(chunk);
-					self.cache_bits = rem.len() * u8::BITS as usize;
-				}
-			};
-		}
+		let mut value = if self.cache.bits() < bits {
+			core::mem::replace(
+				&mut self.cache,
+				BitBuffer::new(
+					self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
+					// bits are lsb-aligned
+					remaining.min(BitBuffer::CAPACITY),
+				),
+			)
+		} else {
+			BitBuffer::empty()
+		};
 
 		// populate value with cached bits
-		let draw_bits = bits - value_bits;
-		let mask = (1 as Cache).unbounded_shl(draw_bits as u32).wrapping_sub(1);
-		value = (value << draw_bits) | (self.cache >> (self.cache_bits - draw_bits));
-		self.cache &= !mask.unbounded_shl((self.cache_bits - draw_bits) as u32);
-		self.cache_bits -= draw_bits;
-		value
-	}
-}
-impl<'a> From<&'a [u8]> for BitReaderRoblox<'a> {
-	fn from(value: &'a [u8]) -> Self {
-		Self::new(value)
+		let draw_bits = bits - value.bits();
+		value.push_lsb(draw_bits, self.cache.pop_msb(draw_bits));
+		Ok(value.value())
 	}
 }
