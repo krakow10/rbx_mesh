@@ -84,3 +84,19 @@ fn read_symbols() {
 	assert_eq!(r.read(), Ok(Symbol::Continue));
 	assert_eq!(r.read(), Err(BitCounterError::NotEnoughBits));
 }
+#[test]
+fn empirical() {
+	const BYTES: [u8; 4] = [183, 219, 55, 0];
+	let mut r = SymbolReader::new(&BYTES, 22).unwrap();
+	// dump partial symbol
+	assert_eq!(r.bit_reader.read(1), Ok(1));
+
+	assert_eq!(r.read(), Ok(Symbol::Left));
+	assert_eq!(r.read(), Ok(Symbol::End));
+	assert_eq!(r.read(), Ok(Symbol::Left));
+	assert_eq!(r.read(), Ok(Symbol::Left));
+	assert_eq!(r.read(), Ok(Symbol::Right));
+	assert_eq!(r.read(), Ok(Symbol::Right));
+	assert_eq!(r.read(), Ok(Symbol::End));
+	assert_eq!(r.read(), Err(BitCounterError::NotEnoughBits));
+}
