@@ -33,29 +33,6 @@ impl BitBuffer {
 		self.buffer = self.buffer.unbounded_shl(bits as u32) | value;
 		self.bits += bits;
 	}
-	/// Push `bits` bits into the msb of buffer
-	/// Assumes non-active bits in value are zeroed
-	pub const fn push_msb(&mut self, bits: usize, value: Cache) {
-		// enough room for bits
-		debug_assert!(self.bits + bits <= Self::CAPACITY);
-
-		// no nasty high bits
-		debug_assert!(value & !(1 as Cache).unbounded_shl(bits as u32).wrapping_sub(1) == 0);
-
-		self.buffer |= value.unbounded_shl(self.bits as u32);
-		self.bits += bits;
-	}
-	/// Pop `bits` bits from the lsb of buffer
-	pub const fn pop_lsb(&mut self, bits: usize) -> Cache {
-		// enough available bits
-		debug_assert!(bits <= self.bits);
-
-		let mask = (1 as Cache).unbounded_shl(bits as u32).wrapping_sub(1);
-		let value = self.buffer & mask;
-		self.buffer = self.buffer.unbounded_shr(bits as u32);
-		self.bits -= bits;
-		value
-	}
 	/// Pop `bits` bits from the msb of buffer
 	pub const fn pop_msb(&mut self, bits: usize) -> Cache {
 		// enough available bits
@@ -81,40 +58,4 @@ fn test_fifo_lsb() {
 	assert_eq!(b.pop_msb(8), 's' as Cache);
 	assert_eq!(b.pop_msb(8), 'd' as Cache);
 	assert_eq!(b.pop_msb(8), 'f' as Cache);
-}
-#[test]
-fn test_fifo_msb() {
-	let mut b = BitBuffer::empty();
-	b.push_msb(8, 'a' as Cache);
-	b.push_msb(8, 's' as Cache);
-	b.push_msb(8, 'd' as Cache);
-	b.push_msb(8, 'f' as Cache);
-	assert_eq!(b.pop_lsb(8), 'a' as Cache);
-	assert_eq!(b.pop_lsb(8), 's' as Cache);
-	assert_eq!(b.pop_lsb(8), 'd' as Cache);
-	assert_eq!(b.pop_lsb(8), 'f' as Cache);
-}
-#[test]
-fn test_filo_lsb() {
-	let mut b = BitBuffer::empty();
-	b.push_lsb(8, 'a' as Cache);
-	b.push_lsb(8, 's' as Cache);
-	b.push_lsb(8, 'd' as Cache);
-	b.push_lsb(8, 'f' as Cache);
-	assert_eq!(b.pop_lsb(8), 'f' as Cache);
-	assert_eq!(b.pop_lsb(8), 'd' as Cache);
-	assert_eq!(b.pop_lsb(8), 's' as Cache);
-	assert_eq!(b.pop_lsb(8), 'a' as Cache);
-}
-#[test]
-fn test_filo_msb() {
-	let mut b = BitBuffer::empty();
-	b.push_msb(8, 'a' as Cache);
-	b.push_msb(8, 's' as Cache);
-	b.push_msb(8, 'd' as Cache);
-	b.push_msb(8, 'f' as Cache);
-	assert_eq!(b.pop_msb(8), 'f' as Cache);
-	assert_eq!(b.pop_msb(8), 'd' as Cache);
-	assert_eq!(b.pop_msb(8), 's' as Cache);
-	assert_eq!(b.pop_msb(8), 'a' as Cache);
 }
