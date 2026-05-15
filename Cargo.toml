@@ -1,14 +1,31 @@
 [package]
 name = "rbx_mesh"
-version = "0.5.1"
-edition = "2021"
+version = "0.7.0"
+edition = "2024"
 repository = "https://github.com/krakow10/rbx_mesh"
 license = "MIT OR Apache-2.0"
 description = "Rust parser for Roblox mesh files."
 authors = ["Rhys Lloyd <krakow20@gmail.com>"]
-exclude = ["meshes"]
+exclude = ["meshes", "src/test/snapshots"]
 keywords = ["roblox", "mesh", "parser", "decoder", "union"]
+
+[features]
+default = [
+	"mesh",
+	"union-graphics",
+	"union-physics",
+	"mesh-v1",
+]
+mesh = []
+union-graphics = []
+union-physics = []
+
+# mesh v1 is rare and depends on regex
+mesh-v1 = ["mesh", "dep:regex"]
 
 [dependencies]
 binrw = "0.15.0"
-regex = { version = "1.11.3", default-features = false }
+regex = { version = "1.11.3", default-features = false, optional = true }
+
+[dev-dependencies]
+insta = "1.47.2"
