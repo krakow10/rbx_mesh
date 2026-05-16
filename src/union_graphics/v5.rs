@@ -85,7 +85,7 @@ impl binrw::BinRead for Faces5 {
 						// 64..127 is mapped to -64..-1
 						(v0 - 0b10_000000) as i32 as u32
 					}
-					0b10_000000..=0b11_000000 => {
+					0b10_000000..=0b11_111111 => {
 						let v1 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 						let v2 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 						u32::from_le_bytes([v2, v1, v0 & 0b01_111111, 0])
