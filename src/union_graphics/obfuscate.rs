@@ -1,9 +1,6 @@
 use std::io::{Read, Seek, Write};
 
-const OBFUSCATION_NOISE_CYCLE_XOR: [u8; 31] = [
-	86, 46, 110, 88, 49, 32, 48, 4, 52, 105, 12, 119, 12, 1, 94, 0, 26, 96, 55, 105, 29, 82, 43, 7,
-	79, 36, 89, 101, 83, 4, 122,
-];
+pub const OBFUSCATION_NOISE_CYCLE_XOR: [u8; 31] = *b"\x56\x2E\x6E\x58\x31\x20\x30\x04\x34\x69\x0C\x77\x0C\x01\x5E\x00\x1A\x60\x37\x69\x1D\x52\x2B\x07\x4F\x24\x59\x65\x53\x04\x7A";
 fn reversible_obfuscate(offset: u64, buf: &mut [u8]) {
 	const LEN: u64 = OBFUSCATION_NOISE_CYCLE_XOR.len() as u64;
 	for (i, b) in buf.iter_mut().enumerate() {
