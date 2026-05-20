@@ -218,6 +218,7 @@ impl<'a> HullState<'a> {
 		let faces = self
 			.indices
 			.chunks_exact(3)
+			.take(self.current_triangle as usize + 1)
 			.map(|t| [t[0] + offset, t[1] + offset, t[2] + offset])
 			.collect();
 
