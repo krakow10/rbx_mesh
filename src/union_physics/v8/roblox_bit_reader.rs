@@ -17,12 +17,12 @@ const CHUNK_SIZE: usize = size_of::<Cache>();
 
 /// Read bits in the same inconsistent manner as Roblox.
 #[derive(Debug, Clone)]
-pub struct BitReaderRoblox<'a> {
+pub struct RobloxBitReader<'a> {
 	chunks: core::slice::Iter<'a, [u8; CHUNK_SIZE]>,
 	cache: BitBuffer,
 	bit_count: usize,
 }
-impl<'a> BitReaderRoblox<'a> {
+impl<'a> RobloxBitReader<'a> {
 	pub fn new(bytes: &'a [u8], bit_count_limit: usize) -> Result<Self, BitCounterError> {
 		if (bytes.len() * u8::BITS as usize) < bit_count_limit {
 			return Err(BitCounterError::NotEnoughBytes);
