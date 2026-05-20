@@ -84,7 +84,7 @@ impl Mesh8 {
 		Ok((0..self.hull_count).map(move |_| {
 			let hull = hull_state.decode_hull(cap, offset)?;
 
-			offset += hull_state.vertex_counter();
+			offset += hull_state.vertex_counter() + 1;
 
 			Ok(hull)
 		}))
