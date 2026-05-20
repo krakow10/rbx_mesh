@@ -37,6 +37,11 @@ fn csgphs_8() {
 	let symbols = mesh.mesh.decode_symbols();
 	insta::assert_debug_snapshot!(symbols);
 
-	let hulls = mesh.mesh.hulls().unwrap();
+	let hulls = mesh
+		.mesh
+		.hulls()
+		.unwrap()
+		.collect::<Result<Vec<_>, _>>()
+		.unwrap();
 	insta::assert_debug_snapshot!(hulls);
 }

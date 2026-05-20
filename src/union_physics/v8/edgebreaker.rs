@@ -6,44 +6,6 @@ pub struct Hull {
 	pub faces: Vec<[u32; 3]>,
 }
 
-pub fn decode_clers_buffer(
-	bytes: &[u8],
-	bits: usize,
-	hull_count: u32,
-	face_count: u32,
-	position_count: u32,
-) -> Result<Vec<Hull>, BitCounterError> {
-	let symbol_reader = SymbolReader::new(bytes, bits)?;
-	// F + V = E + 2
-	let cap = (face_count + position_count - 2).max(3) as usize;
-	let mut hull_state = HullState::new(symbol_reader, cap);
-
-	let mut offset = 0;
-
-	let hulls = (0..hull_count)
-		.map(|_| {
-			hull_state.clear(cap);
-			hull_state.decode(EdgeId(1))?;
-
-			let mut faces = Vec::with_capacity(hull_state.current_triangle as usize + 1);
-
-			for t in hull_state
-				.indices
-				.chunks_exact(3)
-				.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
-			{
-				faces.push([t[0] + offset, t[1] + offset, t[2] + offset]);
-			}
-
-			offset += hull_state.vertex_counter;
-
-			Ok(Hull { faces })
-		})
-		.collect::<Result<_, BitCounterError>>()?;
-
-	Ok(hulls)
-}
-
 // non-negative edge id
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct EdgeId(u32);
@@ -106,7 +68,7 @@ impl From<EdgeId> for Edge {
 	}
 }
 
-struct HullState<'a> {
+pub struct HullState<'a> {
 	symbol_reader: SymbolReader<'a>,
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
 	adjacency: Vec<Edge>,
@@ -117,7 +79,7 @@ struct HullState<'a> {
 }
 
 impl<'a> HullState<'a> {
-	fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
+	pub fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
 		Self {
 			symbol_reader,
 			adjacency: Vec::with_capacity(cap),
@@ -126,7 +88,10 @@ impl<'a> HullState<'a> {
 			vertex_counter: 2,
 		}
 	}
-	fn clear(&mut self, cap: usize) {
+	pub const fn vertex_counter(&self) -> u32 {
+		self.vertex_counter
+	}
+	pub fn clear(&mut self, cap: usize) {
 		self.adjacency.clear();
 		self.adjacency
 			.extend_from_slice(&[Edge::BOUNDARY, Edge::UNINIT, Edge::BOUNDARY]);
@@ -196,7 +161,7 @@ impl<'a> HullState<'a> {
 		current_edge
 	}
 	// recursive function that matches symbols S and E like parentheses
-	fn decode(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
+	fn decode_recursive(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
 		loop {
 			self.current_triangle += 1;
 			let current_triangle = self.current_triangle;
@@ -224,7 +189,7 @@ impl<'a> HullState<'a> {
 					self.adjacency[cursor.next().idx()] = Edge::BOUNDARY;
 				}
 				Symbol::Split => {
-					self.decode(cursor)?;
+					self.decode_recursive(cursor)?;
 					cursor = cursor.next();
 				}
 				Symbol::Left => {
@@ -245,5 +210,21 @@ impl<'a> HullState<'a> {
 				}
 			}
 		}
+	}
+	pub fn decode_hull(&mut self, cap: usize, offset: u32) -> Result<Hull, BitCounterError> {
+		self.clear(cap);
+		self.decode_recursive(EdgeId(1))?;
+
+		let mut faces = Vec::with_capacity(self.current_triangle as usize + 1);
+
+		for t in self
+			.indices
+			.chunks_exact(3)
+			.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
+		{
+			faces.push([t[0] + offset, t[1] + offset, t[2] + offset]);
+		}
+
+		Ok(Hull { faces })
 	}
 }
