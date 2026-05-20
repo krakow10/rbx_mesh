@@ -78,32 +78,18 @@ pub struct HullState<'a> {
 	// indices[edge] = vertex id at this triangle corner
 	indices: Vec<u32>,
 	current_triangle: u32,
-	vertex_counter: u32,
+	vertex_count: u32,
 }
 
 impl<'a> HullState<'a> {
 	pub fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
 		Self {
 			symbol_reader,
-			adjacency: Vec::with_capacity(cap),
-			indices: Vec::with_capacity(cap),
+			adjacency: vec![Edge::UNINIT; cap],
+			indices: vec![0; cap],
 			current_triangle: 0,
-			vertex_counter: 2,
+			vertex_count: 1,
 		}
-	}
-	pub const fn vertex_counter(&self) -> u32 {
-		self.vertex_counter
-	}
-	pub fn clear(&mut self, cap: usize) {
-		self.adjacency.clear();
-		self.adjacency
-			.extend_from_slice(&[Edge::BOUNDARY, Edge::UNINIT, Edge::BOUNDARY]);
-		self.adjacency.resize(cap, Edge::UNINIT);
-		self.indices.clear();
-		self.indices.extend_from_slice(&[0, 1, 2]);
-		self.indices.resize(cap, 0);
-		self.current_triangle = 0;
-		self.vertex_counter = 2;
 	}
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
 		// loop while a SENTINEL_PROCESSING edge still needs to be paired
@@ -187,9 +173,9 @@ impl<'a> HullState<'a> {
 
 			match symbol {
 				Symbol::Continue => {
-					self.vertex_counter += 1;
-					self.indices[current_edge_0.idx()] = self.vertex_counter;
+					self.indices[current_edge_0.idx()] = self.vertex_count;
 					self.adjacency[cursor.next().idx()] = Edge::BOUNDARY;
+					self.vertex_count += 1;
 				}
 				Symbol::Split => {
 					self.decode_recursive(cursor)?;
@@ -214,15 +200,33 @@ impl<'a> HullState<'a> {
 			}
 		}
 	}
-	pub fn decode_hull(&mut self, cap: usize, offset: u32) -> Result<Hull, BitCounterError> {
-		self.clear(cap);
-		self.decode_recursive(EdgeId(1))?;
+	pub fn decode_hull(&mut self) -> Result<Hull, BitCounterError> {
+		let start = self.current_triangle as usize;
+		let edge = 3 * start as usize;
+		self.adjacency[edge..edge + 3].copy_from_slice(&[
+			Edge::BOUNDARY,
+			Edge::UNINIT,
+			Edge::BOUNDARY,
+		]);
+		// `self.vertex_count -= 1` feels wrong.  Are we really sure this is generating meshes correctly?
+		self.vertex_count -= 1;
+		let vertex_id = self.vertex_count;
+		self.indices[edge..edge + 3].copy_from_slice(&[
+			vertex_id + 0,
+			vertex_id + 1,
+			vertex_id + 2,
+		]);
+		self.vertex_count += 3;
+
+		self.decode_recursive(EdgeId(edge as u32 + 1))?;
+		let end = self.current_triangle as usize + 1;
 
 		let faces = self
 			.indices
 			.chunks_exact(3)
-			.take(self.current_triangle as usize + 1)
-			.map(|t| [t[0] + offset, t[1] + offset, t[2] + offset])
+			.skip(start)
+			.take(end - start)
+			.map(|t| t.try_into().unwrap())
 			.collect();
 
 		Ok(Hull { faces })
