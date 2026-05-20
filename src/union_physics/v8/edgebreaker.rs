@@ -16,11 +16,11 @@ impl EdgeId {
 	}
 	const fn next(self) -> Self {
 		let EdgeId(id) = self;
-		Self(id / 3 * 3 + id.wrapping_add(1) % 3)
+		Self(id / 3 * 3 + id.wrapping_add(1).rem_euclid(3))
 	}
 	const fn prev(self) -> Self {
 		let EdgeId(id) = self;
-		Self(id / 3 * 3 + id.wrapping_sub(1) % 3)
+		Self(id / 3 * 3 + id.wrapping_sub(1).rem_euclid(3))
 	}
 }
 #[test]
