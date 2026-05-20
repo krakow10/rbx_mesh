@@ -203,7 +203,7 @@ impl<'a> HullState<'a> {
 			self.indices[current_edge_1.idx()] = self.indices[cursor.prev().idx()];
 			self.indices[current_edge_2.idx()] = self.indices[cursor.next().idx()];
 
-			cursor = current_edge_0.next();
+			cursor = current_edge_1;
 
 			let symbol = self.symbol_reader.read()?;
 
