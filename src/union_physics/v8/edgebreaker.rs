@@ -45,7 +45,7 @@ pub fn decode_clers_buffer(
 }
 
 // non-negative edge id
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct EdgeId(u32);
 impl EdgeId {
 	const fn idx(self) -> usize {
@@ -60,6 +60,16 @@ impl EdgeId {
 		let EdgeId(id) = self;
 		Self(id / 3 * 3 + id.wrapping_sub(1) % 3)
 	}
+}
+#[test]
+fn test_edge_id() {
+	assert_eq!(EdgeId(3).next(), EdgeId(4));
+	assert_eq!(EdgeId(4).next(), EdgeId(5));
+	assert_eq!(EdgeId(5).next(), EdgeId(3));
+
+	assert_eq!(EdgeId(5).prev(), EdgeId(4));
+	assert_eq!(EdgeId(4).prev(), EdgeId(3));
+	assert_eq!(EdgeId(3).prev(), EdgeId(5));
 }
 
 enum EdgeSentinel {
