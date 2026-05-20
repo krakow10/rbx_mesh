@@ -60,19 +60,11 @@ impl<'a> BitReader<'a> {
 // rotate within the triangle's 3-edge slot (mod-3): wrap step is -2
 #[inline]
 fn next_offset(edge: i32) -> i32 {
-	if edge.rem_euclid(3) < 2 {
-		1
-	} else {
-		-2
-	}
+	if edge.rem_euclid(3) < 2 { 1 } else { -2 }
 }
 #[inline]
 fn prev_offset(edge: i32) -> i32 {
-	if edge.rem_euclid(3) > 0 {
-		1
-	} else {
-		-2
-	}
+	if edge.rem_euclid(3) > 0 { 1 } else { -2 }
 }
 
 struct HullState {
