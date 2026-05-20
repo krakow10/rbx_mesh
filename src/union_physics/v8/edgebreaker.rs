@@ -16,11 +16,14 @@ impl EdgeId {
 	}
 	const fn next(self) -> Self {
 		let EdgeId(id) = self;
-		Self(id.div_euclid(3) * 3 + id.wrapping_add(1).rem_euclid(3))
+		// floor group and rotate id +1
+		Self(id / 3 * 3 + (id + 1) % 3)
 	}
 	const fn prev(self) -> Self {
 		let EdgeId(id) = self;
-		Self(id.div_euclid(3) * 3 + id.wrapping_add(2).rem_euclid(3))
+		// floor group and rotate id -1
+		// +2 is used here to avoid underflow when id = 0
+		Self(id / 3 * 3 + (id + 2) % 3)
 	}
 }
 #[test]
