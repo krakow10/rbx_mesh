@@ -215,15 +215,11 @@ impl<'a> HullState<'a> {
 		self.clear(cap);
 		self.decode_recursive(EdgeId(1))?;
 
-		let mut faces = Vec::with_capacity(self.current_triangle as usize + 1);
-
-		for t in self
+		let faces = self
 			.indices
 			.chunks_exact(3)
-			.filter(|t| t[0] != t[1] && t[0] != t[2] && t[1] != t[2])
-		{
-			faces.push([t[0] + offset, t[1] + offset, t[2] + offset]);
-		}
+			.map(|t| [t[0] + offset, t[1] + offset, t[2] + offset])
+			.collect();
 
 		Ok(Hull { faces })
 	}
