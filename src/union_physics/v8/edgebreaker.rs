@@ -260,10 +260,8 @@ pub fn decode_edgebreaker_hulls(
 			let i0 = state.indices[base];
 			let i1 = state.indices[base + 1];
 			let i2 = state.indices[base + 2];
-			if i0 != i1 && i0 != i2 && i1 != i2 {
-				triangles.push([i0, i1, i2]);
-				max_local_idx = max_local_idx.max(i0).max(i1).max(i2);
-			}
+			triangles.push([i0, i1, i2]);
+			max_local_idx = max_local_idx.max(i0).max(i1).max(i2);
 		}
 
 		let verts_consumed = (max_local_idx as usize) + 1;
