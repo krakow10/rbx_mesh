@@ -1,9 +1,4 @@
-#[derive(Clone, Debug)]
-pub struct RawHull<'f> {
-	pub positions: &'f [[f32; 3]],
-	/// 0 based indices into positions
-	pub faces: &'f [[u32; 3]],
-}
+use super::Hull;
 
 #[binrw::binread]
 #[br(little)]
@@ -24,7 +19,7 @@ pub struct RawHulls {
 	pub positions: Vec<f32>,
 }
 impl RawHulls {
-	pub fn iter_hulls(&self) -> impl ExactSizeIterator<Item = RawHull<'_>> {
+	pub fn iter_hulls(&self) -> impl ExactSizeIterator<Item = Hull<'_>> {
 		self.face_ranges
 			.array_windows()
 			.zip(self.pos_ranges.array_windows())
@@ -35,7 +30,7 @@ impl RawHulls {
 				let (positions, _) = positions.as_chunks();
 				let (faces, _) = faces.as_chunks();
 
-				RawHull { positions, faces }
+				Hull { positions, faces }
 			})
 	}
 }

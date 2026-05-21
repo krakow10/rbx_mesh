@@ -3,6 +3,7 @@ use super::roblox_bit_reader::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull<'f> {
+	pub positions: &'f [[f32; 3]],
 	/// 0 based indices into positions
 	pub faces: &'f [[u32; 3]],
 }
@@ -75,22 +76,28 @@ impl From<EdgeId> for Edge {
 
 pub struct HullDecoder<'a> {
 	symbol_reader: SymbolReader<'a>,
+	positions: &'a [[f32; 3]],
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
 	adjacency: Box<[Edge]>,
 	// indices[edge] = vertex id at this triangle corner
 	indices: Box<[u32]>,
 	current_triangle: u32,
-	vertex_count: u32,
+	vertex_offset: u32,
 }
 
 impl<'a> HullDecoder<'a> {
-	pub fn new(symbol_reader: SymbolReader<'a>, capacity: usize) -> Self {
+	pub fn new(
+		symbol_reader: SymbolReader<'a>,
+		positions: &'a [[f32; 3]],
+		capacity: usize,
+	) -> Self {
 		Self {
 			symbol_reader,
+			positions,
 			adjacency: vec![Edge::UNINIT; capacity].into_boxed_slice(),
 			indices: vec![0; capacity].into_boxed_slice(),
 			current_triangle: 0,
-			vertex_count: 0,
+			vertex_offset: 0,
 		}
 	}
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
@@ -152,7 +159,11 @@ impl<'a> HullDecoder<'a> {
 		current_edge
 	}
 	// recursive function that matches symbols S and E like parentheses
-	fn decode_recursive(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
+	fn decode_recursive(
+		&mut self,
+		vertex_count: &mut u32,
+		mut cursor: EdgeId,
+	) -> Result<(), BitCounterError> {
 		loop {
 			// inf loop / stack overflow if bad format
 			// emit a new triangle and glue its edge 0 to cursor_edge as twins;
@@ -178,12 +189,12 @@ impl<'a> HullDecoder<'a> {
 
 			match symbol {
 				Symbol::Continue => {
-					self.indices[current_edge_0.idx()] = self.vertex_count;
+					self.indices[current_edge_0.idx()] = *vertex_count;
 					self.adjacency[cursor.next().idx()] = Edge::BOUNDARY;
-					self.vertex_count += 1;
+					*vertex_count += 1;
 				}
 				Symbol::Split => {
-					self.decode_recursive(cursor)?;
+					self.decode_recursive(vertex_count, cursor)?;
 					cursor = cursor.next();
 				}
 				Symbol::Left => {
@@ -213,21 +224,22 @@ impl<'a> HullDecoder<'a> {
 			Edge::UNINIT,
 			Edge::BOUNDARY,
 		]);
-		let vertex_id = self.vertex_count;
-		self.indices[edge..edge + 3].copy_from_slice(&[
-			vertex_id + 0,
-			vertex_id + 1,
-			vertex_id + 2,
-		]);
-		self.vertex_count += 3;
+		self.indices[edge..edge + 3].copy_from_slice(&[0, 1, 2]);
+		let mut vertex_count = 3;
 
-		self.decode_recursive(EdgeId(edge as u32 + 1))?;
+		self.decode_recursive(&mut vertex_count, EdgeId(edge as u32 + 1))?;
 
 		let end = self.current_triangle as usize + 1;
 
 		let (chunks, _) = self.indices.as_chunks();
 		let faces = &chunks[start..end];
 
-		Ok(Hull { faces })
+		let start_vertex = self.vertex_offset as usize;
+		self.vertex_offset += vertex_count;
+		let end_vertex = self.vertex_offset as usize;
+
+		let positions = &self.positions[start_vertex..end_vertex];
+
+		Ok(Hull { positions, faces })
 	}
 }

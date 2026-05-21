@@ -44,13 +44,18 @@ fn csgphs_8() {
 	#[expect(dead_code)]
 	#[derive(Debug)]
 	struct Hull {
+		positions: Vec<[f32; 3]>,
 		faces: Vec<[u32; 3]>,
 	}
 
 	let mut hull_decoder = mesh.mesh.hull_decoder().unwrap();
 	let hulls: Vec<_> = (0..mesh.mesh.hull_count)
-		.map(|_| Hull {
-			faces: hull_decoder.decode_hull().unwrap().faces.to_vec(),
+		.map(|_| {
+			let hull = hull_decoder.decode_hull().unwrap();
+			Hull {
+				positions: hull.positions.to_vec(),
+				faces: hull.faces.to_vec(),
+			}
 		})
 		.collect();
 	insta::assert_debug_snapshot!(hulls);

@@ -8,7 +8,7 @@ use binrw::BinReaderExt;
 
 use clers_symbol::SymbolReader;
 pub use edgebreaker::{Hull, HullDecoder};
-pub use raw_hulls::{RawHull, RawHulls};
+pub use raw_hulls::RawHulls;
 pub use roblox_bit_reader::BitCounterError;
 
 #[binrw::binrw]
@@ -97,6 +97,6 @@ impl Mesh8 {
 	pub fn hull_decoder(&self) -> Result<HullDecoder<'_>, BitCounterError> {
 		let symbol_reader = self.symbol_reader()?;
 		let capacity = self.face_count as usize * 3;
-		Ok(HullDecoder::new(symbol_reader, capacity))
+		Ok(HullDecoder::new(symbol_reader, &self.positions, capacity))
 	}
 }
