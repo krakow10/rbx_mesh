@@ -5,12 +5,22 @@ mod roblox_bit_reader;
 
 use binrw::BinReaderExt;
 
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub enum GeomType {
+	#[brw(magic = 0u8)]
+	Type0,
+	#[brw(magic = 2u8)]
+	Type2,
+}
+
 #[binrw::binread]
 #[br(little)]
 #[br(magic = b"CSGPHS\x08\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8 {
-	pub geom_type: u8,
+	pub geom_type: GeomType,
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 0u8)]
