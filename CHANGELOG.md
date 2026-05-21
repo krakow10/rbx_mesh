@@ -2,6 +2,8 @@
 
 ### Added
 
+- Add CSGPHS8 support
+
 ### Changed
 
 - Mesh v1 `Mesh1.face_count` is automatically calculated and hidden from the public interface
