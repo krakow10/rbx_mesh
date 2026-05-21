@@ -27,14 +27,11 @@ impl<'a> RobloxBitReader<'a> {
 		if (bytes.len() * u8::BITS as usize) < bit_count_limit {
 			return Err(BitCounterError::NotEnoughBytes);
 		}
-		let (chunks, rem) = (bytes.len() / CHUNK_SIZE, bytes.len() % CHUNK_SIZE);
-		if rem != 0 {
+
+		let (chunks, rem) = bytes.as_chunks();
+		if rem.len() != 0 {
 			return Err(BitCounterError::InvalidBytesLen);
 		}
-
-		let chunks_ptr = bytes.as_ptr().cast();
-		// SAFETY: we checked that chunks * CHUNK_SIZE == bytes.len() above
-		let chunks = unsafe { core::slice::from_raw_parts(chunks_ptr, chunks) };
 
 		Ok(Self {
 			chunks: chunks.iter(),
