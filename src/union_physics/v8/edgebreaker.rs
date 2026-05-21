@@ -168,15 +168,14 @@ impl<'a> HullDecoder<'a> {
 			// inf loop / stack overflow if bad format
 			// emit a new triangle and glue its edge 0 to cursor_edge as twins;
 			// edges 1 and 2 inherit the corner vertices from the gate edge
-			self.current_triangle += 1;
 			let current_triangle = self.current_triangle;
-
 			let current_edge_0 = EdgeId(3 * current_triangle);
 			let current_edge_1 = EdgeId(3 * current_triangle + 1);
 			let current_edge_2 = EdgeId(3 * current_triangle + 2);
 			self.adjacency[current_edge_0.idx()] = cursor.into();
 			self.adjacency[current_edge_1.idx()] = Edge::UNINIT;
 			self.adjacency[current_edge_2.idx()] = Edge::UNINIT;
+			self.current_triangle += 1;
 
 			self.adjacency[cursor.idx()] = current_edge_0.into();
 
@@ -225,12 +224,14 @@ impl<'a> HullDecoder<'a> {
 			Edge::UNINIT,
 			Edge::BOUNDARY,
 		]);
+		self.current_triangle += 1;
+
 		self.indices[edge..edge + 3].copy_from_slice(&[0, 1, 2]);
 		let mut vertex_count = 3;
 
 		self.decode_recursive(&mut vertex_count, EdgeId(edge as u32 + 1))?;
 
-		let end = self.current_triangle as usize + 1;
+		let end = self.current_triangle as usize;
 
 		let (chunks, _) = self.indices.as_chunks();
 		let faces = &chunks[start..end];
