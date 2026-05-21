@@ -223,13 +223,8 @@ impl<'a> HullState<'a> {
 
 		let end = self.current_triangle as usize + 1;
 
-		let faces = self
-			.indices
-			.chunks_exact(3)
-			.skip(start)
-			.take(end - start)
-			.map(|t| t.try_into().unwrap())
-			.collect();
+		let (chunks, _) = self.indices.as_chunks();
+		let faces = chunks[start..end].to_vec();
 
 		Ok(Hull { faces })
 	}
