@@ -189,6 +189,7 @@ impl<'a> HullDecoder<'a> {
 
 			match symbol {
 				Symbol::Continue => {
+					// Create a new vertex
 					self.indices[current_edge_0.idx()] = *vertex_count;
 					self.adjacency[cursor.next().idx()] = Edge::BOUNDARY;
 					*vertex_count += 1;
