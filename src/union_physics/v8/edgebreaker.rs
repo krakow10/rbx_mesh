@@ -218,7 +218,7 @@ impl<'a> HullDecoder<'a> {
 	}
 	pub fn decode_hull(&mut self) -> Result<Hull<'_>, BitCounterError> {
 		let start = self.current_triangle as usize;
-		let edge = 3 * start as usize;
+		let edge = 3 * start;
 		self.adjacency[edge..edge + 3].copy_from_slice(&[
 			Edge::BOUNDARY,
 			Edge::UNINIT,
