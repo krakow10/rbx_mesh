@@ -73,13 +73,15 @@ pub struct Aabb {
 #[derive(Debug, Clone)]
 pub struct Mesh8 {
 	pub hull_count: u32,
-	pub position_count: u32,
+	#[br(temp)]
+	position_count: u32,
 	pub face_count: u32,
 	pub first_hull_vert_count: u32,
 	pub first_hull_face_count: u32,
 	pub raw_hulls_len: u32,
 	pub clers_bit_count: u32,
-	pub clers_buffer_len: u32,
+	#[br(temp)]
+	clers_buffer_len: u32,
 	pub positions_len: u32,
 	pub aabb: Aabb,
 	#[br(if(raw_hulls_len != 0))]
