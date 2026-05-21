@@ -227,7 +227,7 @@ impl<'a> HullDecoder<'a> {
 		]);
 		self.current_face += 1;
 
-		// Create the starting vertex indices
+		// Create the starting face's vertex indices
 		self.indices[edge..edge + 3].copy_from_slice(&[0, 1, 2]);
 		let mut vertex_count = 3;
 
