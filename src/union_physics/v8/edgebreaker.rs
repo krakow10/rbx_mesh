@@ -222,9 +222,6 @@ impl<'a> HullDecoder<'a> {
 
 		self.decode_recursive(EdgeId(edge as u32 + 1))?;
 
-		// `self.vertex_count -= 1` feels wrong.  Are we really sure this is generating meshes correctly?
-		self.vertex_count -= 1;
-
 		let end = self.current_triangle as usize + 1;
 
 		let (chunks, _) = self.indices.as_chunks();
