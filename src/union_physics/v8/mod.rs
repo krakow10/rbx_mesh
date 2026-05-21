@@ -17,6 +17,8 @@ pub use roblox_bit_reader::BitCounterError;
 pub enum GeomType {
 	#[brw(magic = 0u8)]
 	Type0,
+	#[brw(magic = 1u8)]
+	Type1,
 	#[brw(magic = 2u8)]
 	Type2,
 	#[brw(magic = 3u8)]
