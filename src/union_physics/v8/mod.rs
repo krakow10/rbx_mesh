@@ -76,7 +76,7 @@ pub struct Mesh8 {
 	#[br(temp)]
 	position_count: u32,
 	pub face_count: u32,
-	pub first_hull_vert_count: u32,
+	pub first_hull_pos_count: u32,
 	pub first_hull_face_count: u32,
 	pub raw_hulls_len: u32,
 	pub clers_bit_count: u32,
