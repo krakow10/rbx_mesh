@@ -154,6 +154,7 @@ impl<'a> HullDecoder<'a> {
 	// recursive function that matches symbols S and E like parentheses
 	fn decode_recursive(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
 		loop {
+			// inf loop / stack overflow if bad format
 			// emit a new triangle and glue its edge 0 to cursor_edge as twins;
 			// edges 1 and 2 inherit the corner vertices from the gate edge
 			self.current_triangle += 1;
