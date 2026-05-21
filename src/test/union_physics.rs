@@ -48,10 +48,10 @@ fn csgphs_8() {
 	}
 
 	let mut hull_decoder = mesh.mesh.hull_decoder().unwrap();
-	let mut hulls = Vec::with_capacity(mesh.mesh.hull_count as usize);
-	for _ in 0..mesh.mesh.hull_count {
-		let faces = hull_decoder.decode_hull().unwrap().faces.to_vec();
-		hulls.push(Hull { faces });
-	}
+	let hulls: Vec<_> = (0..mesh.mesh.hull_count)
+		.map(|_| Hull {
+			faces: hull_decoder.decode_hull().unwrap().faces.to_vec(),
+		})
+		.collect();
 	insta::assert_debug_snapshot!(hulls);
 }
