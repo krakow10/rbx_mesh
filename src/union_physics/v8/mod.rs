@@ -92,7 +92,7 @@ impl Mesh8 {
 	}
 	pub fn hull_decoder(&self) -> Result<HullDecoder<'_>, BitCounterError> {
 		let symbol_reader = self.symbol_reader()?;
-		let cap = self.face_count as usize * 3;
-		Ok(HullDecoder::new(symbol_reader, cap))
+		let capacity = self.face_count as usize * 3;
+		Ok(HullDecoder::new(symbol_reader, capacity))
 	}
 }

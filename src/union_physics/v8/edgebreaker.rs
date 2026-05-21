@@ -84,11 +84,11 @@ pub struct HullDecoder<'a> {
 }
 
 impl<'a> HullDecoder<'a> {
-	pub fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
+	pub fn new(symbol_reader: SymbolReader<'a>, capacity: usize) -> Self {
 		Self {
 			symbol_reader,
-			adjacency: vec![Edge::UNINIT; cap].into_boxed_slice(),
-			indices: vec![0; cap].into_boxed_slice(),
+			adjacency: vec![Edge::UNINIT; capacity].into_boxed_slice(),
+			indices: vec![0; capacity].into_boxed_slice(),
 			current_triangle: 0,
 			vertex_count: 0,
 		}
