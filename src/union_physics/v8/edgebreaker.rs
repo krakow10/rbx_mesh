@@ -2,8 +2,8 @@ use super::clers_symbol::{Symbol, SymbolReader};
 use super::roblox_bit_reader::BitCounterError;
 
 #[derive(Debug, Clone)]
-pub struct Hull {
-	pub faces: Vec<[u32; 3]>,
+pub struct Hull<'f> {
+	pub faces: &'f [[u32; 3]],
 }
 
 // non-negative edge id
@@ -71,7 +71,7 @@ impl From<EdgeId> for Edge {
 	}
 }
 
-pub struct HullState<'a> {
+pub struct HullDecoder<'a> {
 	symbol_reader: SymbolReader<'a>,
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
 	adjacency: Vec<Edge>,
@@ -81,7 +81,7 @@ pub struct HullState<'a> {
 	vertex_count: u32,
 }
 
-impl<'a> HullState<'a> {
+impl<'a> HullDecoder<'a> {
 	pub fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
 		Self {
 			symbol_reader,
@@ -200,7 +200,7 @@ impl<'a> HullState<'a> {
 			}
 		}
 	}
-	pub fn decode_hull(&mut self) -> Result<Hull, BitCounterError> {
+	pub fn decode_hull(&mut self) -> Result<Hull<'_>, BitCounterError> {
 		let start = self.current_triangle as usize;
 		let edge = 3 * start as usize;
 		self.adjacency[edge..edge + 3].copy_from_slice(&[
@@ -224,7 +224,7 @@ impl<'a> HullState<'a> {
 		let end = self.current_triangle as usize + 1;
 
 		let (chunks, _) = self.indices.as_chunks();
-		let faces = chunks[start..end].to_vec();
+		let faces = &chunks[start..end];
 
 		Ok(Hull { faces })
 	}

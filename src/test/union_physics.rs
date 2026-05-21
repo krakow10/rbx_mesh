@@ -34,14 +34,24 @@ fn csgphs_8() {
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 
-	let symbols = mesh.mesh.decode_symbols();
+	let mut symbols = Vec::new();
+	let mut symbol_reader = mesh.mesh.symbol_reader().unwrap();
+	while let Ok(symbol) = symbol_reader.read() {
+		symbols.push(symbol);
+	}
 	insta::assert_debug_snapshot!(symbols);
 
-	let hulls = mesh
-		.mesh
-		.hulls()
-		.unwrap()
-		.collect::<Result<Vec<_>, _>>()
-		.unwrap();
+	#[expect(dead_code)]
+	#[derive(Debug)]
+	struct Hull {
+		faces: Vec<[u32; 3]>,
+	}
+
+	let mut hull_decoder = mesh.mesh.hull_decoder().unwrap();
+	let mut hulls = Vec::with_capacity(mesh.mesh.hull_count as usize);
+	for _ in 0..mesh.mesh.hull_count {
+		let faces = hull_decoder.decode_hull().unwrap().faces.to_vec();
+		hulls.push(Hull { faces });
+	}
 	insta::assert_debug_snapshot!(hulls);
 }

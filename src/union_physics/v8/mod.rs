@@ -73,28 +73,16 @@ pub struct Mesh8 {
 }
 
 use clers_symbol::SymbolReader;
-pub use edgebreaker::Hull;
+pub use edgebreaker::{Hull, HullDecoder};
 pub use roblox_bit_reader::BitCounterError;
 
 impl Mesh8 {
-	pub fn hulls(
-		&self,
-	) -> Result<impl ExactSizeIterator<Item = Result<Hull, BitCounterError>>, BitCounterError> {
-		let symbol_reader = SymbolReader::new(&self.clers_buffer, self.clers_bit_count as usize)?;
-		let cap = self.face_count as usize * 3;
-		let mut hull_state = edgebreaker::HullState::new(symbol_reader, cap);
-
-		Ok((0..self.hull_count).map(move |_| hull_state.decode_hull()))
+	pub(crate) fn symbol_reader(&self) -> Result<SymbolReader<'_>, BitCounterError> {
+		SymbolReader::new(&self.clers_buffer, self.clers_bit_count as usize)
 	}
-	#[cfg(test)]
-	pub(crate) fn decode_symbols(&self) -> Result<Vec<clers_symbol::Symbol>, BitCounterError> {
-		let mut symbols = Vec::new();
-		let mut symbol_reader =
-			SymbolReader::new(&self.clers_buffer, self.clers_bit_count as usize)?;
-		// CLERS decoding
-		while let Ok(symbol) = symbol_reader.read() {
-			symbols.push(symbol)
-		}
-		Ok(symbols)
+	pub fn hull_decoder(&self) -> Result<HullDecoder<'_>, BitCounterError> {
+		let symbol_reader = self.symbol_reader()?;
+		let cap = self.face_count as usize * 3;
+		Ok(HullDecoder::new(symbol_reader, cap))
 	}
 }
