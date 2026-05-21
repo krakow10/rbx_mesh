@@ -26,7 +26,7 @@ fn csgphs_7() {
 	let mesh = roundtrip::<CSGPHS7>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 }
-#[cfg(feature = "csgphs-v8")]
+#[cfg(any(feature = "csgphs-v8-zstd", feature = "csgphs-v8-ruzstd"))]
 #[test]
 fn csgphs_8() {
 	use crate::union_physics::CSGPHS8;

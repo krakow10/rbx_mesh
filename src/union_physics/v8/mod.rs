@@ -27,11 +27,17 @@ fn read_mesh<R: BinReaderExt>(
 	let pos = reader.stream_position()?;
 	use std::io::Read;
 	let mut decoded = Vec::new();
+	#[cfg(feature = "csgphs-v8-ruzstd")]
 	let mut decoder =
 		ruzstd::decoding::StreamingDecoder::new(reader).map_err(|e| binrw::Error::Custom {
 			pos,
 			err: Box::new(e),
 		})?;
+	#[cfg(feature = "csgphs-v8-zstd")]
+	let mut decoder = zstd::stream::Decoder::new(reader).map_err(|e| binrw::Error::Custom {
+		pos,
+		err: Box::new(e),
+	})?;
 	decoder.read_to_end(&mut decoded)?;
 	std::io::Cursor::new(decoded).read_le()
 }
