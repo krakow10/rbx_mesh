@@ -74,9 +74,9 @@ impl From<EdgeId> for Edge {
 pub struct HullDecoder<'a> {
 	symbol_reader: SymbolReader<'a>,
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
-	adjacency: Vec<Edge>,
+	adjacency: Box<[Edge]>,
 	// indices[edge] = vertex id at this triangle corner
-	indices: Vec<u32>,
+	indices: Box<[u32]>,
 	current_triangle: u32,
 	vertex_count: u32,
 }
@@ -85,8 +85,8 @@ impl<'a> HullDecoder<'a> {
 	pub fn new(symbol_reader: SymbolReader<'a>, cap: usize) -> Self {
 		Self {
 			symbol_reader,
-			adjacency: vec![Edge::UNINIT; cap],
-			indices: vec![0; cap],
+			adjacency: vec![Edge::UNINIT; cap].into_boxed_slice(),
+			indices: vec![0; cap].into_boxed_slice(),
 			current_triangle: 0,
 			vertex_count: 0,
 		}
