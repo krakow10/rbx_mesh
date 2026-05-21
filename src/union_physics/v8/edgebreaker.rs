@@ -16,7 +16,7 @@ impl EdgeId {
 		let EdgeId(id) = self;
 		id as usize
 	}
-	// rotate within the triangle's 3-edge slot (mod-3)
+	// rotate within the face's 3-edge slot (mod-3)
 	const fn next(self) -> Self {
 		let EdgeId(id) = self;
 		// floor group and rotate id +1
@@ -79,9 +79,9 @@ pub struct HullDecoder<'a> {
 	positions: &'a [[f32; 3]],
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
 	adjacency: Box<[Edge]>,
-	// indices[edge] = vertex id at this triangle corner
+	// indices[edge] = vertex id at this face corner
 	indices: Box<[u32]>,
-	current_triangle: u32,
+	current_face: u32,
 	vertex_offset: u32,
 }
 
@@ -96,7 +96,7 @@ impl<'a> HullDecoder<'a> {
 			positions,
 			adjacency: vec![Edge::UNINIT; capacity].into_boxed_slice(),
 			indices: vec![0; capacity].into_boxed_slice(),
-			current_triangle: 0,
+			current_face: 0,
 			vertex_offset: 0,
 		}
 	}
@@ -166,16 +166,16 @@ impl<'a> HullDecoder<'a> {
 	) -> Result<(), BitCounterError> {
 		loop {
 			// inf loop / stack overflow if bad format
-			// emit a new triangle and glue its edge 0 to cursor_edge as twins;
+			// emit a new face and glue its edge 0 to cursor_edge as twins;
 			// edges 1 and 2 inherit the corner vertices from the gate edge
-			let current_triangle = self.current_triangle;
-			let current_edge_0 = EdgeId(3 * current_triangle);
-			let current_edge_1 = EdgeId(3 * current_triangle + 1);
-			let current_edge_2 = EdgeId(3 * current_triangle + 2);
+			let current_face = self.current_face;
+			let current_edge_0 = EdgeId(3 * current_face);
+			let current_edge_1 = EdgeId(3 * current_face + 1);
+			let current_edge_2 = EdgeId(3 * current_face + 2);
 			self.adjacency[current_edge_0.idx()] = cursor.into();
 			self.adjacency[current_edge_1.idx()] = Edge::UNINIT;
 			self.adjacency[current_edge_2.idx()] = Edge::UNINIT;
-			self.current_triangle += 1;
+			self.current_face += 1;
 
 			self.adjacency[cursor.idx()] = current_edge_0.into();
 
@@ -217,24 +217,26 @@ impl<'a> HullDecoder<'a> {
 		}
 	}
 	pub fn decode_hull(&mut self) -> Result<Hull<'_>, BitCounterError> {
-		let start = self.current_triangle as usize;
-		let edge = 3 * start;
+		// Create the starting face
+		let start_face = self.current_face as usize;
+		let edge = 3 * start_face;
 		self.adjacency[edge..edge + 3].copy_from_slice(&[
 			Edge::BOUNDARY,
 			Edge::UNINIT,
 			Edge::BOUNDARY,
 		]);
-		self.current_triangle += 1;
+		self.current_face += 1;
 
+		// Create the starting vertex indices
 		self.indices[edge..edge + 3].copy_from_slice(&[0, 1, 2]);
 		let mut vertex_count = 3;
 
 		self.decode_recursive(&mut vertex_count, EdgeId(edge as u32 + 1))?;
 
-		let end = self.current_triangle as usize;
+		let end_face = self.current_face as usize;
 
 		let (chunks, _) = self.indices.as_chunks();
-		let faces = &chunks[start..end];
+		let faces = &chunks[start_face..end_face];
 
 		let start_vertex = self.vertex_offset as usize;
 		self.vertex_offset += vertex_count;
