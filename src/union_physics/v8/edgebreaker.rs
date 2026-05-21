@@ -88,7 +88,7 @@ impl<'a> HullState<'a> {
 			adjacency: vec![Edge::UNINIT; cap],
 			indices: vec![0; cap],
 			current_triangle: 0,
-			vertex_count: 1,
+			vertex_count: 0,
 		}
 	}
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
@@ -208,8 +208,6 @@ impl<'a> HullState<'a> {
 			Edge::UNINIT,
 			Edge::BOUNDARY,
 		]);
-		// `self.vertex_count -= 1` feels wrong.  Are we really sure this is generating meshes correctly?
-		self.vertex_count -= 1;
 		let vertex_id = self.vertex_count;
 		self.indices[edge..edge + 3].copy_from_slice(&[
 			vertex_id + 0,
@@ -219,6 +217,10 @@ impl<'a> HullState<'a> {
 		self.vertex_count += 3;
 
 		self.decode_recursive(EdgeId(edge as u32 + 1))?;
+
+		// `self.vertex_count -= 1` feels wrong.  Are we really sure this is generating meshes correctly?
+		self.vertex_count -= 1;
+
 		let end = self.current_triangle as usize + 1;
 
 		let faces = self
