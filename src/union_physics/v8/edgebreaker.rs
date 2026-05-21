@@ -3,6 +3,7 @@ use super::roblox_bit_reader::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull<'f> {
+	/// 0 based indices into vertices
 	pub faces: &'f [[u32; 3]],
 }
 
@@ -14,6 +15,7 @@ impl EdgeId {
 		let EdgeId(id) = self;
 		id as usize
 	}
+	// rotate within the triangle's 3-edge slot (mod-3)
 	const fn next(self) -> Self {
 		let EdgeId(id) = self;
 		// floor group and rotate id +1
@@ -152,6 +154,8 @@ impl<'a> HullDecoder<'a> {
 	// recursive function that matches symbols S and E like parentheses
 	fn decode_recursive(&mut self, mut cursor: EdgeId) -> Result<(), BitCounterError> {
 		loop {
+			// emit a new triangle and glue its edge 0 to cursor_edge as twins;
+			// edges 1 and 2 inherit the corner vertices from the gate edge
 			self.current_triangle += 1;
 			let current_triangle = self.current_triangle;
 
