@@ -1,9 +1,15 @@
 mod bit_buffer;
 mod clers_symbol;
 mod edgebreaker;
+mod raw_hulls;
 mod roblox_bit_reader;
 
 use binrw::BinReaderExt;
+
+use clers_symbol::SymbolReader;
+pub use edgebreaker::{Hull, HullDecoder};
+pub use raw_hulls::{RawHull, RawHulls};
+pub use roblox_bit_reader::BitCounterError;
 
 #[binrw::binrw]
 #[brw(little)]
@@ -13,6 +19,8 @@ pub enum GeomType {
 	Type0,
 	#[brw(magic = 2u8)]
 	Type2,
+	#[brw(magic = 3u8)]
+	Type3,
 }
 
 #[binrw::binread]
@@ -74,17 +82,13 @@ pub struct Mesh8 {
 	pub clers_buffer_len: u32,
 	pub positions_len: u32,
 	pub aabb: Aabb,
-	#[br(count = raw_hulls_len)]
-	pub raw_hulls: Vec<u8>,
+	#[br(if(raw_hulls_len != 0))]
+	pub raw_hulls: RawHulls,
 	#[br(count = clers_buffer_len)]
 	pub clers_buffer: Vec<u8>,
 	#[br(count = position_count)]
 	pub positions: Vec<[f32; 3]>,
 }
-
-use clers_symbol::SymbolReader;
-pub use edgebreaker::{Hull, HullDecoder};
-pub use roblox_bit_reader::BitCounterError;
 
 impl Mesh8 {
 	pub(crate) fn symbol_reader(&self) -> Result<SymbolReader<'_>, BitCounterError> {
