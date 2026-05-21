@@ -3,7 +3,7 @@ use super::roblox_bit_reader::BitCounterError;
 
 #[derive(Debug, Clone)]
 pub struct Hull<'f> {
-	/// 0 based indices into vertices
+	/// 0 based indices into positions
 	pub faces: &'f [[u32; 3]],
 }
 
