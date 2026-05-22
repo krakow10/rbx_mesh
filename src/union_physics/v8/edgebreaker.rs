@@ -94,10 +94,10 @@ impl<'a> HullDecoder<'a> {
 	pub const fn remaining_bits(&self) -> u32 {
 		self.symbol_reader.remaining_bits()
 	}
-	pub fn current_face(&self) -> u32 {
+	pub const fn current_face(&self) -> u32 {
 		self.current_face
 	}
-	pub fn vertex_offset(&self) -> u32 {
+	pub const fn vertex_offset(&self) -> u32 {
 		self.vertex_offset
 	}
 	pub fn into_indices(self) -> Box<[u32]> {
