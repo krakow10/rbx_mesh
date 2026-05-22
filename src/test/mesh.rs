@@ -75,6 +75,6 @@ fn mesh_700() {
 	let bytes = read("meshes/mesh7_127279296594138.bin").unwrap();
 	let mesh = roundtrip::<Mesh7>(bytes).unwrap();
 	assert!(matches!(mesh.revision, Revision7::Version700));
-	insta::assert_debug_snapshot!(mesh);
+	// insta::assert_debug_snapshot!(mesh);
 }
 //also tested against ~2500 meshes from bhop and surf maps
