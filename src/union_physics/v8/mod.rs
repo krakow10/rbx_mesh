@@ -42,8 +42,8 @@ pub struct CSGPHS8 {
 
 fn read_mesh<R: BinReaderExt>(
 	reader: &mut R,
-	_endian: binrw::Endian,
-	_: (),
+	endian: binrw::Endian,
+	args: (),
 ) -> binrw::BinResult<Mesh8> {
 	let pos = reader.stream_position()?;
 	use std::io::Read;
@@ -60,7 +60,7 @@ fn read_mesh<R: BinReaderExt>(
 		err: Box::new(e),
 	})?;
 	decoder.read_to_end(&mut decoded)?;
-	std::io::Cursor::new(decoded).read_le()
+	Mesh8::read_options(&mut std::io::Cursor::new(decoded), endian, args)
 }
 
 #[binrw::binread]
