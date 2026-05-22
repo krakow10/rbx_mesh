@@ -94,6 +94,9 @@ impl<'a> HullDecoder<'a> {
 			vertex_offset: 0,
 		}
 	}
+	pub fn remaining_bits(&self) -> usize {
+		self.symbol_reader.remaining_bits()
+	}
 	pub fn current_face(&self) -> u32 {
 		self.current_face
 	}

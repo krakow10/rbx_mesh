@@ -39,6 +39,9 @@ impl<'a> RobloxBitReader<'a> {
 			bit_count: bit_count_limit,
 		})
 	}
+	pub fn remaining_bits(&self) -> usize {
+		self.bit_count + self.cache.bits()
+	}
 	pub fn read(&mut self, bits: usize) -> Result<Cache, BitCounterError> {
 		debug_assert!(bits <= Cache::BITS as usize);
 

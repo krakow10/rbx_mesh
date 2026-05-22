@@ -19,6 +19,9 @@ impl<'a> SymbolReader<'a> {
 		let bit_reader = RobloxBitReader::new(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
+	pub fn remaining_bits(&self) -> usize {
+		self.bit_reader.remaining_bits()
+	}
 	pub fn read(&mut self) -> Result<Symbol, BitCounterError> {
 		if self.bit_reader.read(1)? == 0 {
 			return Ok(Symbol::Continue);

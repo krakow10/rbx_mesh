@@ -136,7 +136,7 @@ fn decode_edgebreaker_hulls<R: BinReaderExt>(
 		hull_decoder
 			.decode_hull()
 			.map_err(|e| binrw::Error::Custom {
-				pos,
+				pos: pos + (args.clers_bit_count as u64 - hull_decoder.remaining_bits() as u64 / 8),
 				err: Box::new(e),
 			})?;
 		face_ranges.push(hull_decoder.current_face() * 3);
