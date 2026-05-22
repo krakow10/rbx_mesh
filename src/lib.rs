@@ -25,7 +25,8 @@ mod test;
 	all(
 		feature = "mesh-v1",
 		feature = "union-graphics",
-		feature = "union-physics"
+		feature = "union-physics",
+		any(feature = "csgphs-v8-ruzstd", feature = "csgphs-v8-zstd"),
 	),
 	cfg(doctest),
 	doc = include_str!("../README.md")
@@ -34,7 +35,8 @@ mod test;
 	not(all(
 		feature = "mesh-v1",
 		feature = "union-graphics",
-		feature = "union-physics"
+		feature = "union-physics",
+		any(feature = "csgphs-v8-ruzstd", feature = "csgphs-v8-zstd"),
 	)),
 	expect(unused)
 )]
