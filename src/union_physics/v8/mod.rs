@@ -119,7 +119,7 @@ fn decode_edgebreaker_hulls<R: BinReaderExt>(
 	use edgebreaker::HullDecoder;
 	let pos = reader.stream_position()?;
 	let edgebreaker = Edgebreaker::read_options(reader, endian, &args)?;
-	let symbol_reader = SymbolReader::new(&edgebreaker.clers_buffer, args.clers_bit_count as usize)
+	let symbol_reader = SymbolReader::new(&edgebreaker.clers_buffer, args.clers_bit_count)
 		.map_err(|e| binrw::Error::Custom {
 			pos,
 			err: Box::new(e),
@@ -136,7 +136,7 @@ fn decode_edgebreaker_hulls<R: BinReaderExt>(
 		hull_decoder
 			.decode_hull()
 			.map_err(|e| binrw::Error::Custom {
-				pos: pos + (args.clers_bit_count as u64 - hull_decoder.remaining_bits() as u64 / 8),
+				pos: pos + (args.clers_bit_count - hull_decoder.remaining_bits() / u8::BITS) as u64,
 				err: Box::new(e),
 			})?;
 		face_ranges.push(hull_decoder.current_face() * 3);

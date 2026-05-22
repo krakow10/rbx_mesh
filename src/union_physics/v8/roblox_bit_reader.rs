@@ -20,11 +20,11 @@ const CHUNK_SIZE: usize = size_of::<Cache>();
 pub struct RobloxBitReader<'a> {
 	chunks: core::slice::Iter<'a, [u8; CHUNK_SIZE]>,
 	cache: BitBuffer,
-	bit_count: usize,
+	bit_count: u32,
 }
 impl<'a> RobloxBitReader<'a> {
-	pub fn new(bytes: &'a [u8], bit_count_limit: usize) -> Result<Self, BitCounterError> {
-		if (bytes.len() * u8::BITS as usize) < bit_count_limit {
+	pub fn new(bytes: &'a [u8], bit_count_limit: u32) -> Result<Self, BitCounterError> {
+		if (bytes.len() as u32 * u8::BITS) < bit_count_limit {
 			return Err(BitCounterError::NotEnoughBytes);
 		}
 
@@ -39,11 +39,11 @@ impl<'a> RobloxBitReader<'a> {
 			bit_count: bit_count_limit,
 		})
 	}
-	pub fn remaining_bits(&self) -> usize {
+	pub fn remaining_bits(&self) -> u32 {
 		self.bit_count + self.cache.bits()
 	}
-	pub fn read(&mut self, bits: usize) -> Result<Cache, BitCounterError> {
-		debug_assert!(bits <= Cache::BITS as usize);
+	pub fn read(&mut self, bits: u32) -> Result<Cache, BitCounterError> {
+		debug_assert!(bits <= Cache::BITS);
 
 		// replace cache if we need more bits
 		let mut value = if self.cache.bits() < bits {

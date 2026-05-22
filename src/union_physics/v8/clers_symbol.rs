@@ -15,11 +15,11 @@ pub struct SymbolReader<'a> {
 	bit_reader: RobloxBitReader<'a>,
 }
 impl<'a> SymbolReader<'a> {
-	pub fn new(bytes: &'a [u8], bits: usize) -> Result<Self, BitCounterError> {
+	pub fn new(bytes: &'a [u8], bits: u32) -> Result<Self, BitCounterError> {
 		let bit_reader = RobloxBitReader::new(bytes, bits)?;
 		Ok(Self { bit_reader })
 	}
-	pub fn remaining_bits(&self) -> usize {
+	pub fn remaining_bits(&self) -> u32 {
 		self.bit_reader.remaining_bits()
 	}
 	pub fn read(&mut self) -> Result<Symbol, BitCounterError> {

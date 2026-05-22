@@ -4,12 +4,12 @@ pub type Cache = u32;
 #[derive(Debug, Clone)]
 pub struct BitBuffer {
 	buffer: Cache,
-	bits: usize,
+	bits: u32,
 }
 
 impl BitBuffer {
-	pub const CAPACITY: usize = Cache::BITS as usize;
-	pub const fn new(buffer: Cache, bits: usize) -> Self {
+	pub const CAPACITY: u32 = Cache::BITS;
+	pub const fn new(buffer: Cache, bits: u32) -> Self {
 		Self { buffer, bits }
 	}
 	pub const fn empty() -> Self {
@@ -18,12 +18,12 @@ impl BitBuffer {
 	pub const fn value(&self) -> Cache {
 		self.buffer
 	}
-	pub const fn bits(&self) -> usize {
+	pub const fn bits(&self) -> u32 {
 		self.bits
 	}
 	/// Push `bits` bits into the lsb of buffer.
 	/// Assumes non-active bits in value are zeroed
-	pub const fn push_lsb(&mut self, bits: usize, value: Cache) {
+	pub const fn push_lsb(&mut self, bits: u32, value: Cache) {
 		// enough room for bits
 		debug_assert!(self.bits + bits <= Self::CAPACITY);
 
@@ -34,7 +34,7 @@ impl BitBuffer {
 		self.bits += bits;
 	}
 	/// Pop `bits` bits from the msb of buffer
-	pub const fn pop_msb(&mut self, bits: usize) -> Cache {
+	pub const fn pop_msb(&mut self, bits: u32) -> Cache {
 		// enough available bits
 		debug_assert!(bits <= self.bits);
 
