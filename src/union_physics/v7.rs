@@ -4,6 +4,8 @@ use super::v3::{Mesh, PhysicsInfo};
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum GeomType7 {
+	#[brw(magic = 0u8)]
+	Type0,
 	#[brw(magic = 1u8)]
 	Type1,
 	#[brw(magic = 2u8)]
