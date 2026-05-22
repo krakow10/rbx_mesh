@@ -72,81 +72,118 @@ pub struct Aabb {
 
 #[binrw::binread]
 #[br(little)]
-#[derive(Debug, Clone)]
-pub struct Mesh8 {
-	pub hull_count: u32,
-	#[br(temp)]
-	position_count: u32,
-	pub face_count: u32,
-	pub first_hull_pos_count: u32,
-	pub first_hull_face_count: u32,
-	pub raw_hulls_len: u32,
-	pub clers_bit_count: u32,
-	#[br(temp)]
-	clers_buffer_len: u32,
-	pub positions_len: u32,
-	pub aabb: Aabb,
-	#[br(if(raw_hulls_len != 0))]
-	pub raw_hulls: Hulls,
-	#[br(parse_with = decode_edgebreaker_hulls, args_raw(EdgebreakerArgs{face_count,hull_count,clers_bit_count,position_count,clers_buffer_len}))]
-	pub hulls: Hulls,
-}
-
-struct EdgebreakerArgs {
+struct RawMesh8 {
 	hull_count: u32,
-	face_count: u32,
-	clers_bit_count: u32,
+	#[br(temp)]
 	position_count: u32,
+	face_count: u32,
+	#[br(temp)]
+	first_hull_pos_count: u32,
+	#[br(temp)]
+	first_hull_face_count: u32,
+	#[br(temp)]
+	raw_hulls_len: u32,
+	clers_bit_count: u32,
+	#[br(temp)]
 	clers_buffer_len: u32,
-}
-
-#[binrw::binread]
-#[br(little)]
-#[br(import_raw(edgebreaker_args: &EdgebreakerArgs))]
-struct Edgebreaker {
-	#[br(count = edgebreaker_args.clers_buffer_len)]
+	#[br(temp)]
+	positions_len: u32,
+	aabb: Aabb,
+	#[br(if(raw_hulls_len != 0))]
+	raw_hulls: Hulls,
+	#[br(count = clers_buffer_len)]
 	clers_buffer: Vec<u8>,
-	#[br(count = edgebreaker_args.position_count * 3)]
+	#[br(count = position_count * 3)]
 	positions: Vec<f32>,
 }
 
-fn decode_edgebreaker_hulls<R: BinReaderExt>(
-	reader: &mut R,
-	endian: binrw::Endian,
-	args: EdgebreakerArgs,
-) -> binrw::BinResult<Hulls> {
-	use clers_symbol::SymbolReader;
-	use edgebreaker::HullDecoder;
-	let pos = reader.stream_position()?;
-	let edgebreaker = Edgebreaker::read_options(reader, endian, &args)?;
-	let symbol_reader = SymbolReader::new(&edgebreaker.clers_buffer, args.clers_bit_count)
-		.map_err(|e| binrw::Error::Custom {
-			pos,
-			err: Box::new(e),
-		})?;
-	let capacity = args.face_count as usize * 3;
-	let mut hull_decoder = HullDecoder::new(symbol_reader, capacity);
+/// The mesh format encodes hulls in two different ways: raw, and edgebreaker.
+/// This is an implementation detail of the mesh format.  The edgebreaker
+/// hulls have been appended to the raw hulls for simplicity, meaning the
+/// raw hulls come first in hulls.iter_hulls().
+#[derive(Debug, Clone)]
+pub struct Mesh8 {
+	pub raw_hull_count: u32,
+	pub aabb: Aabb,
+	pub hulls: Hulls,
+}
 
-	let mut face_ranges = Vec::with_capacity(args.hull_count as usize + 1);
-	let mut pos_ranges = Vec::with_capacity(args.hull_count as usize + 1);
-	face_ranges.push(0);
-	pos_ranges.push(0);
-
-	for _ in 0..args.hull_count {
-		hull_decoder
-			.decode_hull()
+impl binrw::BinRead for Mesh8 {
+	type Args<'a> = ();
+	fn read_options<R: BinReaderExt>(
+		reader: &mut R,
+		endian: binrw::Endian,
+		args: Self::Args<'_>,
+	) -> binrw::BinResult<Self> {
+		use clers_symbol::SymbolReader;
+		use edgebreaker::HullDecoder;
+		let pos = reader.stream_position()?;
+		let raw_mesh = RawMesh8::read_options(reader, endian, args)?;
+		let symbol_reader = SymbolReader::new(&raw_mesh.clers_buffer, raw_mesh.clers_bit_count)
 			.map_err(|e| binrw::Error::Custom {
-				pos: pos + (args.clers_bit_count - hull_decoder.remaining_bits() / u8::BITS) as u64,
+				pos,
 				err: Box::new(e),
 			})?;
-		face_ranges.push(hull_decoder.current_face() * 3);
-		pos_ranges.push(hull_decoder.vertex_offset() * 3);
-	}
+		let capacity = raw_mesh.face_count as usize * 3;
+		let mut hull_decoder = HullDecoder::new(symbol_reader, capacity);
 
-	Ok(Hulls {
-		face_ranges,
-		faces: hull_decoder.into_indices().into_vec(),
-		pos_ranges,
-		positions: edgebreaker.positions,
-	})
+		let Hulls {
+			mut face_ranges,
+			mut faces,
+			mut pos_ranges,
+			mut positions,
+		} = raw_mesh.raw_hulls;
+
+		let raw_hull_count = face_ranges.len().min(pos_ranges.len()).saturating_sub(1) as u32;
+
+		let start_face = if let Some(&start_face) = face_ranges.last() {
+			face_ranges.reserve_exact(raw_mesh.hull_count as usize);
+			start_face
+		} else {
+			// mesh has no raw hulls, leading zero must be added
+			face_ranges.reserve_exact(raw_mesh.hull_count as usize + 1);
+			face_ranges.push(0);
+			0
+		};
+		let start_pos = if let Some(&start_pos) = pos_ranges.last() {
+			pos_ranges.reserve_exact(raw_mesh.hull_count as usize);
+			start_pos
+		} else {
+			// mesh has no raw hulls, leading zero must be added
+			pos_ranges.reserve_exact(raw_mesh.hull_count as usize + 1);
+			pos_ranges.push(0);
+			0
+		};
+
+		for _ in 0..raw_mesh.hull_count {
+			hull_decoder
+				.decode_hull()
+				.map_err(|e| binrw::Error::Custom {
+					pos: pos
+						+ (raw_mesh.clers_bit_count - hull_decoder.remaining_bits() / u8::BITS)
+							as u64,
+					err: Box::new(e),
+				})?;
+			face_ranges.push(start_face + hull_decoder.current_face() * 3);
+			pos_ranges.push(start_pos + hull_decoder.vertex_offset() * 3);
+		}
+
+		// This is the final form of the list before it is passed to the user, so allocate exactly
+		faces.reserve_exact(capacity);
+		positions.reserve_exact(raw_mesh.positions.len());
+
+		faces.extend(hull_decoder.into_indices());
+		positions.extend(raw_mesh.positions);
+
+		Ok(Mesh8 {
+			hulls: Hulls {
+				face_ranges,
+				faces,
+				pos_ranges,
+				positions,
+			},
+			raw_hull_count,
+			aabb: raw_mesh.aabb,
+		})
+	}
 }
