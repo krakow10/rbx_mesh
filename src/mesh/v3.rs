@@ -23,14 +23,25 @@ pub struct Lod3(pub u32);
 #[derive(Debug, Clone)]
 pub struct Mesh3 {
 	pub revision: Revision3,
-	#[brw(magic = b"\n\x10\0")] //newline,sizeof_header
-	//sizeof_header:u16,//16=0x0010
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"\n")]
+	_newline: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 16u16)]
+	_sizeof_header: (),
 	#[br(temp)]
 	#[bw(calc = vertices.size())]
 	sizeof_vertex: SizeOfVertex2,
-	#[brw(magic = b"\x0C\x04\0")] //sizeof_face,sizeof_lod
-	//sizeof_face:u8,//12=0x0C
-	//sizeof_lod:u16,//4=0x0004
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 12u8)]
+	_sizeof_face: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 4u16)]
+	_sizeof_lod: (),
 	#[br(temp)]
 	#[bw(try_calc=lods.len().try_into())]
 	pub lod_count: u16,

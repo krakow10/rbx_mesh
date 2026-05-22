@@ -77,13 +77,21 @@ pub struct Face2(pub [VertexId2; 3]);
 #[derive(Debug, Clone)]
 pub struct Mesh2 {
 	pub revision: Revision2,
-	#[brw(magic = b"\n\x0C\0")] //newline,sizeof_header
-	//sizeof_header:u16,//12=0x000C
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"\n")]
+	_newline: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 12u16)]
+	_sizeof_header: (),
 	#[br(temp)]
 	#[bw(calc = vertices.size())]
 	sizeof_vertex: SizeOfVertex2,
-	#[brw(magic = b"\x0C")] //sizeof_face
-	//sizeof_face:u8,//12=0x0C
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 12u8)]
+	_sizeof_face: (),
 	#[br(temp)]
 	#[bw(try_calc=vertices.len().try_into())]
 	pub vertex_count: u32,

@@ -139,8 +139,14 @@ pub struct Facs5 {
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh5 {
 	pub revision: Revision5,
-	#[brw(magic = b"\n\x20\0")] //newline,sizeof_header
-	//sizeof_header:u16,//32=0x0020
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"\n")]
+	_newline: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 32u16)]
+	_sizeof_header: (),
 	pub lod_type: LodType4,
 	#[br(temp)]
 	#[bw(try_calc=vertices.len().try_into())]

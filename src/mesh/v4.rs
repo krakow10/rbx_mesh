@@ -93,8 +93,14 @@ pub struct Subset4 {
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4 {
 	pub revision: Revision4,
-	#[brw(magic = b"\n\x18\0")] //newline,sizeof_header
-	//sizeof_header:u16,//24
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"\n")]
+	_newline: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 24u16)]
+	_sizeof_header: (),
 	pub lod_type: LodType4,
 	#[br(temp)]
 	#[bw(try_calc=vertices.len().try_into())]
