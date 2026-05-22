@@ -34,30 +34,7 @@ fn csgphs_8() {
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 
-	let mut symbols = Vec::new();
-	let mut symbol_reader = mesh.mesh.symbol_reader().unwrap();
-	while let Ok(symbol) = symbol_reader.read() {
-		symbols.push(symbol);
-	}
-	insta::assert_debug_snapshot!(symbols);
-
-	#[expect(dead_code)]
-	#[derive(Debug)]
-	struct Hull {
-		positions: Vec<[f32; 3]>,
-		faces: Vec<[u32; 3]>,
-	}
-
-	let mut hull_decoder = mesh.mesh.hull_decoder().unwrap();
-	let hulls: Vec<_> = (0..mesh.mesh.hull_count)
-		.map(|_| {
-			let hull = hull_decoder.decode_hull().unwrap();
-			Hull {
-				positions: hull.positions.to_vec(),
-				faces: hull.faces.to_vec(),
-			}
-		})
-		.collect();
+	let hulls: Vec<_> = mesh.mesh.hulls.iter_hulls().collect();
 	insta::assert_debug_snapshot!(hulls);
 }
 #[cfg(any(feature = "csgphs-v8-zstd", feature = "csgphs-v8-ruzstd"))]

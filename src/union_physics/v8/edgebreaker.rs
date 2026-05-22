@@ -76,7 +76,6 @@ impl From<EdgeId> for Edge {
 
 pub struct HullDecoder<'a> {
 	symbol_reader: SymbolReader<'a>,
-	positions: &'a [[f32; 3]],
 	// adjacency[edge] = twin edge index, or one of SENTINEL_*
 	adjacency: Box<[Edge]>,
 	// indices[edge] = vertex id at this face corner
@@ -86,19 +85,23 @@ pub struct HullDecoder<'a> {
 }
 
 impl<'a> HullDecoder<'a> {
-	pub fn new(
-		symbol_reader: SymbolReader<'a>,
-		positions: &'a [[f32; 3]],
-		capacity: usize,
-	) -> Self {
+	pub fn new(symbol_reader: SymbolReader<'a>, capacity: usize) -> Self {
 		Self {
 			symbol_reader,
-			positions,
 			adjacency: vec![Edge::UNINIT; capacity].into_boxed_slice(),
 			indices: vec![0; capacity].into_boxed_slice(),
 			current_face: 0,
 			vertex_offset: 0,
 		}
+	}
+	pub fn current_face(&self) -> u32 {
+		self.current_face
+	}
+	pub fn vertex_offset(&self) -> u32 {
+		self.vertex_offset
+	}
+	pub fn into_indices(self) -> Box<[u32]> {
+		self.indices
 	}
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
 		// loop while a SENTINEL_PROCESSING edge still needs to be paired
@@ -216,7 +219,7 @@ impl<'a> HullDecoder<'a> {
 			}
 		}
 	}
-	pub fn decode_hull(&mut self) -> Result<Hull<'_>, BitCounterError> {
+	pub fn decode_hull(&mut self) -> Result<(), BitCounterError> {
 		// Create the starting face
 		let start_face = self.current_face as usize;
 		let edge = 3 * start_face;
@@ -233,17 +236,8 @@ impl<'a> HullDecoder<'a> {
 
 		self.decode_recursive(&mut vertex_count, EdgeId(edge as u32 + 1))?;
 
-		let end_face = self.current_face as usize;
-
-		let (chunks, _) = self.indices.as_chunks();
-		let faces = &chunks[start_face..end_face];
-
-		let start_vertex = self.vertex_offset as usize;
 		self.vertex_offset += vertex_count;
-		let end_vertex = self.vertex_offset as usize;
 
-		let positions = &self.positions[start_vertex..end_vertex];
-
-		Ok(Hull { positions, faces })
+		Ok(())
 	}
 }

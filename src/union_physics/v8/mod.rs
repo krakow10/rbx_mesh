@@ -4,11 +4,10 @@ mod edgebreaker;
 mod raw_hulls;
 mod roblox_bit_reader;
 
-use binrw::BinReaderExt;
+use binrw::{BinRead, BinReaderExt};
 
-use clers_symbol::SymbolReader;
-pub use edgebreaker::{Hull, HullDecoder};
-pub use raw_hulls::RawHulls;
+pub use edgebreaker::Hull;
+pub use raw_hulls::Hulls;
 pub use roblox_bit_reader::BitCounterError;
 
 #[binrw::binrw]
@@ -87,20 +86,57 @@ pub struct Mesh8 {
 	pub positions_len: u32,
 	pub aabb: Aabb,
 	#[br(if(raw_hulls_len != 0))]
-	pub raw_hulls: RawHulls,
-	#[br(count = clers_buffer_len)]
-	pub clers_buffer: Vec<u8>,
-	#[br(count = position_count)]
-	pub positions: Vec<[f32; 3]>,
+	pub raw_hulls: Hulls,
+	#[br(parse_with = decode_edgebreaker_hulls, args_raw(EdgebreakerArgs{face_count,hull_count,clers_bit_count,position_count,clers_buffer_len}))]
+	pub hulls: Hulls,
 }
 
-impl Mesh8 {
-	pub(crate) fn symbol_reader(&self) -> Result<SymbolReader<'_>, BitCounterError> {
-		SymbolReader::new(&self.clers_buffer, self.clers_bit_count as usize)
+struct EdgebreakerArgs {
+	hull_count: u32,
+	face_count: u32,
+	clers_bit_count: u32,
+	position_count: u32,
+	clers_buffer_len: u32,
+}
+
+#[binrw::binread]
+#[br(little)]
+#[br(import_raw(edgebreaker_args: &EdgebreakerArgs))]
+struct Edgebreaker {
+	#[br(count = edgebreaker_args.clers_buffer_len)]
+	clers_buffer: Vec<u8>,
+	#[br(count = edgebreaker_args.position_count * 3)]
+	positions: Vec<f32>,
+}
+
+fn decode_edgebreaker_hulls<R: BinReaderExt>(
+	reader: &mut R,
+	endian: binrw::Endian,
+	args: EdgebreakerArgs,
+) -> binrw::BinResult<Hulls> {
+	use clers_symbol::SymbolReader;
+	use edgebreaker::HullDecoder;
+	let edgebreaker = Edgebreaker::read_options(reader, endian, &args)?;
+	let symbol_reader =
+		SymbolReader::new(&edgebreaker.clers_buffer, args.clers_bit_count as usize).unwrap();
+	let capacity = args.face_count as usize * 3;
+	let mut hull_decoder = HullDecoder::new(symbol_reader, capacity);
+
+	let mut face_ranges = Vec::with_capacity(args.hull_count as usize + 1);
+	let mut pos_ranges = Vec::with_capacity(args.hull_count as usize + 1);
+	face_ranges.push(0);
+	pos_ranges.push(0);
+
+	for _ in 0..args.hull_count {
+		hull_decoder.decode_hull().unwrap();
+		face_ranges.push(hull_decoder.current_face() * 3);
+		pos_ranges.push(hull_decoder.vertex_offset() * 3);
 	}
-	pub fn hull_decoder(&self) -> Result<HullDecoder<'_>, BitCounterError> {
-		let symbol_reader = self.symbol_reader()?;
-		let capacity = self.face_count as usize * 3;
-		Ok(HullDecoder::new(symbol_reader, &self.positions, capacity))
-	}
+
+	Ok(Hulls {
+		face_ranges,
+		faces: hull_decoder.into_indices().into_vec(),
+		pos_ranges,
+		positions: edgebreaker.positions,
+	})
 }

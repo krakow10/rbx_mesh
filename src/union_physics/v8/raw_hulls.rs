@@ -3,7 +3,7 @@ use super::Hull;
 #[binrw::binread]
 #[br(little)]
 #[derive(Clone, Debug, Default)]
-pub struct RawHulls {
+pub struct Hulls {
 	#[br(temp)]
 	face_range_count: u32,
 	#[br(count = face_range_count)]
@@ -18,7 +18,7 @@ pub struct RawHulls {
 	#[br(count = pos_ranges.last().copied().unwrap_or(0))]
 	pub positions: Vec<f32>,
 }
-impl RawHulls {
+impl Hulls {
 	pub fn iter_hulls(&self) -> impl ExactSizeIterator<Item = Hull<'_>> {
 		self.face_ranges
 			.array_windows()
