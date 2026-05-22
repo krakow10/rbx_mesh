@@ -31,6 +31,10 @@ where
 	Ok(wbuf)
 }
 
+#[cfg_attr(
+	not(any(feature = "mesh-v1", feature = "union-graphics")),
+	expect(unused)
+)]
 pub fn readonly<M>(bytes: Vec<u8>) -> binrw::BinResult<M>
 where
 	M: std::fmt::Debug,
