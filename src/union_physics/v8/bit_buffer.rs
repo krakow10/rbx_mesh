@@ -28,9 +28,9 @@ impl BitBuffer {
 		debug_assert!(self.bits + bits <= Self::CAPACITY);
 
 		// no nasty high bits
-		debug_assert!(value & !(1 as Cache).unbounded_shl(bits as u32).wrapping_sub(1) == 0);
+		debug_assert!(value & !(1 as Cache).unbounded_shl(bits).wrapping_sub(1) == 0);
 
-		self.buffer = self.buffer.unbounded_shl(bits as u32) | value;
+		self.buffer = self.buffer.unbounded_shl(bits) | value;
 		self.bits += bits;
 	}
 	/// Pop `bits` bits from the msb of buffer
@@ -39,8 +39,8 @@ impl BitBuffer {
 		debug_assert!(bits <= self.bits);
 
 		let shift = self.bits - bits;
-		let value = self.buffer.unbounded_shr(shift as u32);
-		let mask = (1 as Cache).unbounded_shl(shift as u32).wrapping_sub(1);
+		let value = self.buffer.unbounded_shr(shift);
+		let mask = (1 as Cache).unbounded_shl(shift).wrapping_sub(1);
 		self.buffer &= mask;
 		self.bits -= bits;
 		value

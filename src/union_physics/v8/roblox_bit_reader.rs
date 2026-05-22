@@ -29,7 +29,7 @@ impl<'a> RobloxBitReader<'a> {
 		}
 
 		let (chunks, rem) = bytes.as_chunks();
-		if rem.len() != 0 {
+		if !rem.is_empty() {
 			return Err(BitCounterError::InvalidBytesLen);
 		}
 
