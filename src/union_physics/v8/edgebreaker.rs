@@ -46,7 +46,7 @@ enum EdgeSentinel {
 	Processing,
 }
 
-enum EdgeMeaning {
+enum EdgeType {
 	Sentinel(EdgeSentinel),
 	Adjacency(EdgeId),
 	Invalid,
@@ -58,13 +58,13 @@ impl Edge {
 	const UNINIT: Self = Edge(-3);
 	const BOUNDARY: Self = Edge(-1);
 	const PROCESSING: Self = Edge(-2);
-	fn meaning(self) -> EdgeMeaning {
+	fn ty(self) -> EdgeType {
 		match self {
-			Edge(id) if 0 <= id => EdgeMeaning::Adjacency(EdgeId(id as u32)),
-			Edge(-3) => EdgeMeaning::Sentinel(EdgeSentinel::Uninit),
-			Edge(-1) => EdgeMeaning::Sentinel(EdgeSentinel::Boundary),
-			Edge(-2) => EdgeMeaning::Sentinel(EdgeSentinel::Processing),
-			_ => EdgeMeaning::Invalid,
+			Edge(id) if 0 <= id => EdgeType::Adjacency(EdgeId(id as u32)),
+			Edge(-3) => EdgeType::Sentinel(EdgeSentinel::Uninit),
+			Edge(-1) => EdgeType::Sentinel(EdgeSentinel::Boundary),
+			Edge(-2) => EdgeType::Sentinel(EdgeSentinel::Processing),
+			_ => EdgeType::Invalid,
 		}
 	}
 }
@@ -109,22 +109,21 @@ impl<'a> HullDecoder<'a> {
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
 		// loop while a SENTINEL_PROCESSING edge still needs to be paired
 		// inf loop if bad format
-		while let EdgeMeaning::Sentinel(EdgeSentinel::Processing) =
-			self.adjacency[current_edge.idx()].meaning()
+		while let EdgeType::Sentinel(EdgeSentinel::Processing) =
+			self.adjacency[current_edge.idx()].ty()
 		{
 			let mut candidate_edge = current_edge.next();
 
 			// walk the fan via twin+next until we reach a boundary edge
 			// inf loop if bad format
-			while let EdgeMeaning::Adjacency(opposite_edge) =
-				self.adjacency[candidate_edge.idx()].meaning()
+			while let EdgeType::Adjacency(opposite_edge) = self.adjacency[candidate_edge.idx()].ty()
 			{
 				candidate_edge = opposite_edge.next();
 			}
 
 			if !matches!(
-				self.adjacency[candidate_edge.idx()].meaning(),
-				EdgeMeaning::Sentinel(EdgeSentinel::Boundary)
+				self.adjacency[candidate_edge.idx()].ty(),
+				EdgeType::Sentinel(EdgeSentinel::Boundary)
 			) {
 				break;
 			}
@@ -144,7 +143,7 @@ impl<'a> HullDecoder<'a> {
 			// propagate that vertex id around the rest of the merged fan
 			let mut connected_edge = self.adjacency[current_edge.idx()];
 			// inf loop if bad format
-			while let EdgeMeaning::Adjacency(connected_edge_id) = connected_edge.meaning()
+			while let EdgeType::Adjacency(connected_edge_id) = connected_edge.ty()
 				&& candidate_edge != prev_edge
 			{
 				prev_edge = connected_edge_id.prev();
@@ -154,8 +153,7 @@ impl<'a> HullDecoder<'a> {
 
 			// hop along the connected fan to the next still-unzipped edge
 			// inf loop if bad format
-			while let EdgeMeaning::Adjacency(linked_edge) =
-				self.adjacency[current_edge.idx()].meaning()
+			while let EdgeType::Adjacency(linked_edge) = self.adjacency[current_edge.idx()].ty()
 				&& current_edge != candidate_edge
 			{
 				current_edge = linked_edge.prev();
