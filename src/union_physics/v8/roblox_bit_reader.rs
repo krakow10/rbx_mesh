@@ -39,7 +39,7 @@ impl<'a> RobloxBitReader<'a> {
 			bit_count: bit_count_limit,
 		})
 	}
-	pub fn remaining_bits(&self) -> u32 {
+	pub const fn remaining_bits(&self) -> u32 {
 		self.bit_count + self.cache.bits()
 	}
 	pub fn read(&mut self, bits: u32) -> Result<Cache, BitCounterError> {
