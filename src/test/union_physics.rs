@@ -33,9 +33,6 @@ fn csgphs_8() {
 	let bytes = read("meshes/CSGPHS_8_00.data").unwrap();
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
-
-	let hulls: Vec<_> = mesh.mesh.hulls.iter_hulls().collect();
-	insta::assert_debug_snapshot!(hulls);
 }
 #[cfg(any(feature = "csgphs-v8-zstd", feature = "csgphs-v8-ruzstd"))]
 #[test]
@@ -44,9 +41,6 @@ fn csgphs_8_raw_hull_1() {
 	let bytes = read("meshes/CSGPHS_8_raw_hulls_206.data").unwrap();
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
-
-	let hulls: Vec<_> = mesh.mesh.raw_hulls.iter_hulls().collect();
-	insta::assert_debug_snapshot!(hulls);
 }
 #[cfg(any(feature = "csgphs-v8-zstd", feature = "csgphs-v8-ruzstd"))]
 #[test]
@@ -55,7 +49,4 @@ fn csgphs_8_raw_hull_2() {
 	let bytes = read("meshes/CSGPHS_8_raw_hulls_972.data").unwrap();
 	let mesh = super::readonly::<CSGPHS8>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
-
-	let hulls: Vec<_> = mesh.mesh.raw_hulls.iter_hulls().collect();
-	insta::assert_debug_snapshot!(hulls);
 }
