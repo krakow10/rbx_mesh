@@ -24,6 +24,8 @@ pub enum GeomType {
 	Type3,
 }
 
+/// Hull information is accessed via mesh.hulls.iter_hulls() and mesh.raw_hulls.iter_hulls()
+/// both of which can contain hull information simultaneously.
 #[binrw::binread]
 #[br(little)]
 #[br(magic = b"CSGPHS\x08\0\0\0")]
