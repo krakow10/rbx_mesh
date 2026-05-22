@@ -154,13 +154,13 @@ fn read_mesh<R: BinReaderExt>(
 	positions.extend(mesh.positions);
 
 	Ok(Mesh8 {
+		raw_hull_count,
+		aabb: mesh.aabb,
 		hulls: Hulls {
 			face_ranges,
 			faces,
 			pos_ranges,
 			positions,
 		},
-		raw_hull_count,
-		aabb: mesh.aabb,
 	})
 }
