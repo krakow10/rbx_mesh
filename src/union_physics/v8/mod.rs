@@ -6,7 +6,7 @@ mod roblox_bit_reader;
 
 use binrw::{BinRead, BinReaderExt};
 
-pub use super::v7::GeomType7;
+use super::v7::GeomType7;
 pub use edgebreaker::Hull;
 pub use raw_hulls::Hulls;
 pub use roblox_bit_reader::BitCounterError;
