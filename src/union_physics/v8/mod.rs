@@ -11,8 +11,7 @@ pub use edgebreaker::Hull;
 pub use raw_hulls::Hulls;
 pub use roblox_bit_reader::BitCounterError;
 
-/// Hull information is accessed via mesh.hulls.iter_hulls() and mesh.raw_hulls.iter_hulls()
-/// both of which can contain hull information simultaneously.
+/// Hull information is accessed via mesh.hulls.iter_hulls()
 #[binrw::binread]
 #[br(little)]
 #[br(magic = b"CSGPHS\x08\0\0\0")]
