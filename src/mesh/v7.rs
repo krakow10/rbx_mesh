@@ -15,4 +15,46 @@ pub struct Mesh7 {
 	#[bw(ignore)]
 	#[brw(magic = b"\n")]
 	_newline: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"COREMESH")]
+	_coremesh: (),
+	pub unknown1: u32,
+	pub unknown2: [u8; 8],
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"DRACO")]
+	_draco: (),
+	pub unknown3: [u8; 11],
+	#[br(count = 804)]
+	pub indices: Vec<u16>,
+	// <- 0x684
+	pub unknown4: [u8; 32],
+	#[br(count = 408)]
+	pub unknown_cyclic: Vec<[u8; 12]>,
+	// <- 0x19b9
+	pub unknown5: [u8; 5],
+	#[br(count = 290)]
+	pub unknown6: Vec<u8>,
+	// <- 0x1ae0
+	#[br(count = 3330)]
+	pub unknown7: Vec<u8>,
+	// <- 0x27E2
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = b"LODS")]
+	_lods: (),
+	pub unknown8: [u8; 27],
+}
+
+#[test]
+fn read_mesh7() {
+	const A: u32 = 10241-0x27E6;
+	use binrw::BinReaderExt;
+	let data = std::fs::read("meshes/mesh7_127279296594138.bin").unwrap();
+	let mut bytes = std::io::Cursor::new(data.as_slice());
+	let mesh: Mesh7 = bytes.read_le().unwrap();
+	dbg!(mesh);
+	println!("len = {}", data.len());
+	println!("position = {:x}", bytes.position());
 }
