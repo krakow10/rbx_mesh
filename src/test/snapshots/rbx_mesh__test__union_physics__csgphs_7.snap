@@ -3,6 +3,7 @@ source: src/test/union_physics.rs
 expression: mesh
 ---
 CSGPHS7 {
+    geom_type: Type3,
     physics_info: PhysicsInfo {
         volume: 13359.768,
         center_of_gravity: [
