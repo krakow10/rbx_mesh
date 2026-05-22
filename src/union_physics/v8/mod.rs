@@ -46,7 +46,6 @@ fn read_mesh<R: BinReaderExt>(
 	args: (),
 ) -> binrw::BinResult<Mesh8> {
 	let pos = reader.stream_position()?;
-	use std::io::Read;
 	let mut decoded = Vec::new();
 	#[cfg(feature = "csgphs-v8-ruzstd")]
 	let mut decoder =
@@ -59,7 +58,7 @@ fn read_mesh<R: BinReaderExt>(
 		pos,
 		err: Box::new(e),
 	})?;
-	decoder.read_to_end(&mut decoded)?;
+	std::io::copy(&mut decoder, &mut decoded)?;
 	Mesh8::read_options(&mut std::io::Cursor::new(decoded), endian, args)
 }
 
