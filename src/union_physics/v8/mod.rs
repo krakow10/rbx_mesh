@@ -6,23 +6,10 @@ mod roblox_bit_reader;
 
 use binrw::{BinRead, BinReaderExt};
 
+pub use super::v7::GeomType7;
 pub use edgebreaker::Hull;
 pub use raw_hulls::Hulls;
 pub use roblox_bit_reader::BitCounterError;
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub enum GeomType8 {
-	#[brw(magic = 0u8)]
-	Type0,
-	#[brw(magic = 1u8)]
-	Type1,
-	#[brw(magic = 2u8)]
-	Type2,
-	#[brw(magic = 3u8)]
-	Type3,
-}
 
 /// Hull information is accessed via mesh.hulls.iter_hulls() and mesh.raw_hulls.iter_hulls()
 /// both of which can contain hull information simultaneously.
@@ -31,7 +18,7 @@ pub enum GeomType8 {
 #[br(magic = b"CSGPHS\x08\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8 {
-	pub geom_type: GeomType8,
+	pub geom_type: GeomType7,
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 0u8)]
