@@ -69,20 +69,13 @@ let mesh=read_union_physics_versioned(std::io::Cursor::new(phys_file))?;
 // Meshes contain multiple convex hulls.
 // print vertex positions of the first mesh
 match mesh{
-	// v3 and v5 are the same format, and the most common format
-	// (99% of the 100000 unions in my testing)
-	UnionPhysics::V3(mesh3)=>println!("{:?}",mesh3.meshes[0].positions),
-	UnionPhysics::V5(mesh5)=>println!("{:?}",mesh5.meshes[0].positions),
-	// new mesh format (2025)
-	UnionPhysics::V7(mesh7)=>println!("{:?}",mesh7.meshes[0].positions),
-	// Only one occurence in my data set.
 	// Who writes a uuid as ascii hex in a binary format!?
 	UnionPhysics::CSGK(_csgk)=>println!("CSGK"),
-	// These formats have zero occurences in my dataset
-	// But they are documented at
-	// https://devforum.roblox.com/t/some-info-on-sharedstrings-for-custom-collision-data-meshparts-unions-etc/294588
 	UnionPhysics::Block(_block)=>println!("CSGPHS Block"),
+	UnionPhysics::V3(mesh3)=>println!("{:?}",mesh3.meshes[0].positions),
+	UnionPhysics::V5(mesh5)=>println!("{:?}",mesh5.meshes[0].positions),
 	UnionPhysics::V6(mesh6)=>println!("{:?}",mesh6.mesh.positions),
+	UnionPhysics::V7(mesh7)=>println!("{:?}",mesh7.meshes[0].positions),
 }
 # binrw::BinResult::Ok(())
 ```
