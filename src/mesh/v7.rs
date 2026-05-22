@@ -49,7 +49,6 @@ pub struct Mesh7 {
 
 #[test]
 fn read_mesh7() {
-	const A: u32 = 10241-0x27E6;
 	use binrw::BinReaderExt;
 	let data = std::fs::read("meshes/mesh7_127279296594138.bin").unwrap();
 	let mut bytes = std::io::Cursor::new(data.as_slice());
