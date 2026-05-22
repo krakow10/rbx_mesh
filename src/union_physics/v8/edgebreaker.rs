@@ -214,8 +214,7 @@ impl<'a> HullDecoder<'a> {
 	}
 	pub fn decode_hull(&mut self) -> Result<(), BitCounterError> {
 		// Create the starting face
-		let start_face = self.current_face as usize;
-		let edge = 3 * start_face;
+		let edge = 3 * self.current_face as usize;
 		self.adjacency[edge..edge + 3].copy_from_slice(&[
 			Edge::BOUNDARY,
 			Edge::UNINIT,
