@@ -13,7 +13,7 @@ pub use roblox_bit_reader::BitCounterError;
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub enum GeomType {
+pub enum GeomType8 {
 	#[brw(magic = 0u8)]
 	Type0,
 	#[brw(magic = 1u8)]
@@ -31,7 +31,7 @@ pub enum GeomType {
 #[br(magic = b"CSGPHS\x08\0\0\0")]
 #[derive(Debug, Clone)]
 pub struct CSGPHS8 {
-	pub geom_type: GeomType,
+	pub geom_type: GeomType8,
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 0u8)]
