@@ -21,6 +21,23 @@ pub use union_physics::read_versioned as read_union_physics_versioned;
 mod test;
 
 // test readme
-#[doc = include_str!("../README.md")]
-#[cfg(doctest)]
+#[cfg_attr(
+	all(
+		feature = "mesh-v1",
+		feature = "union-graphics",
+		feature = "union-physics",
+		any(feature = "csgphs-v8-ruzstd", feature = "csgphs-v8-zstd"),
+	),
+	cfg(doctest),
+	doc = include_str!("../README.md")
+)]
+#[cfg_attr(
+	not(all(
+		feature = "mesh-v1",
+		feature = "union-graphics",
+		feature = "union-physics",
+		any(feature = "csgphs-v8-ruzstd", feature = "csgphs-v8-zstd"),
+	)),
+	expect(unused)
+)]
 struct ReadmeDoctests;

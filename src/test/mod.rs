@@ -24,7 +24,6 @@ where
 fn binwrite<M>(mesh: &M) -> binrw::BinResult<Cursor<Vec<u8>>>
 where
 	M: std::fmt::Debug,
-	M: for<'a> BinRead<Args<'a> = ()>,
 	M: for<'a> BinWrite<Args<'a> = ()>,
 {
 	let mut wbuf = Cursor::new(Vec::new());
@@ -32,6 +31,10 @@ where
 	Ok(wbuf)
 }
 
+#[cfg_attr(
+	not(any(feature = "mesh-v1", feature = "union-graphics")),
+	expect(unused)
+)]
 pub fn readonly<M>(bytes: Vec<u8>) -> binrw::BinResult<M>
 where
 	M: std::fmt::Debug,

@@ -5,7 +5,7 @@ use std::fs::read;
 #[test]
 fn meshdata_385416572_2() {
 	let bytes = read("meshes/385416572.meshdata").unwrap();
-	let mesh = readonly::<CSGMDL2>(bytes).unwrap();
+	let mesh = roundtrip::<CSGMDL2>(bytes).unwrap();
 	insta::assert_debug_snapshot!(mesh);
 }
 #[test]
