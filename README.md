@@ -76,6 +76,7 @@ match mesh{
 	UnionPhysics::V5(mesh5)=>println!("{:?}",mesh5.meshes[0].positions),
 	UnionPhysics::V6(mesh6)=>println!("{:?}",mesh6.mesh.positions),
 	UnionPhysics::V7(mesh7)=>println!("{:?}",mesh7.meshes[0].positions),
+	UnionPhysics::V8(mesh8)=>println!("{:?}",mesh8.body.positions),
 }
 # binrw::BinResult::Ok(())
 ```
