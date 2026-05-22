@@ -40,15 +40,11 @@ fn test_edge_id() {
 	assert_eq!(EdgeId(3).prev(), EdgeId(5));
 }
 
-enum EdgeSentinel {
+enum EdgeType {
+	Adjacency(EdgeId),
 	Uninit,
 	Boundary,
 	Processing,
-}
-
-enum EdgeType {
-	Sentinel(EdgeSentinel),
-	Adjacency(EdgeId),
 	Invalid,
 }
 
@@ -61,9 +57,9 @@ impl Edge {
 	fn ty(self) -> EdgeType {
 		match self {
 			Edge(id) if 0 <= id => EdgeType::Adjacency(EdgeId(id as u32)),
-			Edge(-3) => EdgeType::Sentinel(EdgeSentinel::Uninit),
-			Edge(-1) => EdgeType::Sentinel(EdgeSentinel::Boundary),
-			Edge(-2) => EdgeType::Sentinel(EdgeSentinel::Processing),
+			Edge(-3) => EdgeType::Uninit,
+			Edge(-1) => EdgeType::Boundary,
+			Edge(-2) => EdgeType::Processing,
 			_ => EdgeType::Invalid,
 		}
 	}
@@ -109,9 +105,7 @@ impl<'a> HullDecoder<'a> {
 	fn zip_boundary(&mut self, mut current_edge: EdgeId) -> EdgeId {
 		// loop while a SENTINEL_PROCESSING edge still needs to be paired
 		// inf loop if bad format
-		while let EdgeType::Sentinel(EdgeSentinel::Processing) =
-			self.adjacency[current_edge.idx()].ty()
-		{
+		while let EdgeType::Processing = self.adjacency[current_edge.idx()].ty() {
 			let mut candidate_edge = current_edge.next();
 
 			// walk the fan via twin+next until we reach a boundary edge
@@ -123,7 +117,7 @@ impl<'a> HullDecoder<'a> {
 
 			if !matches!(
 				self.adjacency[candidate_edge.idx()].ty(),
-				EdgeType::Sentinel(EdgeSentinel::Boundary)
+				EdgeType::Boundary
 			) {
 				break;
 			}
