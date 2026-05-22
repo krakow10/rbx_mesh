@@ -12,6 +12,8 @@ mod v4;
 pub use v4::*;
 mod v5;
 pub use v5::*;
+mod v7;
+pub use v7::*;
 
 use binrw::BinReaderExt;
 
