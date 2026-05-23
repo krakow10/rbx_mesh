@@ -19,8 +19,11 @@ pub struct Mesh7 {
 	#[bw(ignore)]
 	#[brw(magic = b"COREMESH")]
 	_coremesh: (),
-	pub unknown1: u32,
-	pub unknown2: [u8; 8],
+	// <- 0x15
+	pub unknown1_1: u32, // 2
+	// These numbers are nearly the file length
+	pub unknown1_2: u32, // 10181
+	pub unknown1_3: u32, // 10177
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = b"DRACO")]
@@ -63,13 +66,15 @@ fn read_mesh7() {
 			);
 		};
 	}
-	println!("unknown1 = {:?}", mesh.unknown1);
-	println!("unknown2 = {:?}", mesh.unknown2);
+	println!("unknown1_1 = {:?}", mesh.unknown1_1);
+	println!("unknown1_2 = {:?}", mesh.unknown1_2);
+	println!("unknown1_3 = {:?}", mesh.unknown1_3);
 	print_first_8_and_last_8!(indices);
 	println!("unknown4 = {:?}", mesh.unknown4);
 	println!("unknown5 = {:?}", mesh.unknown5);
 	print_first_8_and_last_8!(unknown6);
 	print_first_8_and_last_8!(unknown7);
 	println!("unknown8 = {:?}", mesh.unknown8);
+	println!("data.len() = {}", data.len());
 	assert_eq!(data.len() as u64, bytes.position());
 }
