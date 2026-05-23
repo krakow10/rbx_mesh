@@ -53,6 +53,23 @@ fn read_mesh7() {
 	let data = std::fs::read("meshes/mesh7_127279296594138.bin").unwrap();
 	let mut bytes = std::io::Cursor::new(data.as_slice());
 	let mesh: Mesh7 = bytes.read_le().unwrap();
-	dbg!(mesh);
+	macro_rules! print_first_8_and_last_8 {
+		($field:ident) => {
+			println!(
+				"{}: first = {:?} last = {:?}",
+				stringify!($field),
+				mesh.$field.get(0..8),
+				mesh.$field.get(mesh.$field.len() - 8..)
+			);
+		};
+	}
+	println!("unknown1 = {:?}", mesh.unknown1);
+	println!("unknown2 = {:?}", mesh.unknown2);
+	print_first_8_and_last_8!(indices);
+	println!("unknown4 = {:?}", mesh.unknown4);
+	println!("unknown5 = {:?}", mesh.unknown5);
+	print_first_8_and_last_8!(unknown6);
+	print_first_8_and_last_8!(unknown7);
+	println!("unknown8 = {:?}", mesh.unknown8);
 	assert_eq!(data.len() as u64, bytes.position());
 }
