@@ -57,13 +57,9 @@ impl<'a> RobloxBitReader<'a> {
 			let draw_bits = BitBuffer::CAPACITY.min(self.bit_count);
 			self.bit_count -= draw_bits;
 			
-			let new_cache = BitBuffer::new(
+			self.cache = BitBuffer::new(
 				self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
 				draw_bits,
-			);
-			core::mem::replace(
-				&mut self.cache,
-				new_cache,
 			);
 		}
 
