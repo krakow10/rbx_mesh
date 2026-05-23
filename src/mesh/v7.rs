@@ -40,6 +40,7 @@ pub struct Mesh7 {
 	#[br(count = 290)]
 	pub unknown6: Vec<u8>,
 	// <- 0x1ae0
+	// kinda gave up here, there may be more subdivisions in unknown7
 	#[br(count = 3330)]
 	pub unknown7: Vec<u8>,
 	// <- 0x27E2
