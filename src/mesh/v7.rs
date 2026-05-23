@@ -54,6 +54,5 @@ fn read_mesh7() {
 	let mut bytes = std::io::Cursor::new(data.as_slice());
 	let mesh: Mesh7 = bytes.read_le().unwrap();
 	dbg!(mesh);
-	println!("len = {}", data.len());
-	println!("position = {:x}", bytes.position());
+	assert_eq!(data.len() as u64, bytes.position());
 }
