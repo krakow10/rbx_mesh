@@ -50,7 +50,7 @@ impl<'a> RobloxBitReader<'a> {
 		if self.cache.bits() < bits {
 			
 			// populate value with remaining bits of cache
-			let pre_read_bits = self.cache_bits();
+			let pre_read_bits = self.cache.bits();
 			value.push_lsb(pre_read_bits, self.cache.pop_msb(pre_read_bits));
 			
 			// bits are lsb-aligned
