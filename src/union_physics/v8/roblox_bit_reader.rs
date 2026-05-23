@@ -49,14 +49,10 @@ impl<'a> RobloxBitReader<'a> {
 		let mut value = if self.cache.bits() < bits {
 			let draw_bits = self.bit_count.min(BitBuffer::CAPACITY);
 			self.bit_count -= draw_bits;
-			core::mem::replace(
-				&mut self.cache,
-				BitBuffer::new(
-					self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
-					// bits are lsb-aligned
-					draw_bits,
-				),
-			)
+			// bits are lsb-aligned
+			let new_cache_bits = self.chunks.next().copied().map_or(0, Cache::from_le_bytes);
+			let new_cache = BitBuffer::new(new_cache_bits, draw_bits);
+			core::mem::replace(&mut self.cache, new_cache)
 		} else {
 			BitBuffer::empty()
 		};
