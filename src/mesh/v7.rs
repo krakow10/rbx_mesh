@@ -27,11 +27,11 @@ pub struct Mesh7 {
 	_draco: (),
 	pub unknown3: [u8; 11],
 	#[br(count = 804)]
-	pub indices: Vec<u16>,
+	pub indices: Vec<u16>, // index into float_triples
 	// <- 0x684
 	pub unknown4: [u8; 32],
 	#[br(count = 408)]
-	pub unknown_cyclic: Vec<[u8; 12]>,
+	pub float_triples: Vec<[f32; 3]>,
 	// <- 0x19b9
 	pub unknown5: [u8; 5],
 	#[br(count = 290)]
