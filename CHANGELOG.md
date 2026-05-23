@@ -2,6 +2,14 @@
 
 ### Added
 
+### Changed
+
+### Removed
+
+## [0.8.0] - May 25th 2026
+
+### Added
+
 - Add CSGPHS8 support
 
 ### Changed

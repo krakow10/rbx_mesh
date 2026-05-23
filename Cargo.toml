@@ -1,8 +1,8 @@
 [package]
 name = "rbx_mesh"
-rust-version = "1.94"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2024"
+rust-version = "1.94"
 repository = "https://github.com/krakow10/rbx_mesh"
 license = "MIT OR Apache-2.0"
 description = "Rust parser for Roblox mesh files."
