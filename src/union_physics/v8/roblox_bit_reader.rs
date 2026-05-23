@@ -44,22 +44,28 @@ impl<'a> RobloxBitReader<'a> {
 	}
 	pub fn read(&mut self, bits: u32) -> Result<Cache, BitCounterError> {
 		debug_assert!(bits <= Cache::BITS);
+		let mut value = BitBuffer::empty();
 
 		// replace cache if we need more bits
-		let mut value = if self.cache.bits() < bits {
-			let draw_bits = self.bit_count.min(BitBuffer::CAPACITY);
+		if self.cache.bits() < bits {
+			
+			// populate value with remaining bits of cache
+			let pre_read_bits = self.cache_bits();
+			value.push_lsb(pre_read_bits, self.cache.pop_msb(pre_read_bits));
+			
+			// bits are lsb-aligned
+			let draw_bits = BitBuffer::CAPACITY.min(self.bit_count);
 			self.bit_count -= draw_bits;
+			
+			let new_cache = BitBuffer::new(
+				self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
+				draw_bits,
+			);
 			core::mem::replace(
 				&mut self.cache,
-				BitBuffer::new(
-					self.chunks.next().copied().map_or(0, Cache::from_le_bytes),
-					// bits are lsb-aligned
-					draw_bits,
-				),
-			)
-		} else {
-			BitBuffer::empty()
-		};
+				new_cache,
+			);
+		}
 
 		let draw_bits = bits - value.bits();
 		if self.cache.bits() < draw_bits {
