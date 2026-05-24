@@ -80,15 +80,15 @@ impl binrw::BinRead for Faces5 {
 				let v0: u8 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 				let offset = match v0 {
 					// TODO: test whether 0x40 goes to top or bottom case
-					0b00_000000..=0b00_111111 => v0 as i32,
-					0b01_000000..=0b01_111111 => {
+					000..064 => v0 as i32,
+					064..128 => {
 						// 64..127 is mapped to -64..-1
-						(v0 as i32) - 0b10_000000
+						(v0 as i32) - 128
 					}
-					0b10_000000..=0b11_111111 => {
+					128..256 => {
 						let v1 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 						let v2 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
-						i32::from_le_bytes([v2, v1, v0 & 0b01_111111, 0])
+						i32::from_le_bytes([v2, v1, v0 - 128, 0])
 					}
 				};
 				index_out = index_out.wrapping_add_signed(offset);
