@@ -75,17 +75,60 @@ pub struct SequentialConnectivity {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Attributes {
-	// <- 0x19b9
+pub struct BinaryString {
+	pub len: u8,
+	#[br(count = len)]
+	pub bytes: Vec<u8>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Entry {
+	pub key: BinaryString,
+	pub value: BinaryString,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct SubAttribute {
+	pub key: BinaryString,
+	pub attribute: Attribute,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Attribute {
 	#[br(parse_with = read_var_u32)]
-	pub attributes_count: u32,
-	pub unknown5: [u8; 4],
-	#[br(count = 290)]
-	pub unknown6: Vec<u8>,
-	// <- 0x1ae0
-	// kinda gave up here, there may be more subdivisions in unknown7
-	#[br(count = 3330)]
-	pub unknown7: Vec<u8>,
+	pub entry_count: u32,
+	#[br(count = entry_count)]
+	pub entries: Vec<Entry>,
+	#[br(parse_with = read_var_u32)]
+	pub sub_attribute_count: u32,
+	#[br(count = sub_attribute_count)]
+	pub sub_attributes: Vec<SubAttribute>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct CustomAttribute {
+	#[br(parse_with = read_var_u32)]
+	pub id: u32,
+	pub attribute: Attribute,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Attributes {
+	#[br(parse_with = read_var_u32)]
+	pub custom_attributes_count: u32,
+	#[br(count = custom_attributes_count)]
+	pub customattributes: Vec<CustomAttribute>,
+	pub file_attributes: Attribute,
 }
 
 #[binrw::binrw]
@@ -203,8 +246,7 @@ fn read_mesh7_127279296594138() {
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
 	println!("connectivity = {:?}", draco.connectivity);
-	println!("attributes_count = {:?}", draco.attributes.attributes_count);
-	println!("unknown5 = {:?}", draco.attributes.unknown5);
+	println!("attributes = {:?}", draco.attributes);
 	println!("lods = {:?}", mesh.lods);
 	println!("draco.len() = {}", coremesh2.draco.len());
 	assert_eq!(coremesh2.draco.len() as u64, cursor.position());
