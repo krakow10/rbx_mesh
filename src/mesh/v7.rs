@@ -1,3 +1,5 @@
+use binrw::{BinRead, BinReaderExt};
+
 use super::v2::{Face2, Vertex2};
 
 #[binrw::binrw]
@@ -18,6 +20,49 @@ pub struct Header {
 	pub encoder_type: u8,
 	pub encoder_method: u8,
 	pub flags: u16,
+}
+
+fn read_var_u32<R: BinReaderExt>(
+	reader: &mut R,
+	endian: binrw::Endian,
+	args: (),
+) -> binrw::BinResult<u32> {
+	let mut result = 0;
+	let mut shift = 0;
+	loop {
+		let byte = u8::read_options(reader, endian, args)?;
+		result |= ((byte & 0b01111111) as u32) << shift;
+		if byte & 0b10000000 == 0 {
+			return Ok(result);
+		}
+		shift += 7;
+	}
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Draco {
+	pub len: u32, // 10177
+	pub header: Header,
+	#[br(parse_with = read_var_u32)]
+	pub face_count: u32,
+	#[br(parse_with = read_var_u32)]
+	pub pos_count: u32,
+	pub connectivity_method: u8,
+	#[br(count = face_count)]
+	pub faces: Vec<[u16; 3]>, // index into float_triples
+	// <- 0x684
+	pub unknown4: [u8; 32],
+	#[br(count = pos_count)]
+	pub positions: Vec<[f32; 3]>,
+	// <- 0x19b9
+	pub unknown5: [u8; 5],
+	#[br(count = 290)]
+	pub unknown6: Vec<u8>,
+	// <- 0x1ae0
+	// kinda gave up here, there may be more subdivisions in unknown7
+	#[br(count = 3330)]
+	pub unknown7: Vec<u8>,
 }
 
 #[binrw::binrw]
@@ -92,14 +137,51 @@ pub struct Mesh7 {
 	pub lods: Lods,
 }
 
-fn _math(){
-	const _A:u32=192-(40*4+12*2);
+fn _math() {
+	const _A: u32 = 192 - (40 * 4 + 12 * 2);
 }
 
 #[test]
-fn read_mesh7() {
+fn read_mesh7_127279296594138() {
 	use binrw::BinReaderExt;
 	let data = std::fs::read("meshes/mesh7_127279296594138.bin").unwrap();
+	let mut bytes = std::io::Cursor::new(data.as_slice());
+	let mesh: Mesh7 = bytes.read_le().unwrap();
+	println!("data.len() = {}", data.len());
+	assert_eq!(data.len() as u64, bytes.position());
+
+	let Coremesh::V2(coremesh2) = mesh.coremesh else {
+		panic!();
+	};
+	let mut cursor = std::io::Cursor::new(coremesh2.draco.as_slice());
+	let draco: Draco = cursor.read_le().unwrap();
+	macro_rules! print_first_8_and_last_8 {
+		($field:ident) => {
+			println!(
+				"{}: first = {:?} last = {:?}",
+				stringify!($field),
+				draco.$field.get(0..8),
+				draco.$field.get(draco.$field.len() - 8..)
+			);
+		};
+	}
+	println!("len = {:?}", draco.len);
+	println!("header = {:?}", draco.header);
+	println!("face_count = {:?}", draco.face_count);
+	println!("pos_count = {:?}", draco.pos_count);
+	println!("connectivity_method = {:?}", draco.connectivity_method);
+	print_first_8_and_last_8!(faces);
+	println!("unknown4 = {:?}", draco.unknown4);
+	println!("unknown5 = {:?}", draco.unknown5);
+	print_first_8_and_last_8!(unknown6);
+	print_first_8_and_last_8!(unknown7);
+	println!("lods = {:?}", mesh.lods);
+}
+
+#[test]
+fn read_mesh7_86389496539231() {
+	use binrw::BinReaderExt;
+	let data = std::fs::read("meshes/mesh7_86389496539231.bin").unwrap();
 	let mut bytes = std::io::Cursor::new(data.as_slice());
 	let _mesh: Mesh7 = bytes.read_le().unwrap();
 	println!("data.len() = {}", data.len());
