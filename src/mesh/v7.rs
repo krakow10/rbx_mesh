@@ -1,3 +1,5 @@
+use super::v2::{Face2, Vertex2};
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
@@ -21,43 +23,77 @@ pub struct Header {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
+pub enum Coremesh {
+	V1(Coremesh1),
+	V2(Coremesh2),
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[brw(magic = b"COREMESH\x01\0\0\0")]
+#[derive(Debug, Clone)]
+pub struct Coremesh1 {
+	#[br(temp)]
+	#[bw(try_calc = (vertices.len()*size_of::<Vertex2>() + faces.len()*size_of::<Face2>()).try_into())]
+	pub len: u32,
+	#[br(temp)]
+	#[bw(try_calc = vertices.len().try_into())]
+	pub vertex_count: u32,
+	#[br(count = vertex_count)]
+	pub vertices: Vec<Vertex2>,
+	#[br(temp)]
+	#[bw(try_calc = faces.len().try_into())]
+	pub face_count: u32,
+	#[br(count = face_count)]
+	pub faces: Vec<Face2>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[brw(magic = b"COREMESH\x02\0\0\0")]
+#[derive(Debug, Clone)]
+pub struct Coremesh2 {
+	pub draco_len: u32,
+	#[br(count = draco_len)]
+	pub draco: Vec<u8>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[brw(magic = b"LODS")]
+#[derive(Debug, Clone)]
+pub struct Lods {
+	// version 6.00 LODS
+	// pub lod_type: u16,
+	// pub num_high_quality_lods: u8,
+	// pub lod_offsets_count: u32,
+	// #[br(count = lod_offsets_count)]
+	// pub lod_offsets: Vec<u32>,
+	pub unknown1: u32,     // 0, 0, 0, 0,
+	pub unknown2: u32,     // 1, 0, 0, 0,
+	pub unknown3: u32,     // 15, 0, 0, 0,
+	pub unknown4: [u8; 3], // 0, 0, 1,
+	pub unknown5: u32,     // 2, 0, 0, 0,
+	pub unknown6: u32,     // 0, 0, 0, 0,
+	pub unknown7: u32,     // 0, 0, 0, 0
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
 pub struct Mesh7 {
 	pub revision: Revision7,
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = b"\n")]
 	_newline: (),
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"COREMESH")]
-	_coremesh: (),
-	// <- 0x15
-	pub unknown1_1: u32, // 2
-	// These numbers are nearly the file length
-	pub unknown1_2: u32, // 10181
-	pub unknown1_3: u32, // 10177
-	pub header: Header,
-	pub unknown3: [u8; 5],
-	#[br(count = 804)]
-	pub indices: Vec<u16>, // index into float_triples
-	// <- 0x684
-	pub unknown4: [u8; 32],
-	#[br(count = 408)]
-	pub float_triples: Vec<[f32; 3]>,
-	// <- 0x19b9
-	pub unknown5: [u8; 5],
-	#[br(count = 290)]
-	pub unknown6: Vec<u8>,
-	// <- 0x1ae0
-	// kinda gave up here, there may be more subdivisions in unknown7
-	#[br(count = 3330)]
-	pub unknown7: Vec<u8>,
+	pub coremesh: Coremesh,
 	// <- 0x27E2
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"LODS")]
-	_lods: (),
-	pub unknown8: [u8; 27],
+	pub lods: Lods,
+}
+
+fn _math(){
+	const _A:u32=192-(40*4+12*2);
 }
 
 #[test]
@@ -65,26 +101,17 @@ fn read_mesh7() {
 	use binrw::BinReaderExt;
 	let data = std::fs::read("meshes/mesh7_127279296594138.bin").unwrap();
 	let mut bytes = std::io::Cursor::new(data.as_slice());
-	let mesh: Mesh7 = bytes.read_le().unwrap();
-	macro_rules! print_first_8_and_last_8 {
-		($field:ident) => {
-			println!(
-				"{}: first = {:?} last = {:?}",
-				stringify!($field),
-				mesh.$field.get(0..8),
-				mesh.$field.get(mesh.$field.len() - 8..)
-			);
-		};
-	}
-	println!("unknown1_1 = {:?}", mesh.unknown1_1);
-	println!("unknown1_2 = {:?}", mesh.unknown1_2);
-	println!("unknown1_3 = {:?}", mesh.unknown1_3);
-	print_first_8_and_last_8!(indices);
-	println!("unknown4 = {:?}", mesh.unknown4);
-	println!("unknown5 = {:?}", mesh.unknown5);
-	print_first_8_and_last_8!(unknown6);
-	print_first_8_and_last_8!(unknown7);
-	println!("unknown8 = {:?}", mesh.unknown8);
+	let _mesh: Mesh7 = bytes.read_le().unwrap();
+	println!("data.len() = {}", data.len());
+	assert_eq!(data.len() as u64, bytes.position());
+}
+
+#[test]
+fn read_mesh7_112807239761722() {
+	use binrw::BinReaderExt;
+	let data = std::fs::read("meshes/mesh7_112807239761722.bin").unwrap();
+	let mut bytes = std::io::Cursor::new(data.as_slice());
+	let _mesh: Mesh7 = bytes.read_le().unwrap();
 	println!("data.len() = {}", data.len());
 	assert_eq!(data.len() as u64, bytes.position());
 }

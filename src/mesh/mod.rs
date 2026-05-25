@@ -34,7 +34,7 @@ pub enum Mesh {
 	V4(Mesh4),
 	V5(Mesh5),
 	//Version6(Mesh6),
-	//Version7(Mesh7),
+	V7(Mesh7),
 }
 
 #[cfg(not(feature = "mesh-v1"))]
@@ -48,7 +48,7 @@ pub enum Mesh {
 	V4(Mesh4),
 	V5(Mesh5),
 	//Version6(Mesh6),
-	//Version7(Mesh7),
+	V7(Mesh7),
 }
 
 pub fn read_versioned<R: BinReaderExt>(mut read: R) -> Result<Mesh, Error> {
