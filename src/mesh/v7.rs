@@ -151,11 +151,9 @@ pub struct Lods {
 	// pub lod_offsets: Vec<u32>,
 	pub unknown1: u32,     // 0, 0, 0, 0,
 	pub unknown2: u32,     // 1, 0, 0, 0,
-	pub unknown3: u32,     // 15, 0, 0, 0,
-	pub unknown4: [u8; 3], // 0, 0, 1,
-	pub unknown5: u32,     // 2, 0, 0, 0,
-	pub unknown6: u32,     // 0, 0, 0, 0,
-	pub unknown7: u32,     // 0, 0, 0, 0
+	pub unknown3_len: u32, // 15, 0, 0, 0,
+	#[br(count = unknown3_len)]
+	pub unknown3: Vec<u8>, // [0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }
 
 #[binrw::binrw]
