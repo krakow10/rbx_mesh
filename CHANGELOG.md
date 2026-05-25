@@ -19,8 +19,6 @@
 - CSGMDL5 `TwoPoseCorrective5` and `ThreePoseCorrective5` use an array of `ControlId5` instead of a tuple
 - CSGPHS7 constant magic number `3` changed to `geom_type` field with 3 observed variants
 
-### Removed
-
 ## [0.7.0] - May 8th 2026
 
 ### Added
