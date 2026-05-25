@@ -38,23 +38,49 @@ fn read_var_u32<R: BinReaderExt>(
 		shift += 7;
 	}
 }
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct ConnectivityHeader {
+	#[br(parse_with = read_var_u32)]
+	pub face_count: u32,
+	#[br(parse_with = read_var_u32)]
+	pub pos_count: u32,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[br(import_raw(header:&ConnectivityHeader))]
+#[derive(Debug, Clone)]
+pub enum Connectivity {
+	#[brw(magic = 1u8)]
+	Sequential(#[br(args_raw(header))] SequentialConnectivity),
+	// Edgebreaker
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[br(import_raw(header:&ConnectivityHeader))]
+#[derive(Debug, Clone)]
+pub struct SequentialConnectivity {
+	#[br(count = header.face_count)]
+	pub faces: Vec<[u16; 3]>, // index into float_triples
+	// <- 0x684
+	pub unknown4: [u8; 32],
+	#[br(count = header.pos_count)]
+	pub positions: Vec<[f32; 3]>,
+}
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Draco {
 	pub len: u32, // 10177
 	pub header: Header,
-	#[br(parse_with = read_var_u32)]
-	pub face_count: u32,
-	#[br(parse_with = read_var_u32)]
-	pub pos_count: u32,
-	pub connectivity_method: u8,
-	#[br(count = face_count)]
-	pub faces: Vec<[u16; 3]>, // index into float_triples
-	// <- 0x684
-	pub unknown4: [u8; 32],
-	#[br(count = pos_count)]
-	pub positions: Vec<[f32; 3]>,
+	pub connectivity_header: ConnectivityHeader,
+	#[br(args_raw(&connectivity_header))]
+	pub connectivity: Connectivity,
 	// <- 0x19b9
 	pub unknown5: [u8; 5],
 	#[br(count = 290)]
@@ -167,11 +193,9 @@ fn read_mesh7_127279296594138() {
 	}
 	println!("len = {:?}", draco.len);
 	println!("header = {:?}", draco.header);
-	println!("face_count = {:?}", draco.face_count);
-	println!("pos_count = {:?}", draco.pos_count);
-	println!("connectivity_method = {:?}", draco.connectivity_method);
-	print_first_8_and_last_8!(faces);
-	println!("unknown4 = {:?}", draco.unknown4);
+	println!("face_count = {:?}", draco.connectivity_header.face_count);
+	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
+	println!("connectivity = {:?}", draco.connectivity);
 	println!("unknown5 = {:?}", draco.unknown5);
 	print_first_8_and_last_8!(unknown6);
 	print_first_8_and_last_8!(unknown7);
