@@ -75,20 +75,29 @@ pub struct SequentialConnectivity {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct Draco {
-	pub len: u32, // 10177
-	pub header: Header,
-	pub connectivity_header: ConnectivityHeader,
-	#[br(args_raw(&connectivity_header))]
-	pub connectivity: Connectivity,
+pub struct Attributes {
 	// <- 0x19b9
-	pub unknown5: [u8; 5],
+	#[br(parse_with = read_var_u32)]
+	pub attributes_count: u32,
+	pub unknown5: [u8; 4],
 	#[br(count = 290)]
 	pub unknown6: Vec<u8>,
 	// <- 0x1ae0
 	// kinda gave up here, there may be more subdivisions in unknown7
 	#[br(count = 3330)]
 	pub unknown7: Vec<u8>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Draco {
+	pub len: u32, // 10177
+	pub header: Header,
+	pub connectivity_header: ConnectivityHeader,
+	#[br(args_raw(&connectivity_header))]
+	pub connectivity: Connectivity,
+	pub attributes: Attributes,
 }
 
 #[binrw::binrw]
@@ -196,10 +205,11 @@ fn read_mesh7_127279296594138() {
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
 	println!("connectivity = {:?}", draco.connectivity);
-	println!("unknown5 = {:?}", draco.unknown5);
-	print_first_8_and_last_8!(unknown6);
-	print_first_8_and_last_8!(unknown7);
+	println!("attributes_count = {:?}", draco.attributes.attributes_count);
+	println!("unknown5 = {:?}", draco.attributes.unknown5);
 	println!("lods = {:?}", mesh.lods);
+	println!("draco.len() = {}", coremesh2.draco.len());
+	assert_eq!(coremesh2.draco.len() as u64, cursor.position());
 }
 
 #[test]
