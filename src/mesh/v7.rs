@@ -8,6 +8,18 @@ pub enum Revision7 {
 
 #[binrw::binrw]
 #[brw(little)]
+#[brw(magic = b"DRACO")]
+#[derive(Debug, Clone)]
+pub struct Header {
+	pub major_version: u8,
+	pub minor_version: u8,
+	pub encoder_type: u8,
+	pub encoder_method: u8,
+	pub flags: u16,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Mesh7 {
 	pub revision: Revision7,
@@ -24,11 +36,8 @@ pub struct Mesh7 {
 	// These numbers are nearly the file length
 	pub unknown1_2: u32, // 10181
 	pub unknown1_3: u32, // 10177
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"DRACO")]
-	_draco: (),
-	pub unknown3: [u8; 11],
+	pub header: Header,
+	pub unknown3: [u8; 5],
 	#[br(count = 804)]
 	pub indices: Vec<u16>, // index into float_triples
 	// <- 0x684
