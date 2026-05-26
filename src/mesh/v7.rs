@@ -130,12 +130,19 @@ pub struct AttributeMetadata {
 	#[br(parse_with = read_var_u32)]
 	pub att_dec_unique_id: u32,
 }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct SequentialAttributeDecoderType {
-	#[br(parse_with = read_var_u32)]
-	pub seq_att_dec_decoder_type: u32,
+pub enum SeqAttDecDecoderType {
+	#[brw(magic = 0u8)]
+	SequentialAttributeEncoderGeneric,
+	#[brw(magic = 1u8)]
+	SequentialAttributeEncoderInteger,
+	#[brw(magic = 2u8)]
+	SequentialAttributeEncoderQuantization,
+	#[brw(magic = 3u8)]
+	SequentialAttributeEncoderNormals,
 }
 
 #[binrw::binrw]
@@ -149,7 +156,7 @@ pub struct AttributeDecoderMetadata {
 	#[br(count = att_dec_num_attributes)]
 	pub attribute_metadatas: Vec<AttributeMetadata>,
 	#[br(count = att_dec_num_attributes)]
-	pub seq_att_dec_decoder_type: Vec<SequentialAttributeDecoderType>,
+	pub seq_att_dec_decoder_type: Vec<SeqAttDecDecoderType>,
 }
 
 // void SequentialGenerateSequence() {
@@ -214,11 +221,51 @@ pub struct PredictionData {
 	pub ext: Option<PredictionDataExt>,
 }
 
+// fn get_num_components(header:)
+
+// void SequentialIntegerAttributeDecoder_DecodeIntegerValues() {
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct SequentialIntegerAttributeDecoderDecodeIntegerValues {
+	pub prediction_scheme: SeqAttDecPredictionScheme,
+	#[br(if(prediction_scheme != SeqAttDecPredictionScheme::PredictionNone))]
+	pub ext: Option<PredictionDataExt>,
+}
+//   num_components = GetNumComponents();
+//   num_entries = att_dec_num_values_to_decode[curr_att_dec][curr_att];
+//   num_values = num_entries * num_components;
+//   if (seq_int_att_dec_compressed[curr_att_dec][curr_att] > 0) {
+//     DecodeSymbols(num_values, num_components, &decoded_symbols);
+//   }
+//   seq_int_att_dec_decoded_values[curr_att_dec][curr_att] = decoded_symbols;
+//   if (num_values > 0) {
+//     if (seq_att_dec_prediction_transform_type[curr_att_dec][curr_att] ==
+//           PREDICTION_TRANSFORM_NORMAL_OCTAHEDRON_CANONICALIZED) {
+//       decoded_symbols = seq_int_att_dec_decoded_values[curr_att_dec][curr_att];
+//       for (i = 0; i < decoded_symbols.size(); ++i) {
+//         signed_vals[i] = decoded_symbols[i];
+//       }
+//       seq_int_att_dec_symbols_to_signed_ints[curr_att_dec][curr_att] = signed_vals;
+//     } else {
+//       ConvertSymbolsToSignedInts();
+//     }
+//   }
+//   if (seq_att_dec_prediction_scheme[curr_att_dec][curr_att] != PREDICTION_NONE) {
+//     DecodePredictionData(seq_att_dec_prediction_scheme[curr_att_dec][curr_att]);
+//     PredictionScheme_ComputeOriginalValues(
+//         seq_att_dec_prediction_scheme[curr_att_dec][curr_att], num_entries);
+//   }
+// }
+
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Attribute {
 	pub prediction_data: PredictionData,
+	#[br(if(prediction_data.prediction_scheme != SeqAttDecPredictionScheme::PredictionNone))]
+	pub sequential_integer_attribute_decoder_decode_integer_values:
+		Option<SequentialIntegerAttributeDecoderDecodeIntegerValues>,
 }
 
 #[binrw::binrw]
@@ -471,8 +518,8 @@ fn read_mesh7_127279296594138() {
 	// println!("connectivity = {:?}", draco.connectivity);
 	println!("attributes = {:?}", draco.attributes);
 
-	let first_attribute: Attribute = cursor.read_le().unwrap();
-	println!("first_attribute = {first_attribute:?}");
+	// let first_attribute: Attribute = cursor.read_le().unwrap();
+	// println!("first_attribute = {first_attribute:?}");
 
 	let pos = cursor.position();
 	println!(
