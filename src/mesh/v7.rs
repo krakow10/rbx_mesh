@@ -2,6 +2,7 @@ use binrw::{BinRead, BinReaderExt};
 
 use super::v2::{Face2, Vertex2};
 use super::v4::{Bone4, Envelope4, Subset4};
+use super::v5::{QuantizedTransforms5, ThreePoseCorrective5, TwoPoseCorrective5};
 
 #[binrw::binrw]
 #[brw(little)]
@@ -385,14 +386,41 @@ pub struct Skinning {
 
 #[binrw::binrw]
 #[brw(little)]
-#[brw(magic = b"SKINNING")]
 #[derive(Debug, Clone)]
-pub struct Skinnings {
+pub struct Facs7 {
+	pub unknown_count1: u32,             // 0
+	pub unknown_count2: u32,             // 1
+	pub unknown_count3: u32,             // 59186 -> remaining bytes in file after this number
+	pub unknown_count4: u32,             // 59182 -> remaining bytes in file after this number
+	pub face_bone_names_len: u32,        // 576
+	pub face_control_names_len: u32,     // 280
+	pub unknown_count5: u32,             // 58068
+	pub unknown_count6: u32,             // 0
+	pub two_pose_correctives_len: u32,   // 192
+	pub three_pose_correctives_len: u32, // 42
+	#[br(count=face_bone_names_len)]
+	pub face_bone_names: Vec<u8>,
+	#[br(count=face_control_names_len)]
+	pub face_control_names: Vec<u8>,
+	pub quantized_transforms: QuantizedTransforms5,
+	#[br(count=two_pose_correctives_len as usize/size_of::<TwoPoseCorrective5>())]
+	pub two_pose_correctives: Vec<TwoPoseCorrective5>,
+	#[br(count=three_pose_correctives_len as usize/size_of::<ThreePoseCorrective5>())]
+	pub three_pose_correctives: Vec<ThreePoseCorrective5>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Mesh7Ext {
+	#[brw(magic = b"SKINNING")]
 	#[br(temp)]
 	#[bw(try_calc = skinnings.len().try_into())]
 	pub skinning_count: u32,
 	#[br(count = skinning_count)]
 	pub skinnings: Vec<Skinning>,
+	#[brw(magic = b"FACS")]
+	pub facs: Facs7,
 }
 
 #[binrw::binrw]
@@ -408,11 +436,11 @@ pub struct Mesh7 {
 	// <- 0x27E2
 	pub lods: Lods,
 	#[br(try)]
-	pub skinning: Option<Skinnings>,
+	pub ext: Option<Mesh7Ext>,
 }
 
 fn _math() {
-	const _A: u32 = 57918;
+	const _A: u32 = 0x10D8F - 0x10C77;
 	const _S: &str = unsafe { str::from_utf8_unchecked(&[70, 65, 67, 83]) };
 }
 
@@ -477,29 +505,6 @@ fn read_mesh7_100025761449828_skinning() {
 	use binrw::BinReaderExt;
 	let data = std::fs::read("meshes/mesh7_100025761449828.bin").unwrap();
 	let mut cursor = std::io::Cursor::new(data.as_slice());
-	let mesh: Mesh7 = cursor.read_le().unwrap();
-	let skinnings = mesh.skinning.unwrap().skinnings;
-	let skinning = skinnings.first().unwrap();
-	macro_rules! print_first_8_and_last_8 {
-		($field:ident) => {
-			println!(
-				"{}: first = {:?} last = {:?}",
-				stringify!($field),
-				skinning.$field.get(0..4),
-				skinning.$field.get(skinning.$field.len() - 4..)
-			);
-		};
-	}
-	println!("skinning.len = {}", skinning.len);
-	print_first_8_and_last_8!(envelopes);
-	print_first_8_and_last_8!(bones);
-	print_first_8_and_last_8!(bone_names);
-	print_first_8_and_last_8!(subsets);
-	let pos = cursor.position();
-	println!(
-		"rest of data = {:?}",
-		&data.as_slice()[pos as usize..pos as usize + 64]
-	);
-	println!("data.len() = {}", data.len());
+	let _mesh: Mesh7 = cursor.read_le().unwrap();
 	assert_eq!(data.len() as u64, cursor.position());
 }
