@@ -154,11 +154,28 @@ pub struct AttributeDecoderMetadata {
 	pub seq_att_dec_decoder_type: Vec<SequentialAttributeDecoderType>,
 }
 
+// void SequentialGenerateSequence() {
+//   for (i = 0; i < num_points; ++i) {
+//     encoded_attribute_value_index_to_corner_map[curr_att_dec][i] = i;
+//   }
+// }
 #[binrw::binrw]
 #[brw(little)]
-#[br(import_raw(header:&DracoHeader))]
+#[br(import_raw(header:&ConnectivityHeader))]
 #[derive(Debug, Clone)]
+pub struct AttributeCornerMap {
+	// This is only mutated for edgebreaker, otherwise it's just t[i] = i
+	// #[br(count = header.pos_count)]
+	// pub encoded_attribute_value_index_to_corner_map: Vec<usize>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[br(import(header:&DracoHeader,connectivity_header:&ConnectivityHeader))]
+#[derive(Debug, Clone)]
+// void DecodeAttributeData() {
 pub struct Attributes {
+	//   ParseAttributeDecodersData();
 	#[br(temp)]
 	#[bw(try_calc = atribute_decoder_configs.len().try_into())]
 	pub attributes_decoders_count: u8,
@@ -167,6 +184,47 @@ pub struct Attributes {
 	pub atribute_decoder_configs: Vec<AttributeDecoderConfig>,
 	#[br(count = attributes_decoders_count)]
 	pub atribute_decoder_metadatas: Vec<AttributeDecoderMetadata>,
+	// === SKIP ===
+	// vertex_visited_point_ids.assign(num_attributes_decoders, 0);
+	//  curr_att_dec = 0;
+	//  if (encoder_method == MESH_EDGEBREAKER_ENCODING) {
+	//    DecodeAttributeSeams();
+	//    for (i = 0; i < num_encoded_vertices + num_encoded_split_symbols; ++i) {
+	//      if (is_vert_hole_[i]) {
+	//        UpdateVertexToCornerMap(i);
+	//      }
+	//    }
+	//    for (i = 1; i < num_attributes_decoders; ++i) {
+	//      curr_att_dec = i;
+	//      RecomputeVerticesInternal();
+	//    }
+	//    Attribute_AssignPointsToCorners();
+	//  }
+	// ===========
+	//  for (i = 0; i < num_attributes_decoders; ++i) {
+	//    curr_att_dec = i;
+	//    is_face_visited_.assign(num_faces, false);
+	//    is_vertex_visited_.assign(num_faces * 3, false);
+	//    GenerateSequence();
+	//    if (encoder_method == MESH_EDGEBREAKER_ENCODING) {
+	//      UpdatePointToAttributeIndexMapping();
+	//    }
+	//  }
+	#[br(args_raw(binrw::VecArgs{count:attributes_decoders_count as usize,inner:connectivity_header}))]
+	pub sequences: Vec<AttributeCornerMap>,
+	//  for (i = 0; i < num_attributes_decoders; ++i) {
+	//    for (j = 0; j < att_dec_num_attributes[i]; ++j) {
+	//      att_dec_num_values_to_decode[i][j] =
+	//          encoded_attribute_value_index_to_corner_map[i].size();
+	//    }
+	//  }
+	//  for (i = 0; i < num_attributes_decoders; ++i) {
+	//    curr_att_dec = i;
+	//    DecodePortableAttributes();
+	//    DecodeDataNeededByPortableTransforms();
+	//    TransformAttributesToOriginalFormat();
+	//  }
+	// }
 }
 
 #[binrw::binrw]
@@ -178,7 +236,7 @@ pub struct Draco {
 	pub connectivity_header: ConnectivityHeader,
 	#[br(args_raw(&connectivity_header))]
 	pub connectivity: Connectivity,
-	#[br(args_raw(&header))]
+	#[br(args(&header,&connectivity_header))]
 	pub attributes: Attributes,
 }
 
