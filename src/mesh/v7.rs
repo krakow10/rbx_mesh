@@ -346,6 +346,7 @@ pub struct Attributes {
 	// }
 }
 
+/// https://google.github.io/draco/spec/
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
