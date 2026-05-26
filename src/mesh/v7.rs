@@ -12,7 +12,7 @@ pub enum Revision7 {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum EncoderType {
 	#[brw(magic = 0u8)]
 	PointCloud,
@@ -22,7 +22,7 @@ pub enum EncoderType {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum EncoderMethod {
 	#[brw(magic = 0u8)]
 	MeshSequentialEncoding,
@@ -34,7 +34,7 @@ pub enum EncoderMethod {
 #[brw(little)]
 #[brw(magic = b"DRACO")]
 #[derive(Debug, Clone)]
-pub struct Header {
+pub struct DracoHeader {
 	pub major_version: u8,
 	pub minor_version: u8,
 	pub encoder_type: EncoderType,
@@ -95,13 +95,56 @@ pub struct SequentialConnectivity {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
+pub enum AttDecDecoderType {
+	#[brw(magic = 0u8)]
+	MeshVertexAttribute,
+	#[brw(magic = 1u8)]
+	MeshCornerAttribute,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub enum AttDecTraversalMethod {
+	#[brw(magic = 0u8)]
+	MeshTraversalDepthFirst,
+	#[brw(magic = 1u8)]
+	MeshTraversalPredictionDegree,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct AttributeDecoderConfig {
+	pub id: u8,
+	pub decoder_type: AttDecDecoderType,
+	pub traversal_mesthod: AttDecTraversalMethod,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[br(import_raw(header:&DracoHeader))]
+#[derive(Debug, Clone)]
+pub struct Attributes {
+	#[br(temp)]
+	#[bw(try_calc = atribute_decoder_configs.len().try_into())]
+	pub attributes_decoders_count: u8,
+	#[br(if(header.encoder_method == EncoderMethod::MeshEdgebreakerEncoding))]
+	#[br(count = attributes_decoders_count)]
+	pub atribute_decoder_configs: Vec<AttributeDecoderConfig>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
 pub struct Draco {
 	pub len: u32, // 10177
-	pub header: Header,
+	pub header: DracoHeader,
 	pub connectivity_header: ConnectivityHeader,
 	#[br(args_raw(&connectivity_header))]
 	pub connectivity: Connectivity,
-	// pub attributes: Attributes,
+	#[br(args_raw(&header))]
+	pub attributes: Attributes,
 }
 
 #[binrw::binrw]
@@ -207,6 +250,13 @@ fn read_mesh7_127279296594138() {
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
 	// println!("connectivity = {:?}", draco.connectivity);
+	println!("attributes = {:?}", draco.attributes);
+
+	let pos = cursor.position();
+	println!(
+		"metadatas data = {:?}",
+		&coremesh2.draco.as_slice()[pos as usize..pos as usize + 16]
+	);
 
 	println!("lods = {:?}", mesh.lods);
 	println!("draco.len() = {}", coremesh2.draco.len());
