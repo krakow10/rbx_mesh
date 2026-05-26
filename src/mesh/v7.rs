@@ -123,6 +123,39 @@ pub struct AttributeDecoderConfig {
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug, Clone)]
+pub struct AttributeMetadata {
+	pub att_dec_att_type: u8,
+	pub att_dec_data_type: u8,
+	pub att_dec_num_components: u8,
+	pub att_dec_normalized: u8,
+	#[br(parse_with = read_var_u32)]
+	pub att_dec_unique_id: u32,
+}
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct SequentialAttributeDecoderType {
+	#[br(parse_with = read_var_u32)]
+	pub seq_att_dec_decoder_type: u32,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct AttributeDecoderMetadata {
+	#[br(temp)]
+	#[br(parse_with = read_var_u32)]
+	#[bw(try_calc = attribute_metadatas.len().try_into())]
+	att_dec_num_attributes: u32,
+	#[br(count = att_dec_num_attributes)]
+	pub attribute_metadatas: Vec<AttributeMetadata>,
+	#[br(count = att_dec_num_attributes)]
+	pub seq_att_dec_decoder_type: Vec<SequentialAttributeDecoderType>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[br(import_raw(header:&DracoHeader))]
 #[derive(Debug, Clone)]
 pub struct Attributes {
@@ -132,6 +165,8 @@ pub struct Attributes {
 	#[br(if(header.encoder_method == EncoderMethod::MeshEdgebreakerEncoding))]
 	#[br(count = attributes_decoders_count)]
 	pub atribute_decoder_configs: Vec<AttributeDecoderConfig>,
+	#[br(count = attributes_decoders_count)]
+	pub atribute_decoder_metadatas: Vec<AttributeDecoderMetadata>,
 }
 
 #[binrw::binrw]
@@ -254,7 +289,7 @@ fn read_mesh7_127279296594138() {
 
 	let pos = cursor.position();
 	println!(
-		"metadatas data = {:?}",
+		"rest of data = {:?}",
 		&coremesh2.draco.as_slice()[pos as usize..pos as usize + 16]
 	);
 
