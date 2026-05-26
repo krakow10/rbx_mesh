@@ -1,6 +1,7 @@
 use binrw::{BinRead, BinReaderExt};
 
 use super::v2::{Face2, Vertex2};
+use super::v4::{Bone4, Envelope4, Subset4};
 
 #[binrw::binrw]
 #[brw(little)]
@@ -355,6 +356,48 @@ pub struct Lods {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
+pub struct Skinning {
+	pub len: u32,
+	#[br(temp)]
+	#[bw(try_calc = envelopes.len().try_into())]
+	pub envelope_count: u32,
+	#[br(count = envelope_count)]
+	pub envelopes: Vec<Envelope4>,
+
+	#[br(temp)]
+	#[bw(try_calc=bones.len().try_into())]
+	pub bone_count: u32,
+	#[br(count=bone_count)]
+	pub bones: Vec<Bone4>,
+
+	#[br(temp)]
+	#[bw(try_calc=bone_names.len().try_into())]
+	pub bone_names_len: u32,
+	#[br(count=bone_names_len)]
+	pub bone_names: Vec<u8>,
+
+	#[br(temp)]
+	#[bw(try_calc=subsets.len().try_into())]
+	pub subset_count: u32,
+	#[br(count=subset_count)]
+	pub subsets: Vec<Subset4>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[brw(magic = b"SKINNING")]
+#[derive(Debug, Clone)]
+pub struct Skinnings {
+	#[br(temp)]
+	#[bw(try_calc = skinnings.len().try_into())]
+	pub skinning_count: u32,
+	#[br(count = skinning_count)]
+	pub skinnings: Vec<Skinning>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
 pub struct Mesh7 {
 	pub revision: Revision7,
 	#[br(temp)]
@@ -364,10 +407,13 @@ pub struct Mesh7 {
 	pub coremesh: Coremesh,
 	// <- 0x27E2
 	pub lods: Lods,
+	#[br(try)]
+	pub skinning: Option<Skinnings>,
 }
 
 fn _math() {
-	const _A: u32 = 192 - (40 * 4 + 12 * 2);
+	const _A: u32 = 57918;
+	const _S: &str = unsafe { str::from_utf8_unchecked(&[70, 65, 67, 83]) };
 }
 
 #[test]
@@ -384,16 +430,6 @@ fn read_mesh7_127279296594138() {
 	};
 	let mut cursor = std::io::Cursor::new(coremesh2.draco.as_slice());
 	let draco: Draco = cursor.read_le().unwrap();
-	macro_rules! print_first_8_and_last_8 {
-		($field:ident) => {
-			println!(
-				"{}: first = {:?} last = {:?}",
-				stringify!($field),
-				draco.$field.get(0..8),
-				draco.$field.get(draco.$field.len() - 8..)
-			);
-		};
-	}
 	println!("len = {:?}", draco.len);
 	println!("header = {:?}", draco.header);
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
@@ -411,6 +447,7 @@ fn read_mesh7_127279296594138() {
 	);
 
 	println!("lods = {:?}", mesh.lods);
+
 	println!("draco.len() = {}", coremesh2.draco.len());
 	assert_eq!(coremesh2.draco.len() as u64, cursor.position());
 }
@@ -433,4 +470,36 @@ fn read_mesh7_112807239761722() {
 	let _mesh: Mesh7 = bytes.read_le().unwrap();
 	println!("data.len() = {}", data.len());
 	assert_eq!(data.len() as u64, bytes.position());
+}
+
+#[test]
+fn read_mesh7_100025761449828_skinning() {
+	use binrw::BinReaderExt;
+	let data = std::fs::read("meshes/mesh7_100025761449828.bin").unwrap();
+	let mut cursor = std::io::Cursor::new(data.as_slice());
+	let mesh: Mesh7 = cursor.read_le().unwrap();
+	let skinnings = mesh.skinning.unwrap().skinnings;
+	let skinning = skinnings.first().unwrap();
+	macro_rules! print_first_8_and_last_8 {
+		($field:ident) => {
+			println!(
+				"{}: first = {:?} last = {:?}",
+				stringify!($field),
+				skinning.$field.get(0..4),
+				skinning.$field.get(skinning.$field.len() - 4..)
+			);
+		};
+	}
+	println!("skinning.len = {}", skinning.len);
+	print_first_8_and_last_8!(envelopes);
+	print_first_8_and_last_8!(bones);
+	print_first_8_and_last_8!(bone_names);
+	print_first_8_and_last_8!(subsets);
+	let pos = cursor.position();
+	println!(
+		"rest of data = {:?}",
+		&data.as_slice()[pos as usize..pos as usize + 64]
+	);
+	println!("data.len() = {}", data.len());
+	assert_eq!(data.len() as u64, cursor.position());
 }
