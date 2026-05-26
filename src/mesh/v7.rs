@@ -76,6 +76,8 @@ pub struct SequentialConnectivity {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct BinaryString {
+	#[br(temp)]
+	#[bw(try_calc = bytes.len().try_into())]
 	pub len: u8,
 	#[br(count = len)]
 	pub bytes: Vec<u8>,
@@ -101,11 +103,15 @@ pub struct SubAttribute {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Attribute {
+	#[br(temp)]
 	#[br(parse_with = read_var_u32)]
+	#[bw(try_calc = entries.len().try_into())]
 	pub entry_count: u32,
 	#[br(count = entry_count)]
 	pub entries: Vec<Entry>,
+	#[br(temp)]
 	#[br(parse_with = read_var_u32)]
+	#[bw(try_calc = sub_attributes.len().try_into())]
 	pub sub_attribute_count: u32,
 	#[br(count = sub_attribute_count)]
 	pub sub_attributes: Vec<SubAttribute>,
@@ -124,10 +130,12 @@ pub struct CustomAttribute {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Attributes {
+	#[br(temp)]
 	#[br(parse_with = read_var_u32)]
+	#[bw(try_calc = custom_attributes.len().try_into())]
 	pub custom_attributes_count: u32,
 	#[br(count = custom_attributes_count)]
-	pub customattributes: Vec<CustomAttribute>,
+	pub custom_attributes: Vec<CustomAttribute>,
 	pub file_attributes: Attribute,
 }
 
