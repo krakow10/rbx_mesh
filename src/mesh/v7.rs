@@ -87,11 +87,7 @@ pub enum Connectivity {
 #[derive(Debug, Clone)]
 pub struct SequentialConnectivity {
 	#[br(count = header.face_count)]
-	pub faces: Vec<[u16; 3]>, // index into float_triples
-	// <- 0x684
-	pub unknown4: [u8; 32],
-	#[br(count = header.pos_count)]
-	pub positions: Vec<[f32; 3]>,
+	pub faces: Vec<[u16; 3]>,
 }
 
 #[binrw::binrw]
@@ -449,8 +445,7 @@ pub struct Mesh7 {
 }
 
 fn _math() {
-	const _A: u32 = 126247;
-	const _S: &str = unsafe { str::from_utf8_unchecked(&[70, 65, 67, 83]) };
+	const _A: u32 = 1660;
 }
 
 #[test]
@@ -471,6 +466,8 @@ fn read_mesh7_127279296594138() {
 	println!("header = {:?}", draco.header);
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
+	let Connectivity::Sequential(connectivity) = draco.connectivity;
+	// println!("unknown4 = {:?}", connectivity.unknown4);
 	// println!("connectivity = {:?}", draco.connectivity);
 	println!("attributes = {:?}", draco.attributes);
 
