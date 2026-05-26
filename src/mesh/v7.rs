@@ -95,80 +95,13 @@ pub struct SequentialConnectivity {
 #[binrw::binrw]
 #[brw(little)]
 #[derive(Debug, Clone)]
-pub struct BinaryString {
-	#[br(temp)]
-	#[bw(try_calc = bytes.len().try_into())]
-	pub len: u8,
-	#[br(count = len)]
-	pub bytes: Vec<u8>,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub struct Entry {
-	pub key: BinaryString,
-	pub value: BinaryString,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub struct SubAttribute {
-	pub key: BinaryString,
-	pub attribute: Attribute,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub struct Attribute {
-	#[br(temp)]
-	#[br(parse_with = read_var_u32)]
-	#[bw(try_calc = entries.len().try_into())]
-	pub entry_count: u32,
-	#[br(count = entry_count)]
-	pub entries: Vec<Entry>,
-	#[br(temp)]
-	#[br(parse_with = read_var_u32)]
-	#[bw(try_calc = sub_attributes.len().try_into())]
-	pub sub_attribute_count: u32,
-	#[br(count = sub_attribute_count)]
-	pub sub_attributes: Vec<SubAttribute>,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub struct CustomAttribute {
-	#[br(parse_with = read_var_u32)]
-	pub id: u32,
-	pub attribute: Attribute,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
-pub struct Attributes {
-	#[br(temp)]
-	#[br(parse_with = read_var_u32)]
-	#[bw(try_calc = custom_attributes.len().try_into())]
-	pub custom_attributes_count: u32,
-	#[br(count = custom_attributes_count)]
-	pub custom_attributes: Vec<CustomAttribute>,
-	pub file_attributes: Attribute,
-}
-
-#[binrw::binrw]
-#[brw(little)]
-#[derive(Debug, Clone)]
 pub struct Draco {
 	pub len: u32, // 10177
 	pub header: Header,
 	pub connectivity_header: ConnectivityHeader,
 	#[br(args_raw(&connectivity_header))]
 	pub connectivity: Connectivity,
-	pub attributes: Attributes,
+	// pub attributes: Attributes,
 }
 
 #[binrw::binrw]
@@ -273,8 +206,8 @@ fn read_mesh7_127279296594138() {
 	println!("header = {:?}", draco.header);
 	println!("face_count = {:?}", draco.connectivity_header.face_count);
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
-	println!("connectivity = {:?}", draco.connectivity);
-	println!("attributes = {:?}", draco.attributes);
+	// println!("connectivity = {:?}", draco.connectivity);
+
 	println!("lods = {:?}", mesh.lods);
 	println!("draco.len() = {}", coremesh2.draco.len());
 	assert_eq!(coremesh2.draco.len() as u64, cursor.position());
