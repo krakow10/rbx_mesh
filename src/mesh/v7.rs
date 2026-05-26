@@ -171,6 +171,60 @@ pub struct AttributeCornerMap {
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum SeqAttDecPredictionScheme {
+	#[brw(magic = -2i8)]
+	PredictionNone,
+	#[brw(magic = 0i8)]
+	PredictionDifference,
+	#[brw(magic = 1i8)]
+	MeshPredictionParallelogram,
+	#[brw(magic = 4i8)]
+	MeshPredictionConstrainedMultiParallelogram,
+	#[brw(magic = 5i8)]
+	MeshPredictionTexCoordsPortable,
+	#[brw(magic = 6i8)]
+	MeshPredictionGeometricNormal,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum SeqAttDecPredictionTransformType {
+	#[brw(magic = 1u8)]
+	PredictionTransformWrap,
+	#[brw(magic = 3u8)]
+	PredictionTransformNormalOctahedronCanonicalized,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct PredictionDataExt {
+	pub seq_att_dec_prediction_transform_type: SeqAttDecPredictionTransformType,
+	#[br(map=|value:u8|value!=0)]
+	#[bw(map=|&value:&bool|value as u8)]
+	pub seq_int_att_dec_compressed: bool,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct PredictionData {
+	pub prediction_scheme: SeqAttDecPredictionScheme,
+	#[br(if(prediction_scheme != SeqAttDecPredictionScheme::PredictionNone))]
+	pub ext: Option<PredictionDataExt>,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct Attribute {
+	pub prediction_data: PredictionData,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[br(import(header:&DracoHeader,connectivity_header:&ConnectivityHeader))]
 #[derive(Debug, Clone)]
 // void DecodeAttributeData() {
@@ -212,12 +266,14 @@ pub struct Attributes {
 	//  }
 	#[br(args_raw(binrw::VecArgs{count:attributes_decoders_count as usize,inner:connectivity_header}))]
 	pub sequences: Vec<AttributeCornerMap>,
+	// === SKIP ===
 	//  for (i = 0; i < num_attributes_decoders; ++i) {
 	//    for (j = 0; j < att_dec_num_attributes[i]; ++j) {
 	//      att_dec_num_values_to_decode[i][j] =
 	//          encoded_attribute_value_index_to_corner_map[i].size();
 	//    }
 	//  }
+	// ===========
 	//  for (i = 0; i < num_attributes_decoders; ++i) {
 	//    curr_att_dec = i;
 	//    DecodePortableAttributes();
@@ -344,6 +400,9 @@ fn read_mesh7_127279296594138() {
 	println!("pos_count = {:?}", draco.connectivity_header.pos_count);
 	// println!("connectivity = {:?}", draco.connectivity);
 	println!("attributes = {:?}", draco.attributes);
+
+	let first_attribute: Attribute = cursor.read_le().unwrap();
+	println!("first_attribute = {first_attribute:?}");
 
 	let pos = cursor.position();
 	println!(
