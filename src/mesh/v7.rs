@@ -388,14 +388,23 @@ pub struct Skinning {
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub struct Facs7 {
-	pub unknown_count1: u32,             // 0
-	pub unknown_count2: u32,             // 1
-	pub unknown_count3: u32,             // 59186 -> remaining bytes in file after this number
-	pub unknown_count4: u32,             // 59182 -> remaining bytes in file after this number
-	pub face_bone_names_len: u32,        // 576
-	pub face_control_names_len: u32,     // 280
-	pub unknown_count5: u32,             // 58068
-	pub unknown_count6: u32,             // 0
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 0u32)]
+	_ignore1: (),
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 1u32)]
+	_ignore2: (),
+	pub bytes_remaining1: u32, // 59186 -> remaining bytes in file after this number
+	pub bytes_remaining2: u32, // 59182 -> remaining bytes in file after this number
+	pub face_bone_names_len: u32, // 576
+	pub face_control_names_len: u32, // 280
+	pub unknown_count5: u32,   // 58068
+	#[br(temp)]
+	#[bw(ignore)]
+	#[brw(magic = 0u32)]
+	_ignore3: (),
 	pub two_pose_correctives_len: u32,   // 192
 	pub three_pose_correctives_len: u32, // 42
 	#[br(count=face_bone_names_len)]
@@ -440,7 +449,7 @@ pub struct Mesh7 {
 }
 
 fn _math() {
-	const _A: u32 = 0x10D8F - 0x10C77;
+	const _A: u32 = 126247;
 	const _S: &str = unsafe { str::from_utf8_unchecked(&[70, 65, 67, 83]) };
 }
 
