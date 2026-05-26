@@ -12,13 +12,33 @@ pub enum Revision7 {
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug, Clone)]
+pub enum EncoderType {
+	#[brw(magic = 0u8)]
+	PointCloud,
+	#[brw(magic = 1u8)]
+	TriangularMesh,
+}
+
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub enum EncoderMethod {
+	#[brw(magic = 0u8)]
+	MeshSequentialEncoding,
+	#[brw(magic = 1u8)]
+	MeshEdgebreakerEncoding,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[brw(magic = b"DRACO")]
 #[derive(Debug, Clone)]
 pub struct Header {
 	pub major_version: u8,
 	pub minor_version: u8,
-	pub encoder_type: u8,
-	pub encoder_method: u8,
+	pub encoder_type: EncoderType,
+	pub encoder_method: EncoderMethod,
 	pub flags: u16,
 }
 
