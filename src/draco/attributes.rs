@@ -198,7 +198,12 @@ pub struct SequentialIntegerAttributeDecoderDecodeIntegerValues {
 }
 
 // void SequentialQuantizationAttributeDecoder_DequantizeValues() {
-pub struct Idk {
+#[binrw::binrw]
+#[brw(little)]
+#[derive(Debug, Clone)]
+pub struct GenericValues {
+	// quantized_data_quantization_bits is uninitialized memory for Generic decoder???
+	//
 	// quantization_bits = quantized_data_quantization_bits[curr_att_dec][curr_att];
 	// max_quantized_value = (1 << (quantization_bits)) - 1;
 	// num_components = GetNumComponents();
@@ -238,7 +243,7 @@ pub enum Values {
 	//   }
 	// }
 	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderGeneric))]
-	Generic(),
+	Generic(GenericValues),
 	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderInteger))]
 	Integer(),
 	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderQuantization))]
