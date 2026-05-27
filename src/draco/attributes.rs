@@ -4,7 +4,7 @@ use super::{DracoHeader, EncoderMethod};
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AttDecDecoderType {
 	#[brw(magic = 0u8)]
 	MeshVertexAttribute,
@@ -14,7 +14,7 @@ pub enum AttDecDecoderType {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AttDecTraversalMethod {
 	#[brw(magic = 0u8)]
 	MeshTraversalDepthFirst,
@@ -75,7 +75,7 @@ pub struct AttributeMetadata {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum SeqAttDecDecoderType {
 	#[brw(magic = 0u8)]
 	SequentialAttributeEncoderGeneric,
@@ -118,7 +118,7 @@ pub struct AttributeCornerMap {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SeqAttDecPredictionScheme {
 	#[brw(magic = -2i8)]
 	PredictionNone,
@@ -136,7 +136,7 @@ pub enum SeqAttDecPredictionScheme {
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SeqAttDecPredictionTransformType {
 	#[brw(magic = 1u8)]
 	PredictionTransformWrap,
@@ -197,10 +197,64 @@ pub struct SequentialIntegerAttributeDecoderDecodeIntegerValues {
 	// }
 }
 
+// void SequentialQuantizationAttributeDecoder_DequantizeValues() {
+pub struct Idk {
+	// quantization_bits = quantized_data_quantization_bits[curr_att_dec][curr_att];
+	// max_quantized_value = (1 << (quantization_bits)) - 1;
+	// num_components = GetNumComponents();
+	// quant_val_id = 0;
+	// range_ = quantized_data_max_value_df[curr_att_dec][curr_att];
+	// max_quantized_value_factor_ = 1.f / max_quantized_value;
+	// min_value_ = quantized_data_min_values[curr_att_dec][curr_att];
+	// original_values = seq_int_att_dec_original_values[curr_att_dec][curr_att];
+	// num_values = att_dec_num_values_to_decode[curr_att_dec][curr_att];
+	// for (i = 0; i < num_values; ++i) {
+	//   for (c = 0; c < num_components; ++c) {
+	//     value = DequantizeFloat(original_values[quant_val_id++],
+	//                             max_quantized_value_factor_, range_);
+	//     value = value + min_value_[c];
+	//     att_val[c] = value;
+	//     dequantized_data.push_back(value);
+	//   }
+	// }
+	// seq_int_att_dec_dequantized_values[curr_att_dec][curr_att] = dequantized_data;
+}
+
+// void TransformAttributesToOriginalFormat() {
 #[binrw::binrw]
 #[brw(little)]
+#[br(import_raw(decoder_type:SeqAttDecDecoderType))]
 #[derive(Debug, Clone)]
+pub enum Values {
+	// for (i = 0; i < att_dec_num_attributes.back(); ++i) {
+	//   curr_att = i;
+	//   dec_type = seq_att_dec_decoder_type[curr_att_dec][curr_att];
+	//   if (dec_type == SEQUENTIAL_ATTRIBUTE_ENCODER_NORMALS) {
+	//     TransformAttributesToOriginalFormat_Normal();
+	//   } else if (dec_type == SEQUENTIAL_ATTRIBUTE_ENCODER_INTEGER) {
+	//     TransformAttributesToOriginalFormat_StoreValues();
+	//   } else {
+	//     SequentialQuantizationAttributeDecoder_DequantizeValues();
+	//   }
+	// }
+	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderGeneric))]
+	Generic(),
+	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderInteger))]
+	Integer(),
+	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderQuantization))]
+	Quantization(),
+	#[br(pre_assert(decoder_type==SeqAttDecDecoderType::SequentialAttributeEncoderNormals))]
+	Normals(),
+	// SequentialAttributeEncoderGeneric
+	// SequentialAttributeEncoderInteger
+	// SequentialAttributeEncoderQuantization
+	// SequentialAttributeEncoderNormals
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[br(import_raw(metadata:&AttributeDecoderMetadata))]
+#[derive(Debug, Clone)]
 pub struct Attribute {
 	// DecodePortableAttributes();
 	// pub prediction_data: PredictionData,
@@ -210,6 +264,8 @@ pub struct Attribute {
 	// 	Option<SequentialIntegerAttributeDecoderDecodeIntegerValues>,
 	// DecodeDataNeededByPortableTransforms();
 	// TransformAttributesToOriginalFormat();
+	#[br(parse_with = binrw::helpers::args_iter(metadata.seq_att_dec_decoder_type.iter().copied()))]
+	pub values: Vec<Values>,
 }
 
 #[binrw::binrw]
