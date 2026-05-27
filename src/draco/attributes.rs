@@ -221,7 +221,10 @@ pub struct Attributes {
 	//      UpdatePointToAttributeIndexMapping();
 	//    }
 	//  }
-	#[br(args_raw(binrw::VecArgs{count:attributes_decoders_count as usize,inner:connectivity_header}))]
+	#[br(args{
+		count:attributes_decoders_count as usize,
+		inner:connectivity_header,
+	})]
 	pub sequences: Vec<AttributeCornerMap>,
 	// === SKIP ===
 	//  for (i = 0; i < num_attributes_decoders; ++i) {
