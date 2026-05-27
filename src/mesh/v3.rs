@@ -4,9 +4,9 @@ use super::v2::{Face2, SizeOfVertex2, Vertices2};
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision3 {
-	#[brw(magic = b"version 3.00")]
+	#[brw(magic = b"version 3.00\n")]
 	Version300,
-	#[brw(magic = b"version 3.01")]
+	#[brw(magic = b"version 3.01\n")]
 	Version301,
 }
 
@@ -23,10 +23,6 @@ pub struct Lod3(pub u32);
 #[derive(Debug, Clone)]
 pub struct Mesh3 {
 	pub revision: Revision3,
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"\n")]
-	_newline: (),
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 16u16)]

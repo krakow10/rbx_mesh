@@ -2,7 +2,7 @@
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision2 {
-	#[brw(magic = b"version 2.00")]
+	#[brw(magic = b"version 2.00\n")]
 	Version200,
 }
 
@@ -77,10 +77,6 @@ pub struct Face2(pub [VertexId2; 3]);
 #[derive(Debug, Clone)]
 pub struct Mesh2 {
 	pub revision: Revision2,
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"\n")]
-	_newline: (),
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 12u16)]

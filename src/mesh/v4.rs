@@ -5,9 +5,9 @@ use super::v3::Lod3;
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision4 {
-	#[brw(magic = b"version 4.00")]
+	#[brw(magic = b"version 4.00\n")]
 	Version400,
-	#[brw(magic = b"version 4.01")]
+	#[brw(magic = b"version 4.01\n")]
 	Version401,
 }
 
@@ -93,10 +93,6 @@ pub struct Subset4 {
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh4 {
 	pub revision: Revision4,
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"\n")]
-	_newline: (),
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 24u16)]

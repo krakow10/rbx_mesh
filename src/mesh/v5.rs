@@ -6,7 +6,7 @@ use super::v4::{Bone4, Envelope4, LodType4, Subset4};
 #[brw(little)]
 #[derive(Debug, Clone)]
 pub enum Revision5 {
-	#[brw(magic = b"version 5.00")]
+	#[brw(magic = b"version 5.00\n")]
 	Version500,
 }
 
@@ -139,10 +139,6 @@ pub struct Facs5 {
 /// envelopes has the same length as vertices when header.bone_count!=0
 pub struct Mesh5 {
 	pub revision: Revision5,
-	#[br(temp)]
-	#[bw(ignore)]
-	#[brw(magic = b"\n")]
-	_newline: (),
 	#[br(temp)]
 	#[bw(ignore)]
 	#[brw(magic = 32u16)]
