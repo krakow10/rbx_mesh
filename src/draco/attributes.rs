@@ -203,11 +203,11 @@ pub struct SequentialIntegerAttributeDecoderDecodeIntegerValues {
 #[br(import_raw(metadata:&AttributeDecoderMetadata))]
 pub struct Attribute {
 	// DecodePortableAttributes();
-	pub prediction_data: PredictionData,
-	#[br(args_raw(metadata))]
-	#[br(if(prediction_data.prediction_scheme != SeqAttDecPredictionScheme::PredictionNone))]
-	pub sequential_integer_attribute_decoder_decode_integer_values:
-		Option<SequentialIntegerAttributeDecoderDecodeIntegerValues>,
+	// pub prediction_data: PredictionData,
+	// #[br(args_raw(metadata))]
+	// #[br(if(prediction_data.prediction_scheme != SeqAttDecPredictionScheme::PredictionNone))]
+	// pub sequential_integer_attribute_decoder_decode_integer_values:
+	// 	Option<SequentialIntegerAttributeDecoderDecodeIntegerValues>,
 	// DecodeDataNeededByPortableTransforms();
 	// TransformAttributesToOriginalFormat();
 }
