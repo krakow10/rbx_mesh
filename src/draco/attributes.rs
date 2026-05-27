@@ -33,10 +33,40 @@ pub struct AttributeDecoderConfig {
 
 #[binrw::binrw]
 #[brw(little)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DataType {
+	#[brw(magic = 0u8)]
+	Invalid,
+	#[brw(magic = 1u8)]
+	Int8,
+	#[brw(magic = 2u8)]
+	Uint8,
+	#[brw(magic = 3u8)]
+	Int16,
+	#[brw(magic = 4u8)]
+	Uint16,
+	#[brw(magic = 5u8)]
+	Int32,
+	#[brw(magic = 6u8)]
+	Uint32,
+	#[brw(magic = 7u8)]
+	Int64,
+	#[brw(magic = 8u8)]
+	Uint64,
+	#[brw(magic = 9u8)]
+	Float32,
+	#[brw(magic = 10u8)]
+	Float64,
+	#[brw(magic = 11u8)]
+	Bool,
+}
+
+#[binrw::binrw]
+#[brw(little)]
 #[derive(Debug, Clone)]
 pub struct AttributeMetadata {
 	pub att_dec_att_type: u8,
-	pub att_dec_data_type: u8,
+	pub att_dec_data_type: DataType,
 	pub att_dec_num_components: u8,
 	pub att_dec_normalized: u8,
 	#[br(parse_with = read_var_u32)]
