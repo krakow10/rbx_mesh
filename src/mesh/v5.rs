@@ -4,7 +4,7 @@ use super::v4::{Bone4, Envelope4, LodType4, Subset4};
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision5 {
 	#[brw(magic = b"version 5.00\n")]
 	Version500,

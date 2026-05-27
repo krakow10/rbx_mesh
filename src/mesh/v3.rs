@@ -2,7 +2,7 @@ use super::v2::{Face2, SizeOfVertex2, Vertices2};
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision3 {
 	#[brw(magic = b"version 3.00\n")]
 	Version300,

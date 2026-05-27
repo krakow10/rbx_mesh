@@ -3,7 +3,7 @@ use super::v3::Lod3;
 
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision4 {
 	#[brw(magic = b"version 4.00\n")]
 	Version400,

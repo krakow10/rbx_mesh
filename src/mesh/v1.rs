@@ -54,7 +54,7 @@ impl<R: BufRead> LineMachine<R> {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision1 {
 	Version100,
 	Version101,

@@ -1,6 +1,6 @@
 #[binrw::binrw]
 #[brw(little)]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision2 {
 	#[brw(magic = b"version 2.00\n")]
 	Version200,
