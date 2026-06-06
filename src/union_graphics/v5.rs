@@ -75,23 +75,24 @@ impl binrw::BinRead for Faces5 {
 		) -> Result<Vec<u32>, FacesStateMachineError> {
 			let mut indices = Vec::with_capacity(expected_output_count);
 			let mut it = data.into_iter();
-			let mut index_out = 0;
+			let mut index_out: u32 = 0;
 			for _ in 0..expected_output_count {
-				let v0 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
-				if v0 & (1 << 7) == 0 {
-					// TODO: test whether 64 goes to top or bottom case
-					if v0 & (1 << 6) == 0 {
-						index_out += v0 as u32;
-					} else {
+				let v0: u8 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+				let offset = match v0 {
+					// TODO: test whether 0x40 goes to top or bottom case
+					000..064 => v0 as i32,
+					064..128 => {
 						// 64..127 is mapped to -64..-1
-						index_out -= -((v0 | 0x80) as i8) as u32;
+						(v0 as i32) - 128
 					}
-				} else {
-					let v1 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
-					let v2 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
-					index_out += u32::from_le_bytes([v2, v1, v0 & 0x7F, 0]);
-				}
-				indices.push(index_out & 0x7FFFFF);
+					128.. => {
+						let v1 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+						let v2 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
+						i32::from_le_bytes([v2, v1, v0 - 128, 0])
+					}
+				};
+				index_out = index_out.wrapping_add_signed(offset);
+				indices.push(index_out & 0x007FFFFF);
 			}
 
 			// iterator should be fully depleted
