@@ -71,9 +71,9 @@ impl binrw::BinRead for Faces5 {
 
 		fn read_state_machine(
 			data: Vec<u8>,
-			expected_output_count: usize,
+			expected_output_count: u32,
 		) -> Result<Vec<u32>, FacesStateMachineError> {
-			let mut indices = Vec::with_capacity(expected_output_count);
+			let mut indices = Vec::with_capacity(expected_output_count as usize);
 			let mut it = data.into_iter();
 			let mut index_out: u32 = 0;
 			for _ in 0..expected_output_count {
@@ -104,12 +104,11 @@ impl binrw::BinRead for Faces5 {
 		let faces_inner: Faces5Inner = reader.read_le()?;
 
 		// accumulate vertex indices using state machine
-		let mut indices =
-			read_state_machine(faces_inner.vertex_data, faces_inner.vertex_count as usize)
-				.map_err(|e| Error::Custom {
-					pos,
-					err: Box::new(e),
-				})?;
+		let mut indices = read_state_machine(faces_inner.vertex_data, faces_inner.vertex_count)
+			.map_err(|e| Error::Custom {
+				pos,
+				err: Box::new(e),
+			})?;
 
 		// Validate markers
 		{
