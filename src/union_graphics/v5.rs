@@ -79,12 +79,9 @@ impl binrw::BinRead for Faces5 {
 			for _ in 0..expected_output_count {
 				let v0: u8 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 				let offset = match v0 {
-					// TODO: test whether 0x40 goes to top or bottom case
 					000..064 => v0 as i32,
-					064..128 => {
-						// 64..127 is mapped to -64..-1
-						(v0 as i32) - 128
-					}
+					// 64..128 is mapped to -64..0
+					064..128 => (v0 as i32) - 128,
 					128.. => {
 						let v1 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
 						let v2 = it.next().ok_or(FacesStateMachineError::UnexpectedEOF)?;
