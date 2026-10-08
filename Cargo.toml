@@ -1,6 +1,6 @@
 [package]
 name = "rbx_mesh"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2024"
 rust-version = "1.94"
 repository = "https://github.com/krakow10/rbx_mesh"

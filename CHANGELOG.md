@@ -2,11 +2,15 @@
 
 ### Added
 
-- Add GeomType7::Type6
-
 ### Changed
 
 ### Removed
+
+## [0.8.1] - Oct 8th 2026
+
+### Added
+
+- Add GeomType7::Type6
 
 ## [0.8.0] - May 25th 2026
 
