@@ -2,6 +2,8 @@
 
 ### Added
 
+- Add GeomType7::Type6
+
 ### Changed
 
 ### Removed

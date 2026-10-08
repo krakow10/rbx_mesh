@@ -12,6 +12,8 @@ pub enum GeomType7 {
 	Type2,
 	#[brw(magic = 3u8)]
 	Type3,
+	#[brw(magic = 6u8)]
+	Type6,
 }
 
 #[binrw::binrw]
