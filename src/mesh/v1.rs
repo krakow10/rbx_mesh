@@ -88,8 +88,8 @@ fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::P
 	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
 }
 
-fn parse_vertex(s: &mut &str) -> Result<Vertex1, InnerError> {
-	let (_, rest) = io_error(s.split_once('['))?;
+fn parse_vertex(str: &mut &str) -> Result<Vertex1, InnerError> {
+	let (_, rest) = io_error(str.split_once('['))?;
 	let (px, rest) = io_error(rest.split_once(','))?;
 	let (py, rest) = io_error(rest.split_once(','))?;
 	let (pz, rest) = io_error(rest.split_once("]["))?;
@@ -100,8 +100,10 @@ fn parse_vertex(s: &mut &str) -> Result<Vertex1, InnerError> {
 
 	let (tx, rest) = io_error(rest.split_once(','))?;
 	let (ty, rest) = io_error(rest.split_once(','))?;
-	let tz;
-	(tz, *s) = io_error(rest.split_once(']'))?;
+	let (tz, rest) = io_error(rest.split_once(']'))?;
+
+	// update cursor
+	*str = rest;
 
 	let pos = parse_triple_float(px, py, pz).map_err(Error1::ParseFloatError)?;
 	let norm = parse_triple_float(nx, ny, nz).map_err(Error1::ParseFloatError)?;
