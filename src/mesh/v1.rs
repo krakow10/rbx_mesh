@@ -93,21 +93,21 @@ fn parse_vertex(str: &mut &str) -> Result<Vertex1, InnerError> {
 	let (px, rest) = io_error(rest.split_once(','))?;
 	let (py, rest) = io_error(rest.split_once(','))?;
 	let (pz, rest) = io_error(rest.split_once("]["))?;
+	let pos = parse_triple_float(px, py, pz).map_err(Error1::ParseFloatError)?;
 
 	let (nx, rest) = io_error(rest.split_once(','))?;
 	let (ny, rest) = io_error(rest.split_once(','))?;
 	let (nz, rest) = io_error(rest.split_once("]["))?;
+	let norm = parse_triple_float(nx, ny, nz).map_err(Error1::ParseFloatError)?;
 
 	let (tx, rest) = io_error(rest.split_once(','))?;
 	let (ty, rest) = io_error(rest.split_once(','))?;
 	let (tz, rest) = io_error(rest.split_once(']'))?;
+	let tex = parse_triple_float(tx, ty, tz).map_err(Error1::ParseFloatError)?;
 
 	// update cursor
 	*str = rest;
 
-	let pos = parse_triple_float(px, py, pz).map_err(Error1::ParseFloatError)?;
-	let norm = parse_triple_float(nx, ny, nz).map_err(Error1::ParseFloatError)?;
-	let tex = parse_triple_float(tx, ty, tz).map_err(Error1::ParseFloatError)?;
 	Ok(Vertex1 { pos, norm, tex })
 }
 
