@@ -6,6 +6,10 @@
 
 ### Removed
 
+## [0.8.2] - Oct 16th 2026
+
+### Removed
+
 - Regex dependency dropped (#22)
 
 ## [0.8.1] - Oct 8th 2026
