@@ -1,5 +1,3 @@
-use std::io::BufRead;
-
 #[derive(Debug)]
 pub enum Error1 {
 	Header,
@@ -40,20 +38,6 @@ impl From<InnerError> for binrw::Error {
 	}
 }
 
-struct LineMachine<R: BufRead> {
-	lines: std::io::Lines<R>,
-}
-impl<R: BufRead> LineMachine<R> {
-	fn new(read: R) -> Self {
-		Self {
-			lines: read.lines(),
-		}
-	}
-	fn read_line(&mut self) -> Result<String, std::io::Error> {
-		self.lines.next().ok_or(std::io::ErrorKind::UnexpectedEof)?
-	}
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Revision1 {
 	Version100,
@@ -90,57 +74,56 @@ impl binrw::BinRead for Mesh1 {
 		_endian: binrw::Endian,
 		_args: Self::Args<'_>,
 	) -> binrw::BinResult<Self> {
-		Ok(read(binrw::io::BufReader::new(reader))?)
+		let mut buf = String::new();
+		reader.read_to_string(&mut buf)?;
+		Ok(from_str(&buf)?)
 	}
+}
+
+fn io_error<T>(s: Option<T>) -> Result<T, std::io::Error> {
+	Ok(s.ok_or(std::io::ErrorKind::UnexpectedEof)?)
 }
 
 fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
 	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
 }
 
-macro_rules! lazy_regex {
-	($r:literal) => {{
-		use regex::Regex;
-		use std::sync::LazyLock;
-		static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new($r).unwrap());
-		&RE
-	}};
+fn parse_vertex(s: &mut &str) -> Result<Vertex1, InnerError> {
+	let (_, rest) = io_error(s.split_once('['))?;
+	let (px, rest) = io_error(rest.split_once(','))?;
+	let (py, rest) = io_error(rest.split_once(','))?;
+	let (pz, rest) = io_error(rest.split_once("]["))?;
+
+	let (nx, rest) = io_error(rest.split_once(','))?;
+	let (ny, rest) = io_error(rest.split_once(','))?;
+	let (nz, rest) = io_error(rest.split_once("]["))?;
+
+	let (tx, rest) = io_error(rest.split_once(','))?;
+	let (ty, rest) = io_error(rest.split_once(','))?;
+	let tz;
+	(tz, *s) = io_error(rest.split_once(']'))?;
+
+	let pos = parse_triple_float(px, py, pz).map_err(Error1::ParseFloatError)?;
+	let norm = parse_triple_float(nx, ny, nz).map_err(Error1::ParseFloatError)?;
+	let tex = parse_triple_float(tx, ty, tz).map_err(Error1::ParseFloatError)?;
+	Ok(Vertex1 { pos, norm, tex })
 }
 
-fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
-	let mut lines = LineMachine::new(reader);
+fn from_str(str: &str) -> Result<Mesh1, InnerError> {
+	let mut lines = str.lines();
 
 	// the first line contains the version number
-	let revision = lines.read_line()?.trim().parse()?;
+	let revision = io_error(lines.next())?.trim().parse()?;
 
-	let face_count: u32 = lines
-		.read_line()?
+	let face_count: u32 = io_error(lines.next())?
 		.trim()
 		.parse()
 		.map_err(Error1::ParseIntError)?;
 
-	let vertices_line = lines.read_line()?;
-
-	//match three at a time, otherwise fail
-	let vertex_pattern =
-		lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
-
-	let vertices = vertex_pattern
-		.captures_iter(vertices_line.as_str())
-		.map(|c| {
-			let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
-			Ok(Vertex1 {
-				pos: parse_triple_float(px, py, pz)?,
-				norm: parse_triple_float(nx, ny, nz)?,
-				tex: parse_triple_float(tx, ty, tz)?,
-			})
-		})
-		.collect::<Result<Vec<Vertex1>, _>>()
-		.map_err(Error1::ParseFloatError)?;
-
-	// assert vertex count matches header
-	if 3 * (face_count as usize) != vertices.len() {
-		return Err(Error1::VertexCount.into());
+	let mut vertices_line = io_error(lines.next())?;
+	let mut vertices = Vec::with_capacity(face_count as usize * 3);
+	for _ in 0..3 * face_count {
+		vertices.push(parse_vertex(&mut vertices_line)?);
 	}
 
 	let mut mesh = Mesh1 { revision, vertices };
