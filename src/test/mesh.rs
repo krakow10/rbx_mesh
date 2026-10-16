@@ -1,5 +1,7 @@
 use super::roundtrip;
-use crate::mesh::{Mesh2, Mesh3, Mesh4, Mesh5, Revision2, Revision3, Revision4, Revision5};
+use crate::mesh::{
+	Mesh2, Mesh3, Mesh4, Mesh5, Mesh7, Revision2, Revision3, Revision4, Revision5, Revision7,
+};
 use std::fs::read;
 
 #[cfg(feature = "mesh-v1")]
@@ -67,5 +69,12 @@ fn mesh_500_alt2() {
 	let mesh = roundtrip::<Mesh5>(bytes).unwrap();
 	assert_eq!(mesh.revision, Revision5::Version500);
 	insta::assert_debug_snapshot!(mesh);
+}
+#[test]
+fn mesh_700() {
+	let bytes = read("meshes/mesh7_127279296594138.bin").unwrap();
+	let mesh = roundtrip::<Mesh7>(bytes).unwrap();
+	assert!(matches!(mesh.revision, Revision7::Version700));
+	// insta::assert_debug_snapshot!(mesh);
 }
 //also tested against ~2500 meshes from bhop and surf maps

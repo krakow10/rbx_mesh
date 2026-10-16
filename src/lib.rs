@@ -1,3 +1,5 @@
+mod draco;
+
 #[cfg(feature = "mesh")]
 pub mod mesh;
 #[cfg(feature = "mesh")]
