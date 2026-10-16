@@ -94,17 +94,15 @@ impl binrw::BinRead for Mesh1 {
 	}
 }
 
-fn parse_triple_float(x: &str, y: &str, z: &str) -> Result<[f32; 3], std::num::ParseFloatError> {
-	Ok([x.trim().parse()?, y.trim().parse()?, z.trim().parse()?])
-}
-
-macro_rules! lazy_regex {
-	($r:literal) => {{
-		use regex::Regex;
-		use std::sync::LazyLock;
-		static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new($r).unwrap());
-		&RE
-	}};
+/// The next `[x,y,z]` in `line`, with `line` advanced past it.
+fn next_triple(line: &mut &str) -> Option<Result<[f32; 3], std::num::ParseFloatError>> {
+	let open = line.find('[')?;
+	let close = open + line[open..].find(']')?;
+	let inner = &line[open + 1..close];
+	*line = &line[close + 1..];
+	let mut parts = inner.splitn(3, ',');
+	let mut next = || parts.next().unwrap_or("").trim().parse();
+	Some((|| Ok([next()?, next()?, next()?]))())
 }
 
 fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
@@ -121,22 +119,22 @@ fn read<R: BufRead>(reader: R) -> Result<Mesh1, InnerError> {
 
 	let vertices_line = lines.read_line()?;
 
-	//match three at a time, otherwise fail
-	let vertex_pattern =
-		lazy_regex!(r"\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]\[(.*?),(.*?),(.*?)\]");
-
-	let vertices = vertex_pattern
-		.captures_iter(vertices_line.as_str())
-		.map(|c| {
-			let (_, [px, py, pz, nx, ny, nz, tx, ty, tz]) = c.extract();
+	// each vertex is three triples: [px,py,pz][nx,ny,nz][tx,ty,tz]
+	let mut rest = vertices_line.as_str();
+	let mut vertices = Vec::with_capacity(3 * face_count as usize);
+	while let Some(pos) = next_triple(&mut rest) {
+		let (Some(norm), Some(tex)) = (next_triple(&mut rest), next_triple(&mut rest)) else {
+			break;
+		};
+		let parse = |pos, norm, tex| -> Result<Vertex1, std::num::ParseFloatError> {
 			Ok(Vertex1 {
-				pos: parse_triple_float(px, py, pz)?,
-				norm: parse_triple_float(nx, ny, nz)?,
-				tex: parse_triple_float(tx, ty, tz)?,
+				pos: pos?,
+				norm: norm?,
+				tex: tex?,
 			})
-		})
-		.collect::<Result<Vec<Vertex1>, _>>()
-		.map_err(Error1::ParseFloatError)?;
+		};
+		vertices.push(parse(pos, norm, tex).map_err(Error1::ParseFloatError)?);
+	}
 
 	// assert vertex count matches header
 	if 3 * (face_count as usize) != vertices.len() {

@@ -4,7 +4,11 @@
 
 ### Changed
 
+- Mesh v1 is parsed without a regex, about 45x faster on large files
+
 ### Removed
+
+- `regex` dependency
 
 ## [0.8.1] - Oct 8th 2026
 
