@@ -6,7 +6,7 @@
 
 ### Removed
 
-- Regex dependency (#22)
+- Regex dependency dropped (#22)
 
 ## [0.8.1] - Oct 8th 2026
 
